@@ -257,32 +257,76 @@ export default function Science() {
             Notre <span className="font-semibold">approche</span>
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="card bg-gradient-to-br from-white to-navy-50/20">
-              <h3 className="text-xl font-bold text-navy-dark mb-3">Personnalisation scientifique</h3>
-              <p className="text-navy leading-relaxed">
-                Programmes adaptés à vos capacités et objectifs selon les recommandations scientifiques les plus récentes.
-              </p>
+            <div className="card bg-gradient-to-br from-white to-navy-50/20 overflow-hidden p-0 group">
+              <div className="relative h-48 overflow-hidden">
+                <Image
+                  src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&q=80"
+                  alt="Personnalisation scientifique"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+              </div>
+              <div className="p-6 pt-2">
+                <h3 className="text-xl font-bold text-navy-dark mb-3">Personnalisation scientifique</h3>
+                <p className="text-navy leading-relaxed">
+                  Programmes adaptés à vos capacités et objectifs selon les recommandations scientifiques les plus récentes.
+                </p>
+              </div>
             </div>
 
-            <div className="card bg-gradient-to-br from-white to-bordeaux-50/20">
-              <h3 className="text-xl font-bold text-navy-dark mb-3">Progression mesurable</h3>
-              <p className="text-navy leading-relaxed">
-                Indicateurs précis pour suivre vos progrès en force, endurance, équilibre et cognition.
-              </p>
+            <div className="card bg-gradient-to-br from-white to-bordeaux-50/20 overflow-hidden p-0 group">
+              <div className="relative h-48 overflow-hidden">
+                <Image
+                  src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80"
+                  alt="Progression mesurable"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+              </div>
+              <div className="p-6 pt-2">
+                <h3 className="text-xl font-bold text-navy-dark mb-3">Progression mesurable</h3>
+                <p className="text-navy leading-relaxed">
+                  Indicateurs précis pour suivre vos progrès en force, endurance, équilibre et cognition.
+                </p>
+              </div>
             </div>
 
-            <div className="card bg-gradient-to-br from-white to-gold-50/30">
-              <h3 className="text-xl font-bold text-navy-dark mb-3">Approche holistique</h3>
-              <p className="text-navy leading-relaxed">
-                Intégration du physique, du cognitif et du social pour maximiser les bénéfices santé.
-              </p>
+            <div className="card bg-gradient-to-br from-white to-gold-50/30 overflow-hidden p-0 group">
+              <div className="relative h-48 overflow-hidden">
+                <Image
+                  src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&q=80"
+                  alt="Approche holistique"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+              </div>
+              <div className="p-6 pt-2">
+                <h3 className="text-xl font-bold text-navy-dark mb-3">Approche holistique</h3>
+                <p className="text-navy leading-relaxed">
+                  Intégration du physique, du cognitif et du social pour maximiser les bénéfices santé.
+                </p>
+              </div>
             </div>
 
-            <div className="card bg-gradient-to-br from-white to-beige-200/30">
-              <h3 className="text-xl font-bold text-navy-dark mb-3">Sécurité optimale</h3>
-              <p className="text-navy leading-relaxed">
-                Exercices conçus pour minimiser les risques tout en maximisant les bénéfices.
-              </p>
+            <div className="card bg-gradient-to-br from-white to-beige-200/30 overflow-hidden p-0 group">
+              <div className="relative h-48 overflow-hidden">
+                <Image
+                  src="https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=600&q=80"
+                  alt="Sécurité optimale"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+              </div>
+              <div className="p-6 pt-2">
+                <h3 className="text-xl font-bold text-navy-dark mb-3">Sécurité optimale</h3>
+                <p className="text-navy leading-relaxed">
+                  Exercices conçus pour minimiser les risques tout en maximisant les bénéfices.
+                </p>
+              </div>
             </div>
           </div>
         </div>
