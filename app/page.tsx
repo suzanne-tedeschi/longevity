@@ -35,8 +35,18 @@ export default function Home() {
       <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
         {/* Rotating golden gradient background */}
         <div className="absolute inset-0 -z-10 overflow-hidden bg-beige-50">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vw] h-[150vw] animate-rotate-gradient" style={{
-            background: 'conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(212, 175, 55, 0.15) 60deg, rgba(212, 175, 55, 0.25) 120deg, rgba(184, 148, 31, 0.2) 180deg, rgba(212, 175, 55, 0.15) 240deg, transparent 300deg, transparent 360deg)'
+          {/* Primary large rotating gradient */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160vw] h-[160vw] animate-rotate-gradient" style={{
+            background: 'conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(212, 175, 55, 0.2) 40deg, rgba(212, 175, 55, 0.35) 90deg, rgba(184, 148, 31, 0.25) 140deg, transparent 200deg, rgba(212, 175, 55, 0.15) 260deg, rgba(184, 148, 31, 0.3) 310deg, transparent 360deg)'
+          }}></div>
+          {/* Secondary counter-rotating gradient */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[120vw]" style={{
+            background: 'conic-gradient(from 180deg at 50% 50%, transparent 0deg, rgba(107, 39, 55, 0.08) 60deg, rgba(212, 175, 55, 0.18) 120deg, transparent 180deg, rgba(107, 39, 55, 0.06) 240deg, rgba(212, 175, 55, 0.12) 300deg, transparent 360deg)',
+            animation: 'rotateGradient 15s linear infinite reverse'
+          }}></div>
+          {/* Radial warm glow at center */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] rounded-full" style={{
+            background: 'radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, rgba(212, 175, 55, 0.05) 40%, transparent 70%)'
           }}></div>
         </div>
         
@@ -66,7 +76,7 @@ export default function Home() {
               </div>
               <h3 className="text-2xl font-bold text-navy-dark mb-4 transition-colors">Stimulation cérébrale</h3>
               <p className="text-navy leading-relaxed">
-                Des exercices conçus scientifiquement pour maintenir votre vivacité d'esprit et vos capacités cognitives au plus haut niveau.
+                Des exercices conçus scientifiquement pour maintenir votre vivacité d&apos;esprit et vos capacités cognitives au plus haut niveau.
               </p>
               <div className="mt-6 h-0.5 w-0 group-hover:w-full bg-gold transition-all duration-500 rounded-full"></div>
             </div>
@@ -90,7 +100,7 @@ export default function Home() {
               </div>
               <h3 className="text-2xl font-bold text-navy-dark mb-4 transition-colors">Lien social</h3>
               <p className="text-navy leading-relaxed">
-                Rejoignez une communauté engagée et bénéficiez d'un accompagnement personnalisé qui vous motive au quotidien.
+                Rejoignez une communauté engagée et bénéficiez d&apos;un accompagnement personnalisé qui vous motive au quotidien.
               </p>
               <div className="mt-6 h-0.5 w-0 group-hover:w-full bg-gold transition-all duration-500 rounded-full"></div>
             </div>
@@ -156,17 +166,75 @@ export default function Home() {
                 <div className="relative z-10">
                   <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center mb-6">
                     <svg className="w-8 h-8 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                   </div>
-                  <h3 className="text-3xl font-bold mb-4">Une expérience premium</h3>
-                  <p className="text-lg leading-relaxed mb-6 text-white/90">
-                    Interface élégante et intuitive, conçue pour vous offrir une expérience simple et agréable, sans compromis sur la qualité.
-                  </p>
-                  <div className="border-t border-white/10 pt-6 mt-6">
+                  <h3 className="text-3xl font-bold mb-6">Votre progression</h3>
+                  
+                  {/* Progression Chart */}
+                  <div className="mb-6">
+                    <svg viewBox="0 0 400 180" className="w-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      {/* Grid lines */}
+                      <line x1="40" y1="20" x2="40" y2="150" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
+                      <line x1="40" y1="150" x2="380" y2="150" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
+                      <line x1="40" y1="110" x2="380" y2="110" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4"/>
+                      <line x1="40" y1="70" x2="380" y2="70" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4"/>
+                      <line x1="40" y1="30" x2="380" y2="30" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4"/>
+                      
+                      {/* Y-axis labels */}
+                      <text x="30" y="154" fill="rgba(255,255,255,0.4)" fontSize="10" textAnchor="end">0</text>
+                      <text x="30" y="114" fill="rgba(255,255,255,0.4)" fontSize="10" textAnchor="end">25</text>
+                      <text x="30" y="74" fill="rgba(255,255,255,0.4)" fontSize="10" textAnchor="end">50</text>
+                      <text x="30" y="34" fill="rgba(255,255,255,0.4)" fontSize="10" textAnchor="end">75</text>
+                      
+                      {/* X-axis labels */}
+                      <text x="60" y="168" fill="rgba(255,255,255,0.4)" fontSize="10" textAnchor="middle">S1</text>
+                      <text x="120" y="168" fill="rgba(255,255,255,0.4)" fontSize="10" textAnchor="middle">S4</text>
+                      <text x="200" y="168" fill="rgba(255,255,255,0.4)" fontSize="10" textAnchor="middle">S8</text>
+                      <text x="280" y="168" fill="rgba(255,255,255,0.4)" fontSize="10" textAnchor="middle">S12</text>
+                      <text x="360" y="168" fill="rgba(255,255,255,0.4)" fontSize="10" textAnchor="middle">S16</text>
+                      
+                      {/* Gradient fill under curve */}
+                      <defs>
+                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.3"/>
+                          <stop offset="100%" stopColor="#D4AF37" stopOpacity="0"/>
+                        </linearGradient>
+                      </defs>
+                      <path d="M60 140 Q90 135 120 120 Q160 100 200 85 Q240 70 280 52 Q320 38 360 30 L360 150 L60 150 Z" fill="url(#chartGradient)"/>
+                      
+                      {/* Main progression curve */}
+                      <path d="M60 140 Q90 135 120 120 Q160 100 200 85 Q240 70 280 52 Q320 38 360 30" stroke="#D4AF37" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+                      
+                      {/* Data points */}
+                      <circle cx="60" cy="140" r="4" fill="#D4AF37"/>
+                      <circle cx="120" cy="120" r="4" fill="#D4AF37"/>
+                      <circle cx="200" cy="85" r="4" fill="#D4AF37"/>
+                      <circle cx="280" cy="52" r="4" fill="#D4AF37"/>
+                      <circle cx="360" cy="30" r="5" fill="#D4AF37" stroke="rgba(212,175,55,0.3)" strokeWidth="8"/>
+                    </svg>
+                  </div>
+                  
+                  {/* Stats row */}
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gold">+42%</div>
+                      <div className="text-xs text-white/50 mt-1">Force</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gold">+38%</div>
+                      <div className="text-xs text-white/50 mt-1">Équilibre</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gold">+55%</div>
+                      <div className="text-xs text-white/50 mt-1">Cognition</div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-white/10 pt-6">
                     <p className="text-gold-light font-medium flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-gold"></span>
-                      Simplicité et excellence au service de votre bien-être
+                      Résultats moyens après 16 semaines de programme
                     </p>
                   </div>
                 </div>
@@ -230,7 +298,7 @@ export default function Home() {
               <div className="card border-2 border-gold">
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold text-navy-dark mb-2">Premium</h3>
-                  <p className="text-navy/70">L'accompagnement complet</p>
+                  <p className="text-navy/70">L&apos;accompagnement complet</p>
                 </div>
                 <div className="mb-8">
                   <div className="flex items-baseline gap-2">
@@ -272,7 +340,7 @@ export default function Home() {
             <div className="card">
               <div className="mb-6">
                 <h3 className="text-2xl font-bold text-navy-dark mb-2">Excellence</h3>
-                <p className="text-navy/70">L'expérience sur mesure</p>
+                <p className="text-navy/70">L&apos;expérience sur mesure</p>
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline gap-2">
@@ -311,7 +379,7 @@ export default function Home() {
           </div>
           
           <p className="text-center text-navy/60 mt-12">
-            Tous les abonnements incluent 14 jours d'essai gratuit • Sans engagement
+            Tous les abonnements incluent 14 jours d&apos;essai gratuit • Sans engagement
           </p>
         </div>
       </section>
@@ -356,7 +424,7 @@ export default function Home() {
             Prêt à transformer votre quotidien ?
           </h2>
           <p className="text-xl mb-12 text-white/90 leading-relaxed">
-            Rejoignez EnTrain aujourd'hui et commencez votre parcours vers une vie plus longue et plus épanouie.
+            Rejoignez EnTrain aujourd&apos;hui et commencez votre parcours vers une vie plus longue et plus épanouie.
           </p>
           <button className="relative bg-gold text-navy-dark px-12 py-5 rounded-xl font-bold text-xl hover:bg-gold-light shadow-2xl hover:shadow-gold/50 transition-all duration-300 hover:scale-105 active:scale-100 overflow-hidden group">
             <span className="relative z-10">Commencer gratuitement</span>

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useState, useRef } from 'react'
 
 function useCountUp(end: number, duration: number = 2000) {
@@ -57,30 +58,25 @@ function Stats() {
   const percent = useCountUp(100, 2000)
 
   return (
-    <div>
-      <h2 className="text-4xl md:text-5xl font-light text-navy-dark mb-8">
-        Validé par la <span className="gold-accent font-semibold">recherche</span>
-      </h2>
-      <div className="card bg-white/60 backdrop-blur-sm border-2 border-gold/20">
-        <div className="space-y-8">
-          <div className="text-center" ref={studies.ref}>
-            <div className="text-6xl md:text-7xl font-bold text-navy-dark mb-2">
-              {studies.count}+
-            </div>
-            <p className="text-xl text-navy">Études scientifiques analysées</p>
+    <div className="card bg-white/60 backdrop-blur-sm border-2 border-gold/20">
+      <div className="grid grid-cols-3 gap-4">
+        <div className="text-center" ref={studies.ref}>
+          <div className="text-4xl md:text-5xl font-bold text-navy-dark mb-1">
+            {studies.count}+
           </div>
-          <div className="text-center" ref={years.ref}>
-            <div className="text-6xl md:text-7xl font-bold text-bordeaux mb-2">
-              {years.count}+
-            </div>
-            <p className="text-xl text-navy">Années de recherche</p>
+          <p className="text-sm text-navy">Études analysées</p>
+        </div>
+        <div className="text-center" ref={years.ref}>
+          <div className="text-4xl md:text-5xl font-bold text-bordeaux mb-1">
+            {years.count}+
           </div>
-          <div className="text-center" ref={percent.ref}>
-            <div className="text-6xl md:text-7xl font-bold gradient-text mb-2">
-              {percent.count}%
-            </div>
-            <p className="text-xl text-navy">Evidence-based</p>
+          <p className="text-sm text-navy">Années de recherche</p>
+        </div>
+        <div className="text-center" ref={percent.ref}>
+          <div className="text-4xl md:text-5xl font-bold gradient-text mb-1">
+            {percent.count}%
           </div>
+          <p className="text-sm text-navy">Evidence-based</p>
         </div>
       </div>
     </div>
@@ -119,9 +115,20 @@ export default function Science() {
 
       {/* Hero */}
       <section className="pt-32 pb-20 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-beige-100 via-beige-50 to-white"></div>
-        <div className="absolute top-20 right-10 w-96 h-96 bg-gold/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 left-10 w-80 h-80 bg-bordeaux/8 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute inset-0 bg-beige-50"></div>
+        {/* Primary rotating gradient */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[140vw] animate-rotate-gradient" style={{
+          background: 'conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(212, 175, 55, 0.15) 50deg, rgba(212, 175, 55, 0.25) 100deg, transparent 160deg, rgba(107, 39, 55, 0.08) 220deg, rgba(212, 175, 55, 0.18) 300deg, transparent 360deg)'
+        }}></div>
+        {/* Counter-rotating subtle gradient */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vw]" style={{
+          background: 'conic-gradient(from 90deg at 50% 50%, transparent 0deg, rgba(107, 39, 55, 0.06) 80deg, rgba(212, 175, 55, 0.12) 160deg, transparent 240deg, rgba(212, 175, 55, 0.08) 320deg, transparent 360deg)',
+          animation: 'rotateGradient 18s linear infinite reverse'
+        }}></div>
+        {/* Center glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full" style={{
+          background: 'radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 60%)'
+        }}></div>
         <div className="max-w-6xl mx-auto text-center relative z-10">
           <h1 className="text-5xl md:text-7xl font-light mb-6 leading-tight text-navy-dark animate-fade-in">
             La <span className="gradient-text font-semibold">science</span> au cœur de notre méthode
@@ -137,22 +144,33 @@ export default function Science() {
         <div className="absolute inset-0 bg-gradient-to-br from-gold-50 via-beige-100 to-bordeaux-50"></div>
         <div className="absolute bottom-10 right-20 w-96 h-96 bg-gold/10 rounded-full blur-3xl animate-pulse-slow"></div>
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Expert Profile */}
-            <div>
-              <h2 className="text-4xl md:text-5xl font-light text-navy-dark mb-8">
-                L'expertise qui fait la <span className="gradient-text font-semibold">différence</span>
-              </h2>
-              <div className="card border-2 border-gold/30">
-                <div className="w-24 h-24 mb-6 rounded-full bg-navy-dark/5 flex items-center justify-center">
-                  <svg className="w-12 h-12 text-navy-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
+          <h2 className="text-4xl md:text-5xl font-light text-navy-dark mb-12 text-center">
+            L&apos;expertise qui fait la <span className="gradient-text font-semibold">différence</span>
+          </h2>
+          <div className="grid lg:grid-cols-5 gap-10 items-stretch">
+            {/* Photo - left column */}
+            <div className="lg:col-span-2">
+              <div className="relative h-full min-h-[400px] rounded-3xl overflow-hidden shadow-2xl group">
+                <Image
+                  src="/images/Vincent.png"
+                  alt="Vincent Foulonneau"
+                  fill
+                  quality={100}
+                  priority
+                  className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                />
+                {/* Bottom gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/80 via-transparent to-transparent"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <p className="text-gold font-semibold text-sm tracking-wider uppercase mb-1">Expert scientifique</p>
+                  <h3 className="text-3xl font-bold text-white">Vincent Foulonneau</h3>
                 </div>
-                <p className="gold-accent font-semibold mb-2">
-                  Expert scientifique
-                </p>
-                <h3 className="text-3xl font-bold text-navy-dark mb-6">Vincent Foulonneau</h3>
+              </div>
+            </div>
+            
+            {/* Bio + Stats - right column */}
+            <div className="lg:col-span-3 flex flex-col gap-8">
+              <div className="card border-2 border-gold/30 flex-1">
                 <div className="space-y-4 text-lg text-navy leading-relaxed">
                   <p>
                     <span className="font-semibold text-navy-dark">Vincent Foulonneau</span> est <span className="gold-accent">physicien et chercheur</span> spécialisé dans les sciences du vieillissement.
@@ -162,10 +180,10 @@ export default function Science() {
                   </p>
                 </div>
               </div>
-            </div>
 
-            {/* Research Stats */}
-            <Stats />
+              {/* Research Stats */}
+              <Stats />
+            </div>
           </div>
         </div>
       </section>
@@ -187,7 +205,7 @@ export default function Science() {
               </div>
               <h3 className="text-2xl font-bold text-navy-dark mb-4 group-hover:text-bordeaux transition-colors">Biologie du vieillissement</h3>
               <p className="text-navy leading-relaxed text-lg">
-                Nos programmes s'appuient sur la compréhension des processus cellulaires et moléculaires du vieillissement pour cibler précisément les mécanismes qui préservent la jeunesse de vos tissus.
+                Nos programmes s&apos;appuient sur la compréhension des processus cellulaires et moléculaires du vieillissement pour cibler précisément les mécanismes qui préservent la jeunesse de vos tissus.
               </p>
             </div>
 
@@ -199,7 +217,7 @@ export default function Science() {
               </div>
               <h3 className="text-2xl font-bold text-navy-dark mb-4 group-hover:text-bordeaux transition-colors">Neuroplasticité</h3>
               <p className="text-navy leading-relaxed text-lg">
-                L'entraînement cognitif intégré à nos séances exploite la capacité du cerveau à se remodeler, maintenant ainsi vos facultés mentales à leur meilleur niveau.
+                L&apos;entraînement cognitif intégré à nos séances exploite la capacité du cerveau à se remodeler, maintenant ainsi vos facultés mentales à leur meilleur niveau.
               </p>
             </div>
 
@@ -209,9 +227,9 @@ export default function Science() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-navy-dark mb-4 group-hover:text-bordeaux transition-colors">Physiologie de l'exercice</h3>
+              <h3 className="text-2xl font-bold text-navy-dark mb-4 group-hover:text-bordeaux transition-colors">Physiologie de l&apos;exercice</h3>
               <p className="text-navy leading-relaxed text-lg">
-                Des protocoles d'entraînement basés sur les données scientifiques optimisent la force, l'équilibre et la mobilité pour préserver votre autonomie.
+                Des protocoles d&apos;entraînement basés sur les données scientifiques optimisent la force, l&apos;équilibre et la mobilité pour préserver votre autonomie.
               </p>
             </div>
 
@@ -223,7 +241,7 @@ export default function Science() {
               </div>
               <h3 className="text-2xl font-bold text-navy-dark mb-4 group-hover:text-bordeaux transition-colors">Prophylaxie</h3>
               <p className="text-navy leading-relaxed text-lg">
-                Une approche préventive globale qui anticipe et contrecarre les effets du vieillissement avant qu'ils ne deviennent limitants.
+                Une approche préventive globale qui anticipe et contrecarre les effets du vieillissement avant qu&apos;ils ne deviennent limitants.
               </p>
             </div>
           </div>
@@ -281,10 +299,10 @@ export default function Science() {
         </div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-4xl md:text-5xl font-light mb-6 text-navy-dark">
-            Prêt à bénéficier d'une approche <span className="font-semibold">scientifique</span> ?
+            Prêt à bénéficier d&apos;une approche <span className="font-semibold">scientifique</span> ?
           </h2>
           <p className="text-xl mb-12 text-navy leading-relaxed">
-            Rejoignez EnTrain et profitez d'un programme conçu par un expert pour maximiser votre longévité en bonne santé.
+            Rejoignez EnTrain et profitez d&apos;un programme conçu par un expert pour maximiser votre longévité en bonne santé.
           </p>
           <Link href="/#contact" className="inline-block relative bg-gradient-to-br from-bordeaux to-bordeaux-dark text-white px-12 py-5 rounded-xl font-bold text-xl hover:shadow-2xl shadow-lg transition-all duration-300 hover:scale-105 active:scale-100 overflow-hidden group">
             <span className="relative z-10">Commencer mon parcours</span>
