@@ -260,7 +260,7 @@ export default function Science() {
             <div className="card bg-gradient-to-br from-white to-navy-50/20 overflow-hidden p-0 group">
               <div className="relative h-48 overflow-hidden">
                 <Image
-                  src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&q=80"
+                  src="https://plus.unsplash.com/premium_photo-1661758890104-b1047cca7206?w=600&q=80"
                   alt="Personnalisation scientifique"
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
@@ -314,7 +314,7 @@ export default function Science() {
             <div className="card bg-gradient-to-br from-white to-beige-200/30 overflow-hidden p-0 group">
               <div className="relative h-48 overflow-hidden">
                 <Image
-                  src="https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=600&q=80"
+                  src="https://images.unsplash.com/photo-1517438984742-1262db08379e?w=600&q=80"
                   alt="Sécurité optimale"
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
