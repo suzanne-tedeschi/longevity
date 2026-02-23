@@ -1,193 +1,257 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
-import { allSections, TestSection, MobilityTest, standard2026Criteria } from '@/lib/bilan-mobilite-data'
+import Link from 'next/link'
+import {
+  allSections,
+  totalMaxScore,
+  standard2026Criteria,
+  type TestSection,
+  type MobilityTest,
+  type SectionIcon,
+} from '@/lib/bilan-mobilite-data'
 
-// ─── Types ───
-type Scores = Record<string, number>
-type Phase = 'welcome' | 'testing' | 'results'
+/* ═══════════════════════════════════════════════════════
+   SVG ICON COMPONENTS — Premium line icons
+   ═══════════════════════════════════════════════════════ */
 
-// ─── Welcome Screen ───
-function WelcomeScreen({ onStart }: { onStart: () => void }) {
+function FlexibilityIcon({ className = 'w-6 h-6' }: { className?: string }) {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-beige-50">
-      <div className="max-w-2xl w-full text-center animate-fade-in">
-        {/* Logo */}
-        <div className="mb-8">
-          <span className="text-3xl font-bold">
-            <span className="text-navy-dark">En</span>
-            <span className="gradient-text">Train</span>
-          </span>
-        </div>
-
-        {/* Hero */}
-        <div className="text-7xl mb-6">🏃‍♂️</div>
-        <h1 className="text-4xl md:text-5xl font-bold text-navy-dark mb-4 leading-tight">
-          Bilan de <span className="gradient-text">Mobilité</span>
-        </h1>
-        <p className="text-lg text-navy mb-8 max-w-lg mx-auto leading-relaxed">
-          Évaluez votre condition physique en <strong>5 catégories</strong> grâce à des tests simples réalisables chez vous.
-          Ce bilan prend environ <strong>30-45 minutes</strong>.
-        </p>
-
-        {/* What you'll test */}
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-10">
-          {allSections.map((section) => (
-            <div
-              key={section.id}
-              className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-gold/10 shadow-sm"
-            >
-              <div className="text-2xl mb-1">{section.icon}</div>
-              <div className="text-sm font-semibold text-navy-dark">{section.title}</div>
-              <div className="text-xs text-navy/60">{section.tests.length} tests</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Tips */}
-        <div className="bg-white/60 rounded-2xl p-6 mb-8 border border-gold/10 text-left">
-          <h3 className="font-semibold text-navy-dark mb-3 flex items-center gap-2">
-            <span>💡</span> Avant de commencer
-          </h3>
-          <ul className="space-y-2 text-sm text-navy">
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5">✅</span>
-              <span>Portez des vêtements confortables permettant de bouger librement</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5">✅</span>
-              <span>Prévoyez un espace dégagé d&apos;environ 2 × 2 mètres</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5">✅</span>
-              <span>Ayez un chronomètre (votre téléphone fera l&apos;affaire)</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5">✅</span>
-              <span>Un mur libre, une chaise stable, un élastique si possible</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5">⚠️</span>
-              <span><strong>Arrêtez immédiatement</strong> tout exercice en cas de douleur aiguë</span>
-            </li>
-          </ul>
-        </div>
-
-        <button
-          onClick={onStart}
-          className="btn-secondary text-lg px-12 py-4 rounded-2xl"
-        >
-          Commencer le bilan →
-        </button>
-      </div>
-    </div>
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2C12 2 8 6 8 10c0 2.21 1.79 4 4 4s4-1.79 4-4c0-4-4-8-4-8z" />
+      <path d="M12 14v8" />
+      <path d="M9 18h6" />
+    </svg>
   )
 }
 
-// ─── Progress Bar ───
-function ProgressBar({
-  currentSection,
-  currentTest,
-  totalSections,
-  totalTests,
-  overallProgress,
-}: {
-  currentSection: number
-  currentTest: number
-  totalSections: number
-  totalTests: number
-  overallProgress: number
-}) {
+function MovementIcon({ className = 'w-6 h-6' }: { className?: string }) {
   return (
-    <div className="w-full">
-      {/* Section dots */}
-      <div className="flex items-center justify-between mb-3 px-2">
-        {allSections.map((section, i) => (
-          <div key={section.id} className="flex items-center">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all duration-300 ${
-                i < currentSection
-                  ? 'bg-emerald-500 text-white'
-                  : i === currentSection
-                  ? 'bg-bordeaux text-white scale-110 shadow-lg'
-                  : 'bg-navy-dark/10 text-navy/40'
-              }`}
-            >
-              {i < currentSection ? '✓' : section.icon}
-            </div>
-            {i < totalSections - 1 && (
-              <div
-                className={`h-0.5 w-full min-w-[20px] md:min-w-[40px] mx-1 transition-all duration-500 ${
-                  i < currentSection ? 'bg-emerald-500' : 'bg-navy-dark/10'
-                }`}
-              />
-            )}
-          </div>
-        ))}
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="4" r="2" />
+      <path d="M7 21l3-9" />
+      <path d="M17 21l-3-9" />
+      <path d="M10 12l-3-3 2-4" />
+      <path d="M14 12l3-3-2-4" />
+    </svg>
+  )
+}
+
+function BalanceIcon({ className = 'w-6 h-6' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2v4" />
+      <path d="M12 6l8 4-2 6H6l-2-6 8-4z" />
+      <path d="M12 16v6" />
+      <path d="M8 22h8" />
+    </svg>
+  )
+}
+
+function CoreIcon({ className = 'w-6 h-6' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 8v8" />
+      <path d="M8 12h8" />
+    </svg>
+  )
+}
+
+function StrengthIcon({ className = 'w-6 h-6' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6.5 6.5l11 11" />
+      <path d="M3 10l1-1 3 3" />
+      <path d="M14 3l1-1 4 4-1 1" />
+      <path d="M21 14l-1 1-3-3" />
+      <path d="M10 21l-1 1-4-4 1-1" />
+    </svg>
+  )
+}
+
+function ChevronLeft({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  )
+}
+
+function ChevronRight({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  )
+}
+
+function CheckCircle({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  )
+}
+
+function InfoIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  )
+}
+
+function ClipboardIcon({ className = 'w-6 h-6' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+      <rect x="9" y="3" width="6" height="4" rx="1" />
+      <path d="M9 14l2 2 4-4" />
+    </svg>
+  )
+}
+
+function TrophyIcon({ className = 'w-6 h-6' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 9H4a2 2 0 01-2-2V5a2 2 0 012-2h2" />
+      <path d="M18 9h2a2 2 0 002-2V5a2 2 0 00-2-2h-2" />
+      <path d="M6 3h12v6a6 6 0 01-12 0V3z" />
+      <path d="M12 15v4" />
+      <path d="M8 21h8" />
+    </svg>
+  )
+}
+
+function renderSectionIcon(icon: SectionIcon, className = 'w-6 h-6') {
+  switch (icon) {
+    case 'flexibility': return <FlexibilityIcon className={className} />
+    case 'movement':    return <MovementIcon className={className} />
+    case 'balance':     return <BalanceIcon className={className} />
+    case 'core':        return <CoreIcon className={className} />
+    case 'strength':    return <StrengthIcon className={className} />
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   SCORE COLOR HELPERS
+   ═══════════════════════════════════════════════════════ */
+const scoreColors: Record<number, { bg: string; border: string; text: string; ring: string }> = {
+  0: { bg: 'bg-red-50',    border: 'border-red-200',    text: 'text-red-700',    ring: 'ring-red-300' },
+  1: { bg: 'bg-amber-50',  border: 'border-amber-200',  text: 'text-amber-700',  ring: 'ring-amber-300' },
+  2: { bg: 'bg-sky-50',    border: 'border-sky-200',    text: 'text-sky-700',    ring: 'ring-sky-300' },
+  3: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', ring: 'ring-emerald-300' },
+}
+
+function getOverallLabel(pct: number) {
+  if (pct >= 80) return { label: 'Excellent', color: 'text-emerald-600', bar: 'bg-emerald-500' }
+  if (pct >= 60) return { label: 'Bon', color: 'text-sky-600', bar: 'bg-sky-500' }
+  if (pct >= 40) return { label: 'Moyen', color: 'text-amber-600', bar: 'bg-amber-500' }
+  return { label: 'À travailler', color: 'text-red-600', bar: 'bg-red-500' }
+}
+
+/* ═══════════════════════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════════════════════ */
+function ProgressBar({
+  current,
+  total,
+  sectionTitle,
+}: {
+  current: number
+  total: number
+  sectionTitle: string
+}) {
+  const pct = Math.round((current / total) * 100)
+  return (
+    <div className="w-full mb-8">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-medium tracking-widest uppercase text-navy/60">
+          {sectionTitle}
+        </span>
+        <span className="text-xs tabular-nums text-navy/50">
+          {current}/{total}
+        </span>
       </div>
-      {/* Overall bar */}
-      <div className="w-full bg-navy-dark/5 rounded-full h-2 overflow-hidden">
+      <div className="h-1 w-full bg-beige-300 rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-bordeaux to-gold transition-all duration-500 ease-out"
-          style={{ width: `${overallProgress}%` }}
+          className="h-full rounded-full bg-gradient-to-r from-bordeaux to-gold transition-all duration-700 ease-out"
+          style={{ width: `${pct}%` }}
         />
       </div>
     </div>
   )
 }
 
-// ─── Score Button ───
+/* ═══════════════════════════════════════════════════════
+   SCORE BUTTON
+   ═══════════════════════════════════════════════════════ */
 function ScoreButton({
-  option,
+  value,
+  label,
+  description,
   selected,
   onSelect,
 }: {
-  option: { value: number; label: string; description: string; emoji: string }
+  value: number
+  label: string
+  description: string
   selected: boolean
   onSelect: () => void
 }) {
-  const bgColors = [
-    'border-red-200 hover:border-red-400 hover:bg-red-50',
-    'border-orange-200 hover:border-orange-400 hover:bg-orange-50',
-    'border-amber-200 hover:border-amber-400 hover:bg-amber-50',
-    'border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50',
-  ]
-  const selectedColors = [
-    'border-red-500 bg-red-50 ring-2 ring-red-200',
-    'border-orange-500 bg-orange-50 ring-2 ring-orange-200',
-    'border-amber-500 bg-amber-50 ring-2 ring-amber-200',
-    'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200',
-  ]
-
+  const colors = scoreColors[value] || scoreColors[0]
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 ${
-        selected ? selectedColors[option.value] : `bg-white/80 ${bgColors[option.value]}`
-      }`}
+      className={`
+        group relative w-full text-left rounded-xl border-2 p-4
+        transition-all duration-300 ease-out
+        ${selected
+          ? `${colors.bg} ${colors.border} ring-2 ${colors.ring} shadow-md`
+          : 'border-beige-300 bg-white hover:border-navy/20 hover:shadow-sm'
+        }
+      `}
     >
-      <div className="flex items-center gap-3">
-        <span className="text-2xl">{option.emoji}</span>
+      <div className="flex items-start gap-3">
+        {/* Score indicator */}
+        <div
+          className={`
+            flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold
+            transition-all duration-300
+            ${selected
+              ? `${colors.bg} ${colors.text} ${colors.border} border`
+              : 'bg-beige-200 text-navy/40 border border-beige-300'
+            }
+          `}
+        >
+          {value}
+        </div>
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-navy-dark flex items-center gap-2">
-            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white ${
-              option.value === 0 ? 'bg-red-500' : option.value === 1 ? 'bg-orange-500' : option.value === 2 ? 'bg-amber-500' : 'bg-emerald-500'
-            }`}>
-              {option.value}
-            </span>
-            {option.label}
-          </div>
-          <p className="text-sm text-navy/70 mt-0.5">{option.description}</p>
+          <p
+            className={`font-semibold text-sm transition-colors duration-300 ${
+              selected ? colors.text : 'text-navy-dark'
+            }`}
+          >
+            {label}
+          </p>
+          <p className="text-xs text-navy/50 mt-0.5 leading-relaxed">{description}</p>
         </div>
         {selected && (
-          <div className="text-emerald-600 text-xl animate-scale-in">✓</div>
+          <CheckCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${colors.text}`} />
         )}
       </div>
     </button>
   )
 }
 
-// ─── Section Intro ───
+/* ═══════════════════════════════════════════════════════
+   SECTION INTRO SCREEN
+   ═══════════════════════════════════════════════════════ */
 function SectionIntro({
   section,
   sectionIndex,
@@ -198,94 +262,123 @@ function SectionIntro({
   onStart: () => void
 }) {
   return (
-    <div className="max-w-xl mx-auto text-center animate-fade-in py-8">
-      <div className="text-6xl mb-4">{section.icon}</div>
-      <div className="text-sm font-medium text-bordeaux mb-2 uppercase tracking-wider">
-        Partie {sectionIndex + 1} / {allSections.length}
+    <div className="animate-fade-in flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
+      {/* Section number pill */}
+      <div className="mb-6 inline-flex items-center gap-2 bg-beige-200 border border-gold/20 rounded-full px-4 py-1.5">
+        <span className="text-xs font-medium tracking-widest uppercase text-navy/50">
+          Section {sectionIndex + 1} / {allSections.length}
+        </span>
       </div>
-      <h2 className="text-3xl md:text-4xl font-bold text-navy-dark mb-2">
+
+      {/* Icon */}
+      <div className="mb-8 w-20 h-20 rounded-2xl bg-gradient-to-br from-bordeaux/10 to-gold/10 border border-bordeaux/15 flex items-center justify-center text-bordeaux">
+        {renderSectionIcon(section.icon, 'w-10 h-10')}
+      </div>
+
+      {/* Title */}
+      <h2 className="text-3xl md:text-4xl font-bold text-navy-dark mb-2 tracking-tight">
         {section.title}
       </h2>
-      <p className="text-lg text-navy/70 mb-6">{section.subtitle}</p>
-      <div className="bg-white/60 rounded-2xl p-6 mb-8 text-left border border-gold/10">
-        <p className="text-navy leading-relaxed">{section.description}</p>
-        <div className="mt-4 flex items-center gap-2 text-sm text-navy/60">
-          <span>📝</span>
-          <span>{section.tests.length} tests · Score max : {section.maxScore} points</span>
+      <p className="text-gold-dark font-medium text-sm tracking-wide uppercase mb-6">
+        {section.subtitle}
+      </p>
+
+      {/* Description */}
+      <p className="max-w-md text-navy/60 leading-relaxed mb-4">
+        {section.description}
+      </p>
+
+      {/* Test count & score */}
+      <div className="flex items-center gap-6 mb-10">
+        <div className="text-center">
+          <p className="text-2xl font-bold text-navy-dark">{section.tests.length}</p>
+          <p className="text-xs text-navy/40 uppercase tracking-wider">Tests</p>
+        </div>
+        <div className="w-px h-8 bg-beige-300" />
+        <div className="text-center">
+          <p className="text-2xl font-bold text-navy-dark">{section.maxScore}</p>
+          <p className="text-xs text-navy/40 uppercase tracking-wider">Points max</p>
         </div>
       </div>
-      <button onClick={onStart} className="btn-primary px-10 py-3 rounded-xl">
-        Commencer cette partie →
+
+      <button onClick={onStart} className="btn-secondary">
+        Commencer cette section
       </button>
     </div>
   )
 }
 
-// ─── Test Card ───
+/* ═══════════════════════════════════════════════════════
+   INDIVIDUAL TEST CARD
+   ═══════════════════════════════════════════════════════ */
 function TestCard({
   test,
   testIndex,
   totalTests,
-  section,
+  sectionTitle,
+  sectionIcon,
   selectedScore,
-  onSelectScore,
+  onScore,
+  onPrev,
   onNext,
-  onPrevious,
-  isFirst,
+  canGoNext,
 }: {
   test: MobilityTest
   testIndex: number
   totalTests: number
-  section: TestSection
+  sectionTitle: string
+  sectionIcon: SectionIcon
   selectedScore: number | undefined
-  onSelectScore: (score: number) => void
+  onScore: (value: number) => void
+  onPrev: () => void
   onNext: () => void
-  onPrevious: () => void
-  isFirst: boolean
+  canGoNext: boolean
 }) {
   return (
-    <div className="max-w-xl mx-auto animate-fade-in">
+    <div className="animate-fade-in max-w-lg mx-auto">
+      <ProgressBar
+        current={testIndex + 1}
+        total={totalTests}
+        sectionTitle={sectionTitle}
+      />
+
       {/* Test header */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-bordeaux">
-            {section.icon} {section.title}
-          </span>
-          <span className="text-sm text-navy/50">
-            Test {testIndex + 1} / {totalTests}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-7 h-7 rounded-lg bg-bordeaux/8 flex items-center justify-center text-bordeaux">
+            {renderSectionIcon(sectionIcon, 'w-4 h-4')}
+          </div>
+          <span className="text-xs font-medium tracking-widest uppercase text-navy/40">
+            Test {testIndex + 1}
           </span>
         </div>
-        <h3 className="text-2xl md:text-3xl font-bold text-navy-dark mb-1">
+        <h3 className="text-2xl font-bold text-navy-dark tracking-tight mb-1">
           {test.name}
         </h3>
-        <p className="text-navy/60 text-sm">{test.description}</p>
+        <p className="text-sm text-gold-dark font-medium">{test.description}</p>
       </div>
 
-      {/* Instructions */}
-      <div className="bg-white/80 rounded-2xl p-5 mb-6 border border-gold/10 shadow-sm">
-        <h4 className="font-semibold text-navy-dark mb-2 flex items-center gap-2">
-          <span>📋</span> Comment faire
-        </h4>
-        <p className="text-navy leading-relaxed">{test.criteria}</p>
+      {/* Criteria */}
+      <div className="bg-beige-50 border border-beige-300 rounded-xl p-4 mb-6">
+        <p className="text-sm text-navy/70 leading-relaxed">{test.criteria}</p>
         {test.tip && (
-          <div className="mt-3 bg-amber-50 rounded-lg p-3 text-sm text-amber-800 flex items-start gap-2">
-            <span className="mt-0.5">💡</span>
-            <span>{test.tip}</span>
+          <div className="flex items-start gap-2 mt-3 pt-3 border-t border-beige-300">
+            <InfoIcon className="w-4 h-4 text-gold-dark flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-navy/50 leading-relaxed">{test.tip}</p>
           </div>
         )}
       </div>
 
-      {/* Scoring options */}
-      <div className="space-y-3 mb-8">
-        <h4 className="font-semibold text-navy-dark text-sm uppercase tracking-wider">
-          Votre score
-        </h4>
+      {/* Score options */}
+      <div className="space-y-2.5 mb-8">
         {test.scoring.map((option) => (
           <ScoreButton
             key={option.value}
-            option={option}
+            value={option.value}
+            label={option.label}
+            description={option.description}
             selected={selectedScore === option.value}
-            onSelect={() => onSelectScore(option.value)}
+            onSelect={() => onScore(option.value)}
           />
         ))}
       </div>
@@ -293,418 +386,479 @@ function TestCard({
       {/* Navigation */}
       <div className="flex items-center justify-between">
         <button
-          onClick={onPrevious}
-          disabled={isFirst}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
-            isFirst
-              ? 'text-navy/30 cursor-not-allowed'
-              : 'text-navy-dark hover:bg-navy-dark/5'
-          }`}
+          onClick={onPrev}
+          className="flex items-center gap-1 text-sm text-navy/50 hover:text-navy-dark transition-colors"
         >
-          ← Précédent
+          <ChevronLeft className="w-4 h-4" />
+          Précédent
         </button>
         <button
           onClick={onNext}
-          disabled={selectedScore === undefined}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all ${
-            selectedScore !== undefined
-              ? 'bg-bordeaux text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5'
-              : 'bg-navy-dark/10 text-navy/30 cursor-not-allowed'
-          }`}
+          disabled={!canGoNext}
+          className={`
+            flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold
+            transition-all duration-300
+            ${canGoNext
+              ? 'bg-navy-dark text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
+              : 'bg-beige-300 text-navy/30 cursor-not-allowed'
+            }
+          `}
         >
-          Suivant →
+          Suivant
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </div>
   )
 }
 
-// ─── Score Gauge ───
-function ScoreGauge({ score, maxScore, label, size = 'md' }: { score: number; maxScore: number; label: string; size?: 'sm' | 'md' | 'lg' }) {
-  const pct = Math.round((score / maxScore) * 100)
-  const radius = size === 'lg' ? 80 : size === 'md' ? 50 : 36
-  const stroke = size === 'lg' ? 10 : size === 'md' ? 7 : 5
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference - (pct / 100) * circumference
-  const color = pct >= 70 ? '#10B981' : pct >= 50 ? '#F59E0B' : '#EF4444'
+/* ═══════════════════════════════════════════════════════
+   SCORE GAUGE — Circular progress ring
+   ═══════════════════════════════════════════════════════ */
+function ScoreGauge({
+  score,
+  maxScore,
+  label,
+  icon,
+  size = 'md',
+}: {
+  score: number
+  maxScore: number
+  label: string
+  icon: SectionIcon
+  size?: 'sm' | 'md'
+}) {
+  const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
+  const { color, bar } = getOverallLabel(pct)
+  const dims = size === 'sm' ? { box: 'w-28 h-28', r: 44, stroke: 5 } : { box: 'w-36 h-36', r: 56, stroke: 6 }
+  const circ = 2 * Math.PI * dims.r
+  const dashOffset = circ - (pct / 100) * circ
 
   return (
     <div className="flex flex-col items-center">
-      <svg width={(radius + stroke) * 2} height={(radius + stroke) * 2} className="transform -rotate-90">
-        <circle
-          cx={radius + stroke}
-          cy={radius + stroke}
-          r={radius}
-          stroke="#e5e7eb"
-          strokeWidth={stroke}
-          fill="none"
-        />
-        <circle
-          cx={radius + stroke}
-          cy={radius + stroke}
-          r={radius}
-          stroke={color}
-          strokeWidth={stroke}
-          fill="none"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className="transition-all duration-1000 ease-out"
-        />
-      </svg>
-      <div className="absolute flex flex-col items-center justify-center" style={{
-        width: (radius + stroke) * 2,
-        height: (radius + stroke) * 2,
-      }}>
-        <span className={`font-bold text-navy-dark ${size === 'lg' ? 'text-3xl' : size === 'md' ? 'text-xl' : 'text-base'}`}>
-          {pct}%
-        </span>
-        {size !== 'sm' && <span className="text-xs text-navy/50">{score}/{maxScore}</span>}
+      <div className={`relative ${dims.box}`}>
+        <svg className="w-full h-full -rotate-90" viewBox={`0 0 ${(dims.r + dims.stroke) * 2} ${(dims.r + dims.stroke) * 2}`}>
+          <circle
+            cx={dims.r + dims.stroke}
+            cy={dims.r + dims.stroke}
+            r={dims.r}
+            fill="none"
+            stroke="#EDE8DF"
+            strokeWidth={dims.stroke}
+          />
+          <circle
+            cx={dims.r + dims.stroke}
+            cy={dims.r + dims.stroke}
+            r={dims.r}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={dims.stroke}
+            strokeDasharray={circ}
+            strokeDashoffset={dashOffset}
+            strokeLinecap="round"
+            className={`${color} transition-all duration-1000 ease-out`}
+            style={{ color: pct >= 80 ? '#10b981' : pct >= 60 ? '#0ea5e9' : pct >= 40 ? '#f59e0b' : '#ef4444' }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className={`text-2xl font-bold ${color}`}>{pct}%</span>
+          <span className="text-[10px] text-navy/40 mt-0.5">{score}/{maxScore}</span>
+        </div>
       </div>
-      <span className={`mt-1 text-navy-dark font-medium ${size === 'sm' ? 'text-xs' : 'text-sm'}`}>{label}</span>
+      <div className="mt-3 flex items-center gap-1.5 text-navy-dark">
+        {renderSectionIcon(icon, 'w-4 h-4')}
+        <span className="text-xs font-semibold tracking-wide">{label}</span>
+      </div>
     </div>
   )
 }
 
-// ─── Results Screen ───
-function ResultsScreen({ scores }: { scores: Scores }) {
-  // Calculate scores per section
-  const sectionScores = allSections.map((section) => {
-    const sectionScore = section.tests.reduce((sum, test) => sum + (scores[test.id] ?? 0), 0)
-    return { section, score: sectionScore }
-  })
-
-  const totalScore = sectionScores.reduce((sum, s) => sum + s.score, 0)
-  const totalMax = allSections.reduce((sum, s) => sum + s.maxScore, 0)
-  const totalPct = Math.round((totalScore / totalMax) * 100)
-
-  // Check STANDARD 2026 eligibility
-  const mobPassiveScore = sectionScores[0].score
-  const mobPassiveMax = sectionScores[0].section.maxScore
-  const mobActiveScore = sectionScores[1].score
-  const mobActiveMax = sectionScores[1].section.maxScore
-  const proprioScore = sectionScores[2].score
-  const proprioMax = sectionScores[2].section.maxScore
-
-  const eligibility = {
-    mobPassive: (mobPassiveScore / mobPassiveMax) >= 0.7,
-    mobActive: (mobActiveScore / mobActiveMax) >= 0.7,
-    proprio: (proprioScore / proprioMax) >= 0.7,
-    birdDog: (scores['gain-1'] ?? 0) >= 2,
-    planche: (scores['gain-3'] ?? 0) >= 2,
-    sidePlank: (scores['gain-4'] ?? 0) >= 2,
-    sitToStand: (scores['prep-1'] ?? 0) >= 2,
-    tug: (scores['prep-4'] ?? 0) >= 2,
-    chairStand: (scores['prep-2'] ?? 0) >= 2,
-    pushUps: (scores['prep-6'] ?? 0) >= 2,
+/* ═══════════════════════════════════════════════════════
+   STANDARD 2026 CHECKER
+   ═══════════════════════════════════════════════════════ */
+function checkStandard2026(scores: Record<string, number>): { passed: boolean; checks: { label: string; met: boolean }[] } {
+  const sectionScore = (sectionId: string) => {
+    const section = allSections.find(s => s.id === sectionId)
+    if (!section) return { score: 0, max: 0 }
+    const score = section.tests.reduce((sum, t) => sum + (scores[t.id] ?? 0), 0)
+    return { score, max: section.maxScore }
   }
 
-  const eligibleCount = Object.values(eligibility).filter(Boolean).length
-  const isEligible = eligibleCount >= 8
+  const mobPassive = sectionScore('mobilite-statique')
+  const mobActive = sectionScore('mobilite-active')
+  const proprio = sectionScore('proprioception')
 
-  // Find weakest areas
-  const weakTests = allSections.flatMap(s => s.tests)
-    .filter(t => (scores[t.id] ?? 0) <= 1)
-    .slice(0, 6)
+  const checks = [
+    { label: standard2026Criteria.mobilitePassive, met: mobPassive.max > 0 && (mobPassive.score / mobPassive.max) >= 0.7 },
+    { label: standard2026Criteria.mobiliteActive, met: mobActive.max > 0 && (mobActive.score / mobActive.max) >= 0.7 },
+    { label: standard2026Criteria.proprioception, met: proprio.max > 0 && (proprio.score / proprio.max) >= 0.7 },
+    { label: standard2026Criteria.birdDog, met: (scores['gain-1'] ?? 0) >= 2 },
+    { label: standard2026Criteria.planche, met: (scores['gain-3'] ?? 0) >= 2 },
+    { label: standard2026Criteria.sidePlank, met: (scores['gain-4'] ?? 0) >= 2 },
+    { label: standard2026Criteria.sitToStand, met: (scores['prep-1'] ?? 0) >= 2 },
+    { label: standard2026Criteria.tug, met: (scores['prep-4'] ?? 0) >= 2 },
+    { label: standard2026Criteria.chairStand, met: (scores['prep-2'] ?? 0) >= 2 },
+    { label: standard2026Criteria.pushUps, met: (scores['prep-6'] ?? 0) >= 2 },
+  ]
 
+  return { passed: checks.every(c => c.met), checks }
+}
+
+/* ═══════════════════════════════════════════════════════
+   WELCOME SCREEN
+   ═══════════════════════════════════════════════════════ */
+function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
-    <div className="min-h-screen bg-beige-50 pb-20">
-      <div className="max-w-3xl mx-auto px-4 pt-10 animate-fade-in">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="text-5xl mb-4">
-            {totalPct >= 70 ? '🎉' : totalPct >= 50 ? '💪' : '🌱'}
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-navy-dark mb-2">
-            Vos résultats
-          </h1>
-          <p className="text-navy/60">
-            Bilan de mobilité & condition physique
-          </p>
-        </div>
+    <div className="animate-fade-in flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
+      {/* Decorative top line */}
+      <div className="w-12 h-px bg-gradient-to-r from-transparent via-gold to-transparent mb-10" />
 
-        {/* Global score card */}
-        <div className="bg-white/80 rounded-3xl p-8 border border-gold/20 shadow-lg mb-8">
-          <div className="flex flex-col items-center">
-            <div className="relative">
-              <ScoreGauge score={totalScore} maxScore={totalMax} label="Score global" size="lg" />
-            </div>
-            <div className="mt-4 text-center">
-              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
-                totalPct >= 70 ? 'bg-emerald-100 text-emerald-700' :
-                totalPct >= 50 ? 'bg-amber-100 text-amber-700' :
-                'bg-red-100 text-red-700'
-              }`}>
-                {totalPct >= 70 ? '🟢 Mobilité fonctionnelle' :
-                 totalPct >= 50 ? '🟡 Améliorations nécessaires' :
-                 '🔴 Travail prioritaire'}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Per-section breakdown */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
-          {sectionScores.map(({ section, score }) => {
-            const pct = Math.round((score / section.maxScore) * 100)
-            return (
-              <div
-                key={section.id}
-                className="bg-white/80 rounded-2xl p-4 border border-gold/10 text-center"
-              >
-                <div className="text-2xl mb-2">{section.icon}</div>
-                <div className="text-2xl font-bold text-navy-dark">{pct}%</div>
-                <div className="text-xs text-navy/50 mb-1">{score}/{section.maxScore}</div>
-                <div className="text-xs font-medium text-navy-dark">{section.title}</div>
-                <div className={`mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden`}>
-                  <div
-                    className={`h-full rounded-full transition-all duration-1000 ${
-                      pct >= 70 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                    }`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* STANDARD 2026 Eligibility */}
-        <div className="bg-white/80 rounded-3xl p-6 border border-gold/20 shadow-sm mb-8">
-          <h3 className="text-lg font-bold text-navy-dark mb-4 flex items-center gap-2">
-            <span>🏆</span> Éligibilité STANDARD 2026
-          </h3>
-          <div className={`text-center p-4 rounded-2xl mb-4 ${
-            isEligible ? 'bg-emerald-50 border border-emerald-200' : 'bg-amber-50 border border-amber-200'
-          }`}>
-            <div className="text-2xl mb-1">{isEligible ? '✅' : '🔄'}</div>
-            <div className={`font-semibold ${isEligible ? 'text-emerald-700' : 'text-amber-700'}`}>
-              {isEligible ? 'Vous êtes éligible !' : `${eligibleCount}/10 critères validés — continuez !`}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-            {Object.entries({
-              'Mobilité passive ≥ 70%': eligibility.mobPassive,
-              'Mobilité active ≥ 70%': eligibility.mobActive,
-              'Proprioception ≥ 70%': eligibility.proprio,
-              'Bird-dog ≥ 2/3': eligibility.birdDog,
-              'Planche ≥ 30 s': eligibility.planche,
-              'Side plank ≥ 30 s/côté': eligibility.sidePlank,
-              '5× Sit-to-Stand ≤ 14 s': eligibility.sitToStand,
-              'TUG ≤ 10 s': eligibility.tug,
-              'Chair stand ≥ 10 reps': eligibility.chairStand,
-              'Push-ups ≥ 8 reps': eligibility.pushUps,
-            }).map(([label, ok]) => (
-              <div key={label} className={`flex items-center gap-2 p-2 rounded-lg ${ok ? 'text-emerald-700' : 'text-navy/50'}`}>
-                <span>{ok ? '✅' : '⬜'}</span>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Weak areas */}
-        {weakTests.length > 0 && (
-          <div className="bg-white/80 rounded-3xl p-6 border border-gold/20 shadow-sm mb-8">
-            <h3 className="text-lg font-bold text-navy-dark mb-4 flex items-center gap-2">
-              <span>🎯</span> Axes d&apos;amélioration prioritaires
-            </h3>
-            <div className="space-y-2">
-              {weakTests.map((test) => {
-                const section = allSections.find(s => s.tests.some(t => t.id === test.id))!
-                const score = scores[test.id] ?? 0
-                return (
-                  <div
-                    key={test.id}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-red-50/50 border border-red-100"
-                  >
-                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold text-white ${
-                      score === 0 ? 'bg-red-500' : 'bg-orange-500'
-                    }`}>
-                      {score}
-                    </span>
-                    <div className="flex-1">
-                      <div className="font-medium text-navy-dark text-sm">{test.name}</div>
-                      <div className="text-xs text-navy/50">{section.icon} {section.title}</div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Detail per section */}
-        {sectionScores.map(({ section, score }) => (
-          <details key={section.id} className="bg-white/80 rounded-2xl border border-gold/10 mb-4 overflow-hidden group">
-            <summary className="p-5 cursor-pointer flex items-center justify-between hover:bg-gold/5 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">{section.icon}</span>
-                <span className="font-semibold text-navy-dark">{section.title}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-navy/60">{score}/{section.maxScore}</span>
-                <svg className="w-4 h-4 text-navy/30 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </summary>
-            <div className="px-5 pb-5 space-y-2">
-              {section.tests.map((test) => {
-                const s = scores[test.id] ?? 0
-                return (
-                  <div key={test.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                    <span className="text-sm text-navy-dark">{test.name}</span>
-                    <div className="flex items-center gap-2">
-                      {[0, 1, 2, 3].map((v) => (
-                        <div
-                          key={v}
-                          className={`w-3 h-3 rounded-full ${
-                            v <= s
-                              ? v === 0 ? 'bg-red-400' : v === 1 ? 'bg-orange-400' : v === 2 ? 'bg-amber-400' : 'bg-emerald-400'
-                              : 'bg-gray-200'
-                          }`}
-                        />
-                      ))}
-                      <span className="ml-1 text-sm font-semibold text-navy-dark w-4 text-right">{s}</span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </details>
-        ))}
-
-        {/* CTA */}
-        <div className="text-center mt-10">
-          <p className="text-sm text-navy/50 mb-4">
-            Ces résultats serviront de base pour personnaliser votre programme EnTrain.
-          </p>
-          <a
-            href="/"
-            className="btn-secondary inline-flex items-center gap-2 px-8 py-3 rounded-xl"
-          >
-            Retour à l&apos;accueil
-          </a>
-        </div>
+      <div className="mb-8 w-16 h-16 rounded-2xl bg-gradient-to-br from-bordeaux/10 to-gold/10 border border-bordeaux/15 flex items-center justify-center text-bordeaux">
+        <ClipboardIcon className="w-8 h-8" />
       </div>
+
+      <h1 className="text-3xl md:text-4xl font-bold text-navy-dark mb-3 tracking-tight">
+        Bilan de Mobilité
+      </h1>
+      <h2 className="text-sm font-medium tracking-widest uppercase text-gold-dark mb-8">
+        Condition physique
+      </h2>
+
+      <p className="max-w-md text-navy/60 leading-relaxed mb-10">
+        Ce bilan évalue votre mobilité, votre équilibre et votre condition physique
+        à travers 43 tests répartis en 5 sections. Il dure environ 30 minutes et
+        constitue la base de votre programme personnalisé.
+      </p>
+
+      {/* Section preview */}
+      <div className="w-full max-w-sm space-y-3 mb-10">
+        {allSections.map((section, i) => (
+          <div
+            key={section.id}
+            className="flex items-center gap-4 bg-white/60 border border-beige-300 rounded-xl px-4 py-3"
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-bordeaux/8 to-gold/8 border border-bordeaux/10 flex items-center justify-center text-bordeaux/70">
+              {renderSectionIcon(section.icon, 'w-5 h-5')}
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-semibold text-navy-dark">{section.title}</p>
+              <p className="text-xs text-navy/40">{section.tests.length} tests</p>
+            </div>
+            <span className="text-xs tabular-nums text-navy/30">{section.maxScore} pts</span>
+          </div>
+        ))}
+      </div>
+
+      <button onClick={onStart} className="btn-secondary">
+        Commencer le bilan
+      </button>
+
+      <p className="mt-6 text-xs text-navy/30 max-w-xs leading-relaxed">
+        Vous pourrez mettre en pause et reprendre à tout moment.
+        Aucun matériel particulier n&apos;est requis.
+      </p>
     </div>
   )
 }
 
-// ═══════════════════════════════════════════
-// MAIN — Wizard Orchestrator
-// ═══════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
+   RESULTS SCREEN
+   ═══════════════════════════════════════════════════════ */
+function ResultsScreen({ scores }: { scores: Record<string, number> }) {
+  const sectionResults = allSections.map((section) => {
+    const score = section.tests.reduce((sum, t) => sum + (scores[t.id] ?? 0), 0)
+    return { section, score }
+  })
+
+  const totalScore = sectionResults.reduce((sum, r) => sum + r.score, 0)
+  const totalPct = Math.round((totalScore / totalMaxScore) * 100)
+  const overall = getOverallLabel(totalPct)
+  const standard = checkStandard2026(scores)
+
+  return (
+    <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="text-center mb-12">
+        <div className="w-12 h-px bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mb-8" />
+        <h2 className="text-3xl md:text-4xl font-bold text-navy-dark tracking-tight mb-2">
+          Vos résultats
+        </h2>
+        <p className="text-sm text-navy/50">Bilan de mobilité et condition physique</p>
+      </div>
+
+      {/* Global score */}
+      <div className="bg-white/80 backdrop-blur-sm border border-gold/15 rounded-2xl p-8 mb-8 text-center">
+        <p className="text-xs font-medium tracking-widest uppercase text-navy/40 mb-4">
+          Score global
+        </p>
+        <div className="flex items-center justify-center gap-1 mb-2">
+          <span className={`text-6xl font-bold ${overall.color}`}>{totalPct}</span>
+          <span className="text-2xl text-navy/30 font-light">%</span>
+        </div>
+        <p className="text-sm text-navy/50 mb-3">
+          {totalScore} / {totalMaxScore} points
+        </p>
+        <span className={`inline-block px-4 py-1 rounded-full text-xs font-semibold tracking-wide ${overall.color} bg-beige-200`}>
+          {overall.label}
+        </span>
+      </div>
+
+      {/* Section gauges */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 mb-10">
+        {sectionResults.map(({ section, score }) => (
+          <ScoreGauge
+            key={section.id}
+            score={score}
+            maxScore={section.maxScore}
+            label={section.title.split(' ').slice(-1)[0]}
+            icon={section.icon}
+            size="sm"
+          />
+        ))}
+      </div>
+
+      {/* Per-section detail */}
+      <div className="space-y-4 mb-10">
+        {sectionResults.map(({ section, score }) => {
+          const pct = Math.round((score / section.maxScore) * 100)
+          const info = getOverallLabel(pct)
+          return (
+            <div
+              key={section.id}
+              className="bg-white/70 border border-beige-300 rounded-xl px-5 py-4"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-bordeaux/8 flex items-center justify-center text-bordeaux/70">
+                    {renderSectionIcon(section.icon, 'w-4 h-4')}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-navy-dark">{section.title}</p>
+                    <p className="text-xs text-navy/40">{section.subtitle}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className={`text-lg font-bold ${info.color}`}>{pct}%</p>
+                  <p className="text-xs text-navy/40">{score}/{section.maxScore}</p>
+                </div>
+              </div>
+              <div className="h-1.5 bg-beige-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${info.bar} transition-all duration-700`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* STANDARD 2026 */}
+      <div className="bg-white/80 backdrop-blur-sm border border-gold/15 rounded-2xl p-6 mb-10">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gold/20 to-bordeaux/10 border border-gold/20 flex items-center justify-center text-gold-dark">
+            <TrophyIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-navy-dark">STANDARD 2026</h3>
+            <p className="text-xs text-navy/40">Critères d&apos;éligibilité</p>
+          </div>
+          <span
+            className={`ml-auto px-3 py-1 rounded-full text-xs font-semibold ${
+              standard.passed
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-amber-50 text-amber-700 border border-amber-200'
+            }`}
+          >
+            {standard.passed ? 'Validé' : 'En cours'}
+          </span>
+        </div>
+
+        <div className="space-y-2">
+          {standard.checks.map((check, i) => (
+            <div
+              key={i}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs ${
+                check.met ? 'bg-emerald-50/50' : 'bg-red-50/50'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  check.met
+                    ? 'bg-emerald-100 text-emerald-600'
+                    : 'bg-red-100 text-red-500'
+                }`}
+              >
+                {check.met ? (
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                )}
+              </div>
+              <span className={`${check.met ? 'text-navy/60' : 'text-navy/80 font-medium'}`}>
+                {check.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
+        <Link
+          href="/"
+          className="btn-primary text-center inline-block"
+        >
+          Retour à l&apos;accueil
+        </Link>
+      </div>
+
+      <div className="w-12 h-px bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mt-12" />
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN ORCHESTRATOR
+   ═══════════════════════════════════════════════════════ */
+type Phase = 'welcome' | 'section-intro' | 'testing' | 'results'
+
 export default function BilanMobilitePage() {
   const [phase, setPhase] = useState<Phase>('welcome')
   const [sectionIndex, setSectionIndex] = useState(0)
-  const [testIndex, setTestIndex] = useState(-1) // -1 = section intro
-  const [scores, setScores] = useState<Scores>({})
+  const [testIndex, setTestIndex] = useState(0)
+  const [scores, setScores] = useState<Record<string, number>>({})
 
   const currentSection = allSections[sectionIndex]
-  const currentTest = testIndex >= 0 ? currentSection?.tests[testIndex] : null
+  const currentTest: MobilityTest | undefined = currentSection?.tests[testIndex]
 
-  // Total progress
-  const totalTests = allSections.reduce((s, sec) => s + sec.tests.length, 0)
-  const completedTests = Object.keys(scores).length
-  const overallProgress = (completedTests / totalTests) * 100
+  // Flat index for global progress
+  const flatIndex = useMemo(() => {
+    let idx = 0
+    for (let s = 0; s < sectionIndex; s++) idx += allSections[s].tests.length
+    return idx + testIndex
+  }, [sectionIndex, testIndex])
 
-  const handleScoreSelect = useCallback((testId: string, score: number) => {
-    setScores((prev) => ({ ...prev, [testId]: score }))
-  }, [])
+  const totalTests = useMemo(
+    () => allSections.reduce((sum, s) => sum + s.tests.length, 0),
+    []
+  )
+
+  const handleScore = useCallback(
+    (value: number) => {
+      if (!currentTest) return
+      setScores((prev) => ({ ...prev, [currentTest.id]: value }))
+    },
+    [currentTest]
+  )
 
   const handleNext = useCallback(() => {
-    if (!currentSection) return
+    if (!currentTest) return
+    if (scores[currentTest.id] === undefined) return
 
-    // If on section intro, go to first test
-    if (testIndex === -1) {
-      setTestIndex(0)
-      return
-    }
-
-    // Move to next test or next section
     if (testIndex < currentSection.tests.length - 1) {
       setTestIndex(testIndex + 1)
     } else if (sectionIndex < allSections.length - 1) {
-      // Next section
       setSectionIndex(sectionIndex + 1)
-      setTestIndex(-1)
+      setTestIndex(0)
+      setPhase('section-intro')
     } else {
-      // All done!
       setPhase('results')
     }
-  }, [testIndex, sectionIndex, currentSection])
+  }, [currentTest, scores, testIndex, currentSection, sectionIndex])
 
-  const handlePrevious = useCallback(() => {
+  const handlePrev = useCallback(() => {
     if (testIndex > 0) {
       setTestIndex(testIndex - 1)
-    } else if (testIndex === 0) {
-      setTestIndex(-1) // back to section intro
     } else if (sectionIndex > 0) {
-      // Back to last test of previous section
       const prevSection = allSections[sectionIndex - 1]
       setSectionIndex(sectionIndex - 1)
       setTestIndex(prevSection.tests.length - 1)
+      setPhase('testing')
+    } else {
+      setPhase('welcome')
     }
   }, [testIndex, sectionIndex])
 
-  const isFirstEver = sectionIndex === 0 && testIndex <= -1
-
-  // ── Render ──
-  if (phase === 'welcome') {
-    return <WelcomeScreen onStart={() => setPhase('testing')} />
-  }
-
-  if (phase === 'results') {
-    return <ResultsScreen scores={scores} />
-  }
-
   return (
-    <div className="min-h-screen bg-beige-50 flex flex-col">
-      {/* Fixed top bar */}
-      <div className="sticky top-0 z-50 bg-beige-50/90 backdrop-blur-md border-b border-gold/10 px-4 py-4">
-        <div className="max-w-xl mx-auto">
-          <ProgressBar
-            currentSection={sectionIndex}
-            currentTest={testIndex}
-            totalSections={allSections.length}
-            totalTests={currentSection?.tests.length ?? 0}
-            overallProgress={overallProgress}
-          />
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-navy/50">
-              {completedTests} / {totalTests} tests complétés
-            </span>
-            <span className="text-xs text-navy/50">
-              {Math.round(overallProgress)}%
-            </span>
+    <div className="min-h-screen bg-beige-100">
+      {/* Top bar */}
+      {phase !== 'welcome' && phase !== 'results' && (
+        <div className="sticky top-0 z-30 bg-beige-100/90 backdrop-blur-md border-b border-beige-300">
+          <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+            <button
+              onClick={() => {
+                if (phase === 'section-intro' && sectionIndex === 0) setPhase('welcome')
+                else if (phase === 'section-intro') {
+                  const prev = allSections[sectionIndex - 1]
+                  setSectionIndex(sectionIndex - 1)
+                  setTestIndex(prev.tests.length - 1)
+                  setPhase('testing')
+                } else handlePrev()
+              }}
+              className="flex items-center gap-1 text-sm text-navy/50 hover:text-navy-dark transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Retour</span>
+            </button>
+
+            {/* Global progress */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs tabular-nums text-navy/40">
+                {flatIndex + (phase === 'testing' ? 1 : 0)}/{totalTests}
+              </span>
+              <div className="w-24 h-1 bg-beige-300 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-bordeaux to-gold transition-all duration-500"
+                  style={{
+                    width: `${Math.round(
+                      ((flatIndex + (phase === 'testing' ? 1 : 0)) / totalTests) * 100
+                    )}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            <Link href="/" className="text-xs text-navy/30 hover:text-navy/60 transition-colors">
+              Quitter
+            </Link>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center px-4 py-8">
-        {testIndex === -1 && currentSection ? (
+      <main className="max-w-2xl mx-auto px-4 py-6">
+        {phase === 'welcome' && <WelcomeScreen onStart={() => setPhase('section-intro')} />}
+
+        {phase === 'section-intro' && currentSection && (
           <SectionIntro
             section={currentSection}
             sectionIndex={sectionIndex}
-            onStart={() => setTestIndex(0)}
+            onStart={() => setPhase('testing')}
           />
-        ) : currentTest ? (
+        )}
+
+        {phase === 'testing' && currentTest && (
           <TestCard
             test={currentTest}
             testIndex={testIndex}
             totalTests={currentSection.tests.length}
-            section={currentSection}
+            sectionTitle={currentSection.title}
+            sectionIcon={currentSection.icon}
             selectedScore={scores[currentTest.id]}
-            onSelectScore={(score) => handleScoreSelect(currentTest.id, score)}
+            onScore={handleScore}
+            onPrev={handlePrev}
             onNext={handleNext}
-            onPrevious={handlePrevious}
-            isFirst={isFirstEver}
+            canGoNext={scores[currentTest.id] !== undefined}
           />
-        ) : null}
-      </div>
+        )}
+
+        {phase === 'results' && <ResultsScreen scores={scores} />}
+      </main>
     </div>
   )
 }
