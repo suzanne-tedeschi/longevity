@@ -24,9 +24,9 @@ export default function Home() {
             <Link href="#contact" className="nav-link">
               Contact
             </Link>
-            <button className="relative bg-gradient-to-br from-bordeaux to-bordeaux-dark text-white px-6 py-2.5 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 active:scale-95">
+            <Link href="/onboarding/bilan-mobilite" className="relative bg-gradient-to-br from-bordeaux to-bordeaux-dark text-white px-6 py-2.5 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 active:scale-95">
               Commencer
-            </button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -417,52 +417,51 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 relative overflow-hidden" id="contact">
+      <section className="py-40 px-6 relative overflow-hidden" id="contact">
         <div className="absolute inset-0 bg-navy-dark"></div>
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-            Prêt à transformer votre quotidien ?
+        
+        {/* Mesh gradient background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full" style={{background: 'radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%)'}}></div>
+          <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full" style={{background: 'radial-gradient(circle, rgba(107,39,55,0.06) 0%, transparent 70%)'}}></div>
+        </div>
+        
+        {/* Grain texture */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")'}}></div>
+        
+        <div className="max-w-2xl mx-auto relative z-10 text-center">
+          <p className="text-gold/60 text-sm font-medium tracking-[0.3em] uppercase mb-10">Commencez maintenant</p>
+          
+          <h2 className="text-5xl md:text-7xl font-extralight text-white/90 leading-[1.1] tracking-tight mb-6">
+            Votre meilleure
           </h2>
-          <p className="text-xl mb-12 text-white/90 leading-relaxed">
-            Rejoignez EnTrain aujourd&apos;hui et commencez votre parcours vers une vie plus longue et plus épanouie.
-          </p>
-          <button className="relative bg-gold text-navy-dark px-12 py-5 rounded-xl font-bold text-xl hover:bg-gold-light shadow-2xl hover:shadow-gold/50 transition-all duration-300 hover:scale-105 active:scale-100 overflow-hidden group">
-            <span className="relative z-10">Commencer gratuitement</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-          </button>
-          <p className="mt-6 text-sm text-white/70 flex items-center justify-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-gold"></span>
-            Sans engagement • Essai gratuit de 14 jours
-          </p>
+          <h2 className="text-5xl md:text-7xl font-extralight text-white/90 leading-[1.1] tracking-tight mb-12">
+            version <span className="italic font-light text-gold/80">commence ici.</span>
+          </h2>
+          
+          <div className="flex flex-col items-center gap-8">
+            <button className="group relative px-12 py-4 bg-white text-navy-dark rounded-full font-medium text-base tracking-wide hover:bg-gold hover:text-navy-dark transition-all duration-500 hover:scale-[1.02]">
+              Essai gratuit — 14 jours
+              <span className="absolute inset-0 rounded-full border border-white/20 group-hover:border-gold/40 transition-colors duration-500"></span>
+            </button>
+            
+            <p className="text-white/20 text-xs tracking-widest">SANS ENGAGEMENT · ANNULATION EN 1 CLIC</p>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 bg-navy-900 text-white/80 border-t border-white/5">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="text-3xl font-bold mb-6">
-            En<span className="text-gold">Train</span>
+      <footer className="py-8 px-6 bg-navy-900 border-t border-white/[0.04]">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="text-sm font-semibold text-white/40 tracking-wide">
+            En<span className="text-gold/60">Train</span>
           </div>
-          <p className="mb-6 text-white/70">
-            Gagnez des années de vie en forme
-          </p>
-          <div className="flex gap-8 justify-center mb-8">
-            <Link href="#" className="relative hover:text-gold transition-all duration-300 group">
-              Mentions légales
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gold group-hover:w-full transition-all duration-300"></span>
-            </Link>
-            <Link href="#" className="relative hover:text-gold transition-all duration-300 group">
-              Confidentialité
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gold group-hover:w-full transition-all duration-300"></span>
-            </Link>
-            <Link href="#" className="relative hover:text-gold transition-all duration-300 group">
-              CGU
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gold group-hover:w-full transition-all duration-300"></span>
-            </Link>
+          <div className="flex gap-6">
+            <Link href="#" className="text-xs text-white/20 hover:text-white/50 transition-colors">Mentions légales</Link>
+            <Link href="#" className="text-xs text-white/20 hover:text-white/50 transition-colors">Confidentialité</Link>
+            <Link href="#" className="text-xs text-white/20 hover:text-white/50 transition-colors">CGU</Link>
           </div>
-          <p className="text-sm text-white/50">
-            © 2026 EnTrain. Tous droits réservés.
-          </p>
+          <p className="text-[10px] text-white/15">© 2026 EnTrain</p>
         </div>
       </footer>
     </div>
