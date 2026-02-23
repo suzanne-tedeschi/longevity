@@ -474,6 +474,128 @@ function ScoreGauge({
 }
 
 /* ═══════════════════════════════════════════════════════
+   SECTION FEEDBACK — Messages contextuels par section
+   ═══════════════════════════════════════════════════════ */
+function getSectionFeedback(sectionId: string, pct: number): { title: string; message: string } {
+  const level = pct >= 80 ? 'high' : pct >= 50 ? 'mid' : 'low'
+
+  const feedback: Record<string, Record<string, { title: string; message: string }>> = {
+    'mobilite-statique': {
+      high: { title: 'Très bonne souplesse', message: 'Vos amplitudes articulaires sont excellentes. Vous avez une bonne base pour progresser en force et en contrôle.' },
+      mid: { title: 'Souplesse correcte', message: 'Quelques zones méritent un travail ciblé. Des routines de mobilité quotidiennes de 10 minutes feront une vraie différence.' },
+      low: { title: 'Mobilité à développer', message: 'Pas d\u2019inquiétude, c\u2019est un point de départ. La mobilité s\u2019améliore vite avec un travail régulier et adapté.' },
+    },
+    'mobilite-active': {
+      high: { title: 'Excellent contrôle actif', message: 'Vous maîtrisez bien vos mouvements dans l\u2019amplitude. C\u2019est un atout majeur pour la prévention des blessures.' },
+      mid: { title: 'Contrôle à renforcer', message: 'Vous avez de la mobilité mais le contrôle dans certaines amplitudes peut progresser. Le renforcement ciblé vous y aidera.' },
+      low: { title: 'Contrôle à travailler', message: 'Le contrôle actif demande de la pratique. Nous allons construire ça progressivement dans votre programme.' },
+    },
+    'proprioception': {
+      high: { title: 'Équilibre remarquable', message: 'Votre proprioception est solide. C\u2019est un facteur clé de prévention des chutes et de longévité fonctionnelle.' },
+      mid: { title: 'Équilibre dans la moyenne', message: 'Quelques exercices simples au quotidien (se brosser les dents sur un pied, par exemple) peuvent faire une grande différence.' },
+      low: { title: 'Équilibre à améliorer', message: 'L\u2019équilibre se travaille très bien à tout âge. Nous intégrerons des exercices progressifs dans votre routine.' },
+    },
+    'gainage': {
+      high: { title: 'Tronc très stable', message: 'Votre gainage est excellent. Un tronc solide protège votre dos et améliore tous vos autres mouvements.' },
+      mid: { title: 'Stabilité correcte', message: 'Votre tronc a une bonne base. Quelques exercices ciblés permettront de consolider votre stabilité.' },
+      low: { title: 'Gainage à renforcer', message: 'Le gainage est fondamental pour protéger votre dos au quotidien. Nous commencerons par des exercices doux et progressifs.' },
+    },
+    'prepa-physique': {
+      high: { title: 'Très bonne condition', message: 'Votre force et votre endurance sont au-dessus de la moyenne. Vous êtes prêt(e) pour un programme ambitieux.' },
+      mid: { title: 'Condition physique correcte', message: 'Vous avez une base solide. Avec un programme adapté, vous pouvez progresser rapidement.' },
+      low: { title: 'Condition à développer', message: 'Chaque petit progrès compte. Votre programme sera adapté à votre niveau actuel pour avancer en toute sécurité.' },
+    },
+  }
+
+  return feedback[sectionId]?.[level] ?? { title: level === 'high' ? 'Très bien' : level === 'mid' ? 'Correct' : 'À travailler', message: '' }
+}
+
+/* ═══════════════════════════════════════════════════════
+   SECTION RESULTS SCREEN — Bilan intermédiaire
+   ═══════════════════════════════════════════════════════ */
+function SectionResultsScreen({
+  section,
+  sectionIndex,
+  scores,
+  onContinue,
+}: {
+  section: TestSection
+  sectionIndex: number
+  scores: Record<string, number>
+  onContinue: () => void
+}) {
+  const sectionScore = section.tests.reduce((sum, t) => sum + (scores[t.id] ?? 0), 0)
+  const pct = Math.round((sectionScore / section.maxScore) * 100)
+  const info = getOverallLabel(pct)
+  const feedback = getSectionFeedback(section.id, pct)
+  const isLast = sectionIndex === allSections.length - 1
+
+  return (
+    <div className="animate-fade-in flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
+      {/* Decorative line */}
+      <div className="w-12 h-px bg-gradient-to-r from-transparent via-gold to-transparent mb-8" />
+
+      {/* Section pill */}
+      <div className="mb-6 inline-flex items-center gap-2 bg-beige-200 border border-gold/20 rounded-full px-4 py-1.5">
+        <span className="text-xs font-medium tracking-widest uppercase text-navy/50">
+          Section {sectionIndex + 1} terminée
+        </span>
+      </div>
+
+      {/* Gauge */}
+      <ScoreGauge
+        score={sectionScore}
+        maxScore={section.maxScore}
+        label={section.title}
+        icon={section.icon}
+        size="md"
+      />
+
+      {/* Feedback */}
+      <div className="mt-8 max-w-sm">
+        <h3 className={`text-xl font-bold mb-2 ${info.color}`}>
+          {feedback.title}
+        </h3>
+        <p className="text-sm text-navy/60 leading-relaxed">
+          {feedback.message}
+        </p>
+      </div>
+
+      {/* Test breakdown */}
+      <div className="w-full max-w-sm mt-8 space-y-1.5">
+        {section.tests.map((test) => {
+          const s = scores[test.id] ?? 0
+          const maxTestScore = Math.max(...test.scoring.map(o => o.value))
+          const testColors = scoreColors[s] || scoreColors[0]
+          return (
+            <div
+              key={test.id}
+              className="flex items-center justify-between bg-white/60 border border-beige-300 rounded-lg px-3 py-2"
+            >
+              <span className="text-xs text-navy/70 truncate mr-2">{test.name}</span>
+              <span className={`text-xs font-bold tabular-nums ${testColors.text}`}>
+                {s}/{maxTestScore}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* CTA */}
+      <button onClick={onContinue} className="btn-secondary mt-10">
+        {isLast ? 'Voir mes résultats' : 'Section suivante'}
+      </button>
+
+      {!isLast && (
+        <p className="mt-4 text-xs text-navy/30">
+          Encore {allSections.length - sectionIndex - 1} section{allSections.length - sectionIndex - 1 > 1 ? 's' : ''} restante{allSections.length - sectionIndex - 1 > 1 ? 's' : ''}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════
    STANDARD 2026 CHECKER
    ═══════════════════════════════════════════════════════ */
 function checkStandard2026(scores: Record<string, number>): { passed: boolean; checks: { label: string; met: boolean }[] } {
@@ -725,7 +847,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
 /* ═══════════════════════════════════════════════════════
    MAIN ORCHESTRATOR
    ═══════════════════════════════════════════════════════ */
-type Phase = 'welcome' | 'section-intro' | 'testing' | 'results'
+type Phase = 'welcome' | 'section-intro' | 'testing' | 'section-results' | 'results'
 
 export default function BilanMobilitePage() {
   const [phase, setPhase] = useState<Phase>('welcome')
@@ -762,12 +884,9 @@ export default function BilanMobilitePage() {
 
     if (testIndex < currentSection.tests.length - 1) {
       setTestIndex(testIndex + 1)
-    } else if (sectionIndex < allSections.length - 1) {
-      setSectionIndex(sectionIndex + 1)
-      setTestIndex(0)
-      setPhase('section-intro')
     } else {
-      setPhase('results')
+      // Dernier test de la section → afficher le bilan intermédiaire
+      setPhase('section-results')
     }
   }, [currentTest, scores, testIndex, currentSection, sectionIndex])
 
@@ -787,7 +906,7 @@ export default function BilanMobilitePage() {
   return (
     <div className="min-h-screen bg-beige-100">
       {/* Top bar */}
-      {phase !== 'welcome' && phase !== 'results' && (
+      {phase !== 'welcome' && phase !== 'results' && phase !== 'section-results' && (
         <div className="sticky top-0 z-30 bg-beige-100/90 backdrop-blur-md border-b border-beige-300">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
             <button
@@ -854,6 +973,23 @@ export default function BilanMobilitePage() {
             onPrev={handlePrev}
             onNext={handleNext}
             canGoNext={scores[currentTest.id] !== undefined}
+          />
+        )}
+
+        {phase === 'section-results' && currentSection && (
+          <SectionResultsScreen
+            section={currentSection}
+            sectionIndex={sectionIndex}
+            scores={scores}
+            onContinue={() => {
+              if (sectionIndex < allSections.length - 1) {
+                setSectionIndex(sectionIndex + 1)
+                setTestIndex(0)
+                setPhase('section-intro')
+              } else {
+                setPhase('results')
+              }
+            }}
           />
         )}
 
