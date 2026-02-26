@@ -83,8 +83,13 @@ export default function WaitlistPage() {
   const [itemsVisible, setItemsVisible] = useState<boolean[]>([false, false, false, false])
   const [formVisible, setFormVisible] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
+  const [rotatingWordIndex, setRotatingWordIndex] = useState(0)
+  const [typedText, setTypedText] = useState('')
+  const [isTyping, setIsTyping] = useState(true)
   const formRef = useRef<HTMLFormElement>(null)
   const formWrapperRef = useRef<HTMLDivElement>(null)
+
+  const rotatingWords = ['en forme.', 'autonome.', 'sans douleur.', 'solide.', 'actif.', 'indépendant.']
 
   useEffect(() => {
     setMounted(true)
@@ -100,6 +105,30 @@ export default function WaitlistPage() {
     ]
     return () => timers.forEach(clearTimeout)
   }, [])
+
+  /* Typewriter effect — reveal only */
+  useEffect(() => {
+    const currentWord = rotatingWords[rotatingWordIndex]
+    let charIndex = 0
+    setTypedText('')
+    setIsTyping(true)
+
+    const typeInterval = setInterval(() => {
+      charIndex++
+      setTypedText(currentWord.slice(0, charIndex))
+      if (charIndex >= currentWord.length) {
+        clearInterval(typeInterval)
+        setIsTyping(false)
+        // Wait, then switch instantly to next word
+        setTimeout(() => {
+          setRotatingWordIndex(prev => (prev + 1) % rotatingWords.length)
+        }, 2500)
+      }
+    }, 70)
+
+    return () => clearInterval(typeInterval)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rotatingWordIndex])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -241,6 +270,29 @@ export default function WaitlistPage() {
           50% { opacity: 1; transform: scale(1) rotate(180deg); }
           100% { opacity: 0; transform: scale(0) rotate(360deg); }
         }
+        @keyframes wordSlideIn {
+          0% { opacity: 0; transform: translateY(100%); filter: blur(4px); }
+          100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        @keyframes wordSlideOut {
+          0% { opacity: 1; transform: translateY(0); filter: blur(0); }
+          100% { opacity: 0; transform: translateY(-100%); filter: blur(4px); }
+        }
+        .rotating-word-enter {
+          animation: wordSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes modalBackdropIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes modalCardIn {
+          from { opacity: 0; transform: translateY(30px) scale(0.96); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes cursorBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
         .input-premium:focus {
           box-shadow: 0 0 0 3px rgba(212,175,55,0.15), 0 0 20px rgba(212,175,55,0.08);
         }
@@ -365,9 +417,17 @@ export default function WaitlistPage() {
                     filter: titleVisible ? 'blur(0)' : 'blur(4px)',
                   }}
                 >
-                  Gagnez des années<br />
-                  de vie{' '}
-                  <span className="font-semibold gradient-text">en forme</span>
+                  Gagnez des années de vie{' '}
+                  <span className="font-semibold gradient-text">
+                    {typedText}
+                    <span
+                      className="inline-block w-[3px] h-[0.85em] bg-current align-middle ml-0.5 rounded-full"
+                      style={{
+                        opacity: isTyping ? 1 : 0,
+                        animation: isTyping ? 'none' : 'cursorBlink 0.8s ease-in-out infinite',
+                      }}
+                    />
+                  </span>
                 </h1>
 
                 <p
@@ -378,7 +438,8 @@ export default function WaitlistPage() {
                     filter: subtitleVisible ? 'blur(0)' : 'blur(3px)',
                   }}
                 >
-                  Le programme d&apos;entraînement personnalisé qui allie science et coaching pro-actif. Fini le manque de régularité.
+                  <span className="font-semibold text-navy-dark">Personnalisé. Scientifique. Encadré.</span><br />
+                  On adapte ton entraînement à ton profil et on t&apos;aide à rester constant, semaine après semaine.
                 </p>
               </div>
 
@@ -387,12 +448,7 @@ export default function WaitlistPage() {
                 {/* CTA Button */}
                 <button
                   type="button"
-                  onClick={() => {
-                    setFormOpen(prev => !prev)
-                    if (!formOpen) {
-                      setTimeout(() => formWrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100)
-                    }
-                  }}
+                  onClick={() => setFormOpen(true)}
                   className="btn-primary btn-shimmer px-12 py-4 text-lg transition-all duration-500"
                   style={{
                     opacity: subtitleVisible ? 1 : 0,
@@ -401,13 +457,6 @@ export default function WaitlistPage() {
                   }}
                 >
                   Rejoindre la liste d&apos;attente
-                  <svg
-                    className="inline-block ml-2 transition-transform duration-400"
-                    style={{ transform: formOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                    width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
                 </button>
 
                 {/* 4 piliers — juste sous le CTA */}
@@ -432,127 +481,6 @@ export default function WaitlistPage() {
                   ))}
                 </div>
 
-                {/* Collapsible form */}
-                <div
-                  ref={formWrapperRef}
-                  className="w-full max-w-lg mx-auto overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]"
-                  style={{
-                    maxHeight: formOpen ? '600px' : '0px',
-                    opacity: formOpen ? 1 : 0,
-                    transform: formOpen ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.98)',
-                  }}
-                >
-                  <form
-                    ref={formRef}
-                    onSubmit={handleSubmit}
-                    className="form-card-glow bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-10 border border-gold/10 relative overflow-hidden"
-                  >
-                    {/* Subtle top gold line */}
-                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
-
-                    <p className="text-navy/50 mb-8 text-sm text-center">
-                      Places limitées — inscription gratuite et sans engagement.
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Prénom */}
-                      <div>
-                        <label htmlFor="firstName" className="block text-sm font-medium text-navy-dark mb-1.5">
-                          Prénom
-                        </label>
-                        <input
-                          id="firstName"
-                          type="text"
-                          required
-                          value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
-                          placeholder="Votre prénom"
-                          className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
-                        />
-                      </div>
-
-                      {/* Nom */}
-                      <div>
-                        <label htmlFor="lastName" className="block text-sm font-medium text-navy-dark mb-1.5">
-                          Nom
-                        </label>
-                        <input
-                          id="lastName"
-                          type="text"
-                          required
-                          value={lastName}
-                          onChange={(e) => setLastName(e.target.value)}
-                          placeholder="Votre nom"
-                          className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 mt-4">
-                      {/* Email */}
-                      <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-navy-dark mb-1.5">
-                          Email
-                        </label>
-                        <input
-                          id="email"
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="votre@email.com"
-                          className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
-                        />
-                      </div>
-
-                      {/* Téléphone */}
-                      <div>
-                        <label htmlFor="phone" className="block text-sm font-medium text-navy-dark mb-1.5">
-                          Téléphone
-                        </label>
-                        <input
-                          id="phone"
-                          type="tel"
-                          required
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          placeholder="06 12 34 56 78"
-                          className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Error message */}
-                    {formState === 'error' && errorMessage && (
-                      <div className="mt-4 p-3 rounded-xl bg-bordeaux-50 border border-bordeaux/20 text-bordeaux text-sm" style={{ animation: 'revealUp 0.3s ease-out' }}>
-                        {errorMessage}
-                      </div>
-                    )}
-
-                    {/* Submit */}
-                    <button
-                      type="submit"
-                      disabled={formState === 'submitting'}
-                      className="btn-primary btn-shimmer w-full mt-8 disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      {formState === 'submitting' ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          Inscription en cours...
-                        </span>
-                      ) : (
-                        "M'inscrire"
-                      )}
-                    </button>
-
-                    <p className="text-xs text-navy/40 mt-4 text-center leading-relaxed">
-                      Vos données restent confidentielles et ne seront jamais partagées.
-                    </p>
-                  </form>
-                </div>
               </div>
 
 
@@ -560,6 +488,101 @@ export default function WaitlistPage() {
           )}
         </div>
       </main>
+
+      {/* ─── Modal overlay ─── */}
+      {formOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ animation: 'modalBackdropIn 0.3s ease-out forwards' }}
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-navy-dark/40 backdrop-blur-sm"
+            onClick={() => setFormOpen(false)}
+          />
+
+          {/* Modal card */}
+          <div
+            ref={formWrapperRef}
+            className="relative w-full max-w-lg"
+            style={{ animation: 'modalCardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards' }}
+          >
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setFormOpen(false)}
+              className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-white/90 border border-gold/15 flex items-center justify-center text-navy/50 hover:text-navy-dark hover:border-gold/30 transition-all duration-300 shadow-lg z-10"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+
+            <form
+              ref={formRef}
+              onSubmit={handleSubmit}
+              className="bg-white/95 backdrop-blur-xl rounded-2xl p-8 md:p-10 border border-gold/15 relative overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.15),0_0_40px_rgba(212,175,55,0.08)]"
+            >
+              {/* Top gold line */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
+
+              <h2 className="text-2xl font-semibold text-navy-dark mb-1 text-center">
+                Rejoignez la liste d&apos;attente
+              </h2>
+              <p className="text-navy/50 mb-8 text-sm text-center">
+                Places limitées — inscription gratuite et sans engagement.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-navy-dark mb-1.5">Prénom</label>
+                  <input id="firstName" type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Votre prénom" className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300" />
+                </div>
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-navy-dark mb-1.5">Nom</label>
+                  <input id="lastName" type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Votre nom" className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-navy-dark mb-1.5">Email</label>
+                  <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="votre@email.com" className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300" />
+                </div>
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-navy-dark mb-1.5">Téléphone</label>
+                  <input id="phone" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="06 12 34 56 78" className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300" />
+                </div>
+              </div>
+
+              {formState === 'error' && errorMessage && (
+                <div className="mt-4 p-3 rounded-xl bg-bordeaux-50 border border-bordeaux/20 text-bordeaux text-sm" style={{ animation: 'revealUp 0.3s ease-out' }}>
+                  {errorMessage}
+                </div>
+              )}
+
+              <button type="submit" disabled={formState === 'submitting'} className="btn-primary btn-shimmer w-full mt-8 disabled:opacity-60 disabled:cursor-not-allowed">
+                {formState === 'submitting' ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Inscription en cours...
+                  </span>
+                ) : (
+                  "M'inscrire"
+                )}
+              </button>
+
+              <p className="text-xs text-navy/40 mt-4 text-center leading-relaxed">
+                Vos données restent confidentielles et ne seront jamais partagées.
+              </p>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="py-8 px-6 text-center">
