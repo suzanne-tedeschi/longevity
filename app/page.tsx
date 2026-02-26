@@ -9,7 +9,7 @@ export default function Home() {
       <nav className="fixed top-0 w-full bg-white/70 backdrop-blur-md z-50 border-b border-gold/20 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold">
-            <span className="text-navy-dark">En</span><span className="gradient-text">Train</span>
+            <span className="text-navy-dark">E</span><span className="gradient-text">vo</span>
           </div>
           <div className="flex gap-8 items-center">
             <Link href="#apropos" className="nav-link">
@@ -394,7 +394,7 @@ export default function Home() {
             Chaque séance est conçue à partir des dernières découvertes en sciences du vieillissement pour vous garantir des résultats optimaux et durables.
           </p>
           <Link href="/science" className="inline-block btn-primary group">
-            Découvrir la science derrière EnTrain
+            Découvrir la science derrière Evo
             <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">→</span>
           </Link>
           
@@ -454,14 +454,14 @@ export default function Home() {
       <footer className="py-8 px-6 bg-navy-900 border-t border-white/[0.04]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-sm font-semibold text-white/40 tracking-wide">
-            En<span className="text-gold/60">Train</span>
+            E<span className="text-gold/60">vo</span>
           </div>
           <div className="flex gap-6">
             <Link href="#" className="text-xs text-white/20 hover:text-white/50 transition-colors">Mentions légales</Link>
             <Link href="#" className="text-xs text-white/20 hover:text-white/50 transition-colors">Confidentialité</Link>
             <Link href="#" className="text-xs text-white/20 hover:text-white/50 transition-colors">CGU</Link>
           </div>
-          <p className="text-[10px] text-white/15">© 2026 EnTrain</p>
+          <p className="text-[10px] text-white/15">© 2026 Evo</p>
         </div>
       </footer>
     </div>

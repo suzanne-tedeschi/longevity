@@ -279,17 +279,17 @@ export default function WaitlistPage() {
       </div>
 
       {/* Header */}
-      <header className="w-full pt-8 pb-4 px-6">
+      <header className="w-full pt-16 md:pt-24 pb-4 px-6">
         <div className="max-w-4xl mx-auto flex justify-center">
           <div
-            className="text-3xl font-bold transition-all duration-700 ease-out"
+            className="text-8xl md:text-9xl lg:text-[10rem] font-bold tracking-tight transition-all duration-700 ease-out"
             style={{
               opacity: headerVisible ? 1 : 0,
               transform: headerVisible ? 'translateY(0) scale(1)' : 'translateY(-12px) scale(0.95)',
               filter: headerVisible ? 'blur(0)' : 'blur(3px)',
             }}
           >
-            <span className="text-navy-dark">En</span><span className="gradient-text">Train</span>
+            <span className="text-navy-dark">E</span><span className="gradient-text">vo</span>
           </div>
         </div>
       </header>
@@ -340,65 +340,89 @@ export default function WaitlistPage() {
               </div>
             </div>
           ) : (
-            /* ── Form state with staggered reveals ── */
-            <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+            /* ── Vertical layout: Hero → Blocs → Form ── */
+            <div className="space-y-20">
 
-              {/* Left — Value prop */}
-              <div>
-                {/* Title */}
+              {/* ─── Hero — centré, aéré ─── */}
+              <div className="text-center max-w-3xl mx-auto">
                 <h1
-                  className="text-4xl md:text-5xl lg:text-6xl font-light text-navy-dark mb-6 leading-tight tracking-tight transition-all duration-700 ease-out"
+                  className="text-5xl md:text-6xl lg:text-7xl font-light text-navy-dark mb-8 leading-[1.1] tracking-tight transition-all duration-700 ease-out"
                   style={{
                     opacity: titleVisible ? 1 : 0,
                     transform: titleVisible ? 'translateY(0)' : 'translateY(30px)',
                     filter: titleVisible ? 'blur(0)' : 'blur(4px)',
                   }}
                 >
-                  Rejoignez la{' '}
-                  <span className="font-semibold gradient-text">liste d&apos;attente</span>
+                  Gagnez des années<br />
+                  de vie{' '}
+                  <span className="font-semibold gradient-text">en forme</span>
                 </h1>
 
-                {/* Subtitle */}
                 <p
-                  className="text-lg md:text-xl text-navy/70 mb-10 leading-relaxed transition-all duration-700 ease-out"
+                  className="text-lg md:text-xl text-navy/60 max-w-xl mx-auto leading-relaxed transition-all duration-700 ease-out"
                   style={{
                     opacity: subtitleVisible ? 1 : 0,
                     transform: subtitleVisible ? 'translateY(0)' : 'translateY(20px)',
                     filter: subtitleVisible ? 'blur(0)' : 'blur(3px)',
                   }}
                 >
-                  Le programme d&apos;entraînement personnalisé qui vous aide à gagner des années de vie en forme. Fini le manque de régularité : votre coach pro-actif s&apos;en charge.
+                  Le programme d&apos;entraînement personnalisé qui allie science et coaching pro-actif. Fini le manque de régularité.
                 </p>
 
-                {/* Value prop items — staggered reveal */}
-                <div className="space-y-5">
-                  {valueProps.map((item, i) => (
-                    <div
-                      key={i}
-                      className="group flex items-start gap-4 cursor-pointer rounded-xl px-3 py-3 -mx-3 transition-all duration-500 ease-out hover:bg-white/50 hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
-                      style={{
-                        opacity: itemsVisible[i] ? 1 : 0,
-                        transform: itemsVisible[i] ? 'translateX(0)' : 'translateX(-24px)',
-                        filter: itemsVisible[i] ? 'blur(0)' : 'blur(2px)',
-                        transitionDuration: '600ms',
-                      }}
-                    >
-                      <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-gold/15 to-gold/5 flex items-center justify-center text-gold-dark transition-all duration-500 group-hover:from-gold/25 group-hover:to-gold/10 group-hover:scale-110">
-                        {item.icon}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-navy-dark group-hover:text-bordeaux transition-colors duration-300">{item.title}</p>
-                        <p className="text-sm text-navy/60">{item.desc}</p>
-                        <div className="mt-2 h-0.5 w-0 group-hover:w-20 bg-gold transition-all duration-500 rounded-full" />
-                      </div>
-                    </div>
-                  ))}
+                {/* CTA — liste d'attente */}
+                <div
+                  className="mt-10 transition-all duration-700 ease-out"
+                  style={{
+                    opacity: subtitleVisible ? 1 : 0,
+                    transform: subtitleVisible ? 'translateY(0)' : 'translateY(15px)',
+                    transitionDelay: '200ms',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                    className="btn-primary btn-shimmer px-10 py-4"
+                  >
+                    Rejoindre la liste d&apos;attente
+                  </button>
                 </div>
               </div>
 
-              {/* Right — Form */}
+              {/* ─── 4 blocs horizontaux — épurés ─── */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+                {valueProps.map((item, i) => (
+                  <div
+                    key={i}
+                    className="group text-center transition-all duration-600 ease-out cursor-pointer"
+                    style={{
+                      opacity: itemsVisible[i] ? 1 : 0,
+                      transform: itemsVisible[i] ? 'translateY(0)' : 'translateY(20px)',
+                      filter: itemsVisible[i] ? 'blur(0)' : 'blur(2px)',
+                      transitionDuration: '600ms',
+                    }}
+                  >
+                    <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-white/60 border border-gold/10 flex items-center justify-center text-gold-dark transition-all duration-500 group-hover:bg-white/90 group-hover:border-gold/30 group-hover:shadow-[0_4px_20px_rgba(212,175,55,0.12)] group-hover:scale-110">
+                      {item.icon}
+                    </div>
+                    <h3 className="font-semibold text-navy-dark text-sm md:text-base mb-1.5 group-hover:text-bordeaux transition-colors duration-300">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs md:text-sm text-navy/50 leading-relaxed">
+                      {item.desc}
+                    </p>
+                    <div className="mt-3 h-0.5 w-0 group-hover:w-12 bg-gold transition-all duration-500 rounded-full mx-auto" />
+                  </div>
+                ))}
+              </div>
+
+              {/* ─── Séparateur subtil ─── */}
+              <div className="flex justify-center">
+                <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+              </div>
+
+              {/* ─── Formulaire centré ─── */}
               <div
-                className="transition-all duration-800 ease-out"
+                className="max-w-lg mx-auto transition-all duration-800 ease-out"
                 style={{
                   opacity: formVisible ? 1 : 0,
                   transform: formVisible ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.97)',
@@ -413,14 +437,14 @@ export default function WaitlistPage() {
                   {/* Subtle top gold line */}
                   <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
 
-                  <h2 className="text-2xl font-semibold text-navy-dark mb-2">
-                    Réservez votre place
+                  <h2 className="text-2xl font-semibold text-navy-dark mb-1 text-center">
+                    Rejoignez la liste d&apos;attente
                   </h2>
-                  <p className="text-navy/60 mb-8 text-sm">
+                  <p className="text-navy/50 mb-8 text-sm text-center">
                     Places limitées — inscription gratuite et sans engagement.
                   </p>
 
-                  <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
                     {/* Prénom */}
                     <div>
                       <label htmlFor="firstName" className="block text-sm font-medium text-navy-dark mb-1.5">
@@ -452,7 +476,9 @@ export default function WaitlistPage() {
                         className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
                       />
                     </div>
+                  </div>
 
+                  <div className="grid grid-cols-2 gap-4 mt-4">
                     {/* Email */}
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-navy-dark mb-1.5">
@@ -528,7 +554,7 @@ export default function WaitlistPage() {
           opacity: mounted ? 1 : 0,
           transition: 'opacity 1s ease-out 2s',
         }}>
-          EnTrain — Gagnez des années de vie en forme
+          Evo — Gagnez des années de vie en forme
         </p>
       </footer>
     </div>

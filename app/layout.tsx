@@ -9,7 +9,7 @@ const outfit = Outfit({
 })
 
 export const metadata: Metadata = {
-  title: 'EnTrain - Gagnez des années de vie en forme',
+  title: 'Evo - Gagnez des années de vie en forme',
   description: 'Approche hyper scientifique pour gagner des années de vie en forme grâce à des séances coachées qui renforcent le corps, stimulent le cerveau et recréent du lien - depuis chez vous.',
 }
 

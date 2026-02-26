@@ -90,7 +90,7 @@ export default function Science() {
       <nav className="fixed top-0 w-full bg-white/70 backdrop-blur-md z-50 border-b border-gold/20 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/" className="text-2xl font-bold">
-            <span className="text-navy-dark">En</span><span className="gradient-text">Train</span>
+            <span className="text-navy-dark">E</span><span className="gradient-text">vo</span>
           </Link>
           <div className="flex gap-8 items-center">
             <Link href="/#apropos" className="nav-link">
@@ -346,7 +346,7 @@ export default function Science() {
             Prêt à bénéficier d&apos;une approche <span className="font-semibold">scientifique</span> ?
           </h2>
           <p className="text-xl mb-12 text-navy leading-relaxed">
-            Rejoignez EnTrain et profitez d&apos;un programme conçu par un expert pour maximiser votre longévité en bonne santé.
+            Rejoignez Evo et profitez d&apos;un programme conçu par un expert pour maximiser votre longévité en bonne santé.
           </p>
           <Link href="/#contact" className="inline-block relative bg-gradient-to-br from-bordeaux to-bordeaux-dark text-white px-12 py-5 rounded-xl font-bold text-xl hover:shadow-2xl shadow-lg transition-all duration-300 hover:scale-105 active:scale-100 overflow-hidden group">
             <span className="relative z-10">Commencer mon parcours</span>
@@ -359,7 +359,7 @@ export default function Science() {
       <footer className="py-12 px-6 bg-navy-900 text-white/80 border-t border-white/5">
         <div className="max-w-6xl mx-auto text-center">
           <div className="text-3xl font-bold mb-6">
-            En<span className="text-gold">Train</span>
+            E<span className="text-gold">vo</span>
           </div>
           <p className="mb-6 text-white/70">
             Gagnez des années de vie en forme
@@ -379,7 +379,7 @@ export default function Science() {
             </Link>
           </div>
           <p className="text-sm text-white/50">
-            © 2026 EnTrain. Tous droits réservés.
+            © 2026 Evo. Tous droits réservés.
           </p>
         </div>
       </footer>
