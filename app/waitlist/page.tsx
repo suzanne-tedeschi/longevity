@@ -538,12 +538,12 @@ export default function WaitlistPage() {
                 <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
               </div>
 
-              {/* ─── 4 blocs horizontaux — épurés ─── */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              {/* ─── 4 blocs — cartes premium ─── */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
                 {valueProps.map((item, i) => (
                   <div
                     key={i}
-                    className="group text-center transition-all duration-600 ease-out cursor-pointer"
+                    className="group relative bg-white/70 backdrop-blur-sm rounded-2xl border border-gold/10 p-6 md:p-7 transition-all duration-600 ease-out cursor-pointer overflow-hidden hover:bg-white/90 hover:border-gold/25 hover:shadow-[0_8px_40px_rgba(212,175,55,0.10),0_2px_12px_rgba(0,0,0,0.04)]"
                     style={{
                       opacity: itemsVisible[i] ? 1 : 0,
                       transform: itemsVisible[i] ? 'translateY(0)' : 'translateY(20px)',
@@ -551,16 +551,28 @@ export default function WaitlistPage() {
                       transitionDuration: '600ms',
                     }}
                   >
-                    <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-white/60 border border-gold/10 flex items-center justify-center text-gold-dark transition-all duration-500 group-hover:bg-white/90 group-hover:border-gold/30 group-hover:shadow-[0_4px_20px_rgba(212,175,55,0.12)] group-hover:scale-110">
-                      {item.icon}
+                    {/* Subtle gold accent line at top */}
+                    <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-gold/20 to-transparent group-hover:via-gold/40 transition-all duration-500" />
+
+                    <div className="flex items-start gap-4">
+                      {/* Icon */}
+                      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-beige-50 to-white border border-gold/15 flex items-center justify-center text-gold-dark transition-all duration-500 group-hover:border-gold/30 group-hover:shadow-[0_2px_12px_rgba(212,175,55,0.15)] group-hover:scale-105">
+                        {item.icon}
+                      </div>
+
+                      {/* Text */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-navy-dark text-[0.95rem] md:text-base leading-snug mb-1 group-hover:text-bordeaux transition-colors duration-300">
+                          {item.title}
+                        </h3>
+                        <p className="text-xs md:text-sm text-navy/45 leading-relaxed">
+                          {item.desc}
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="font-semibold text-navy-dark text-sm md:text-base mb-1.5 group-hover:text-bordeaux transition-colors duration-300">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs md:text-sm text-navy/50 leading-relaxed">
-                      {item.desc}
-                    </p>
-                    <div className="mt-3 h-0.5 w-0 group-hover:w-12 bg-gold transition-all duration-500 rounded-full mx-auto" />
+
+                    {/* Bottom gold line reveal on hover */}
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-0 group-hover:w-2/3 bg-gradient-to-r from-transparent via-gold/40 to-transparent transition-all duration-700 rounded-full" />
                   </div>
                 ))}
               </div>
