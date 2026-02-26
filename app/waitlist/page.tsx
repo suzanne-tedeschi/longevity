@@ -82,7 +82,9 @@ export default function WaitlistPage() {
   const [subtitleVisible, setSubtitleVisible] = useState(false)
   const [itemsVisible, setItemsVisible] = useState<boolean[]>([false, false, false, false])
   const [formVisible, setFormVisible] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+  const formWrapperRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -282,14 +284,24 @@ export default function WaitlistPage() {
       <header className="w-full pt-16 md:pt-24 pb-4 px-6">
         <div className="max-w-4xl mx-auto flex justify-center">
           <div
-            className="text-8xl md:text-9xl lg:text-[10rem] font-bold tracking-tight transition-all duration-700 ease-out"
+            className="transition-all duration-700 ease-out"
             style={{
               opacity: headerVisible ? 1 : 0,
               transform: headerVisible ? 'translateY(0) scale(1)' : 'translateY(-12px) scale(0.95)',
               filter: headerVisible ? 'blur(0)' : 'blur(3px)',
             }}
           >
-            <span className="text-navy-dark">E</span><span className="gradient-text">vo</span>
+            <span
+              className="text-8xl md:text-9xl lg:text-[10rem] font-extralight italic tracking-[0.06em] select-none"
+              style={{
+                background: 'linear-gradient(135deg, #1A2B4A 0%, #6B2737 50%, #D4AF37 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              Evo
+            </span>
           </div>
         </div>
       </header>
@@ -368,24 +380,162 @@ export default function WaitlistPage() {
                 >
                   Le programme d&apos;entraînement personnalisé qui allie science et coaching pro-actif. Fini le manque de régularité.
                 </p>
+              </div>
 
-                {/* CTA — liste d'attente */}
-                <div
-                  className="mt-10 transition-all duration-700 ease-out"
+              {/* ─── CTA + Formulaire dépliable ─── */}
+              <div className="flex flex-col items-center gap-6">
+                {/* CTA Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormOpen(prev => !prev)
+                    if (!formOpen) {
+                      setTimeout(() => formWrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100)
+                    }
+                  }}
+                  className="btn-primary btn-shimmer px-12 py-4 text-lg transition-all duration-500"
                   style={{
                     opacity: subtitleVisible ? 1 : 0,
                     transform: subtitleVisible ? 'translateY(0)' : 'translateY(15px)',
                     transitionDelay: '200ms',
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                    className="btn-primary btn-shimmer px-10 py-4"
+                  Rejoindre la liste d&apos;attente
+                  <svg
+                    className="inline-block ml-2 transition-transform duration-400"
+                    style={{ transform: formOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                    width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                   >
-                    Rejoindre la liste d&apos;attente
-                  </button>
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+
+                {/* Collapsible form */}
+                <div
+                  ref={formWrapperRef}
+                  className="w-full max-w-lg mx-auto overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                  style={{
+                    maxHeight: formOpen ? '600px' : '0px',
+                    opacity: formOpen ? 1 : 0,
+                    transform: formOpen ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.98)',
+                  }}
+                >
+                  <form
+                    ref={formRef}
+                    onSubmit={handleSubmit}
+                    className="form-card-glow bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-10 border border-gold/10 relative overflow-hidden"
+                  >
+                    {/* Subtle top gold line */}
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+
+                    <p className="text-navy/50 mb-8 text-sm text-center">
+                      Places limitées — inscription gratuite et sans engagement.
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Prénom */}
+                      <div>
+                        <label htmlFor="firstName" className="block text-sm font-medium text-navy-dark mb-1.5">
+                          Prénom
+                        </label>
+                        <input
+                          id="firstName"
+                          type="text"
+                          required
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          placeholder="Votre prénom"
+                          className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
+                        />
+                      </div>
+
+                      {/* Nom */}
+                      <div>
+                        <label htmlFor="lastName" className="block text-sm font-medium text-navy-dark mb-1.5">
+                          Nom
+                        </label>
+                        <input
+                          id="lastName"
+                          type="text"
+                          required
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          placeholder="Votre nom"
+                          className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      {/* Email */}
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-navy-dark mb-1.5">
+                          Email
+                        </label>
+                        <input
+                          id="email"
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="votre@email.com"
+                          className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
+                        />
+                      </div>
+
+                      {/* Téléphone */}
+                      <div>
+                        <label htmlFor="phone" className="block text-sm font-medium text-navy-dark mb-1.5">
+                          Téléphone
+                        </label>
+                        <input
+                          id="phone"
+                          type="tel"
+                          required
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="06 12 34 56 78"
+                          className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Error message */}
+                    {formState === 'error' && errorMessage && (
+                      <div className="mt-4 p-3 rounded-xl bg-bordeaux-50 border border-bordeaux/20 text-bordeaux text-sm" style={{ animation: 'revealUp 0.3s ease-out' }}>
+                        {errorMessage}
+                      </div>
+                    )}
+
+                    {/* Submit */}
+                    <button
+                      type="submit"
+                      disabled={formState === 'submitting'}
+                      className="btn-primary btn-shimmer w-full mt-8 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {formState === 'submitting' ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Inscription en cours...
+                        </span>
+                      ) : (
+                        "M'inscrire"
+                      )}
+                    </button>
+
+                    <p className="text-xs text-navy/40 mt-4 text-center leading-relaxed">
+                      Vos données restent confidentielles et ne seront jamais partagées.
+                    </p>
+                  </form>
                 </div>
+              </div>
+
+              {/* ─── Séparateur subtil ─── */}
+              <div className="flex justify-center">
+                <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
               </div>
 
               {/* ─── 4 blocs horizontaux — épurés ─── */}
@@ -413,135 +563,6 @@ export default function WaitlistPage() {
                     <div className="mt-3 h-0.5 w-0 group-hover:w-12 bg-gold transition-all duration-500 rounded-full mx-auto" />
                   </div>
                 ))}
-              </div>
-
-              {/* ─── Séparateur subtil ─── */}
-              <div className="flex justify-center">
-                <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
-              </div>
-
-              {/* ─── Formulaire centré ─── */}
-              <div
-                className="max-w-lg mx-auto transition-all duration-800 ease-out"
-                style={{
-                  opacity: formVisible ? 1 : 0,
-                  transform: formVisible ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.97)',
-                  transitionDuration: '800ms',
-                }}
-              >
-                <form
-                  ref={formRef}
-                  onSubmit={handleSubmit}
-                  className="form-card-glow bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-10 border border-gold/10 relative overflow-hidden"
-                >
-                  {/* Subtle top gold line */}
-                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
-
-                  <h2 className="text-2xl font-semibold text-navy-dark mb-1 text-center">
-                    Rejoignez la liste d&apos;attente
-                  </h2>
-                  <p className="text-navy/50 mb-8 text-sm text-center">
-                    Places limitées — inscription gratuite et sans engagement.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* Prénom */}
-                    <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium text-navy-dark mb-1.5">
-                        Prénom
-                      </label>
-                      <input
-                        id="firstName"
-                        type="text"
-                        required
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="Votre prénom"
-                        className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
-                      />
-                    </div>
-
-                    {/* Nom */}
-                    <div>
-                      <label htmlFor="lastName" className="block text-sm font-medium text-navy-dark mb-1.5">
-                        Nom
-                      </label>
-                      <input
-                        id="lastName"
-                        type="text"
-                        required
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        placeholder="Votre nom"
-                        className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    {/* Email */}
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-navy-dark mb-1.5">
-                        Email
-                      </label>
-                      <input
-                        id="email"
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="votre@email.com"
-                        className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
-                      />
-                    </div>
-
-                    {/* Téléphone */}
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-navy-dark mb-1.5">
-                        Téléphone
-                      </label>
-                      <input
-                        id="phone"
-                        type="tel"
-                        required
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="06 12 34 56 78"
-                        className="input-premium w-full px-4 py-3 rounded-xl bg-beige-50 border border-beige-300 text-navy-dark placeholder:text-navy/30 focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40 transition-all duration-300"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Error message */}
-                  {formState === 'error' && errorMessage && (
-                    <div className="mt-4 p-3 rounded-xl bg-bordeaux-50 border border-bordeaux/20 text-bordeaux text-sm" style={{ animation: 'revealUp 0.3s ease-out' }}>
-                      {errorMessage}
-                    </div>
-                  )}
-
-                  {/* Submit */}
-                  <button
-                    type="submit"
-                    disabled={formState === 'submitting'}
-                    className="btn-primary btn-shimmer w-full mt-8 disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {formState === 'submitting' ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        Inscription en cours...
-                      </span>
-                    ) : (
-                      "M'inscrire sur la liste d'attente"
-                    )}
-                  </button>
-
-                  <p className="text-xs text-navy/40 mt-4 text-center leading-relaxed">
-                    Vos données restent confidentielles et ne seront jamais partagées.
-                  </p>
-                </form>
               </div>
             </div>
           )}
