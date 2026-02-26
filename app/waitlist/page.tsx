@@ -481,6 +481,54 @@ export default function WaitlistPage() {
                   ))}
                 </div>
 
+                {/* ─── Blocs différenciants ─── */}
+                <div className="w-full max-w-2xl mx-auto mt-8 space-y-4">
+                  {/* Vincent */}
+                  <div
+                    className="flex items-start gap-4 p-5 rounded-2xl bg-white/50 backdrop-blur-sm border border-gold/10 transition-all duration-700 ease-out"
+                    style={{
+                      opacity: itemsVisible[3] ? 1 : 0,
+                      transform: itemsVisible[3] ? 'translateY(0)' : 'translateY(16px)',
+                      transitionDelay: '200ms',
+                    }}
+                  >
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-bordeaux/10 to-gold/10 border border-gold/15 flex items-center justify-center">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-bordeaux">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-navy-dark text-sm mb-1">Vincent, votre coach</h3>
+                      <p className="text-xs md:text-sm text-navy/50 leading-relaxed">
+                        Kinésithérapeute et préparateur physique, il conçoit votre programme et vous accompagne personnellement tout au long de votre progression.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* WhatsApp coaching */}
+                  <div
+                    className="flex items-start gap-4 p-5 rounded-2xl bg-white/50 backdrop-blur-sm border border-gold/10 transition-all duration-700 ease-out"
+                    style={{
+                      opacity: itemsVisible[3] ? 1 : 0,
+                      transform: itemsVisible[3] ? 'translateY(0)' : 'translateY(16px)',
+                      transitionDelay: '400ms',
+                    }}
+                  >
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-bordeaux/10 to-gold/10 border border-gold/15 flex items-center justify-center">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-bordeaux">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-navy-dark text-sm mb-1">Fini le manque de régularité</h3>
+                      <p className="text-xs md:text-sm text-navy/50 leading-relaxed">
+                        Un coaching personnalisé via WhatsApp qui s&apos;intègre dans ton quotidien. On te relance, on t&apos;encourage, on s&apos;adapte à ton rythme — pour que l&apos;entraînement devienne une habitude, pas une contrainte.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
 
