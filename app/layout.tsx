@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { Outfit } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 
-const outfit = Outfit({ 
+const inter = Inter({ 
   subsets: ['latin'],
   display: 'swap',
   weight: ['300', '400', '500', '600', '700', '800'],
@@ -10,7 +10,7 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: 'Evo - Gagnez des années de vie en forme',
-  description: 'Approche hyper scientifique pour gagner des années de vie en forme grâce à des séances coachées qui renforcent le corps, stimulent le cerveau et recréent du lien - depuis chez vous.',
+  description: 'Programmes longévité conçus par un expert, délivrés via WhatsApp. Ton coach s\'adapte à ta vraie vie, te garde régulier, et répond à toutes tes questions.',
 }
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={outfit.className}>{children}</body>
+      <body className={inter.className}>{children}</body>
     </html>
   )
 }
