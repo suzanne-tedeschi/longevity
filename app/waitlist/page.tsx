@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
 type FormState = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -105,6 +105,12 @@ export default function WaitlistPage() {
     e.preventDefault()
     setFormState('submitting')
     setErrorMessage('')
+
+    if (!isSupabaseConfigured || !supabase) {
+      setErrorMessage('Les inscriptions sont temporairement indisponibles. Merci de réessayer plus tard.')
+      setFormState('error')
+      return
+    }
 
     try {
       const { error } = await supabase

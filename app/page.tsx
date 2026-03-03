@@ -24,7 +24,7 @@ export default function Home() {
             <Link href="#contact" className="nav-link">
               Contact
             </Link>
-            <Link href="/onboarding/bilan-mobilite" className="relative bg-gradient-to-br from-bordeaux to-bordeaux-dark text-white px-6 py-2.5 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 active:scale-95">
+            <Link href="/onboarding/login" className="relative bg-gradient-to-br from-bordeaux to-bordeaux-dark text-white px-6 py-2.5 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 active:scale-95">
               Commencer
             </Link>
           </div>
