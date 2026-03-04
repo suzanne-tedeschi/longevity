@@ -131,11 +131,11 @@ function ProgressBar({ current, total, sectionTitle }: { current: number; total:
   return (
     <div className="w-full mb-8">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium tracking-widest uppercase text-navy/60">{sectionTitle}</span>
-        <span className="text-xs tabular-nums text-navy/50">{current}/{total}</span>
+        <span className="text-xs font-medium tracking-widest uppercase text-white/50">{sectionTitle}</span>
+        <span className="text-xs tabular-nums text-white/40">{current}/{total}</span>
       </div>
-      <div className="h-1 w-full bg-beige-300 rounded-full overflow-hidden">
-        <div className="h-full rounded-full bg-gradient-to-r from-bordeaux to-gold transition-all duration-700 ease-out" style={{ width: `${pct}%` }} />
+      <div className="h-1 w-full bg-white/[0.1] rounded-full overflow-hidden">
+        <div className="h-full rounded-full bg-gradient-to-r from-[#c9a96e] to-[#a08050] transition-all duration-700 ease-out" style={{ width: `${pct}%` }} />
       </div>
     </div>
   )
@@ -154,18 +154,18 @@ function ScoreButton({ value, label, description, selected, onSelect }: {
       className={`group relative w-full text-left rounded-xl border-2 p-4 transition-all duration-300 ease-out ${
         selected
           ? `${colors.bg} ${colors.border} ring-2 ${colors.ring} shadow-md`
-          : 'border-beige-300 bg-white hover:border-navy/20 hover:shadow-sm'
+          : 'border-white/[0.08] bg-white/[0.05] hover:border-white/[0.15] hover:shadow-sm'
       }`}
     >
       <div className="flex items-start gap-3">
         <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-          selected ? `${colors.bg} ${colors.text} ${colors.border} border` : 'bg-beige-200 text-navy/40 border border-beige-300'
+          selected ? `${colors.bg} ${colors.text} ${colors.border} border` : 'bg-white/[0.08] text-white/30 border border-white/[0.08]'
         }`}>
           {value}
         </div>
         <div className="flex-1 min-w-0">
-          <p className={`font-semibold text-sm transition-colors duration-300 ${selected ? colors.text : 'text-navy-dark'}`}>{label}</p>
-          <p className="text-xs text-navy/50 mt-0.5 leading-relaxed">{description}</p>
+          <p className={`font-semibold text-sm transition-colors duration-300 ${selected ? colors.text : 'text-white'}`}>{label}</p>
+          <p className="text-xs text-white/40 mt-0.5 leading-relaxed">{description}</p>
         </div>
         {selected && <CheckCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${colors.text}`} />}
       </div>
@@ -179,26 +179,26 @@ function ScoreButton({ value, label, description, selected, onSelect }: {
 function SectionIntro({ section, sectionIndex, onStart }: { section: TestSection; sectionIndex: number; onStart: () => void }) {
   return (
     <div className="animate-fade-in flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
-      <div className="mb-6 inline-flex items-center gap-2 bg-beige-200 border border-gold/20 rounded-full px-4 py-1.5">
-        <span className="text-xs font-medium tracking-widest uppercase text-navy/50">
+      <div className="mb-6 inline-flex items-center gap-2 bg-white/[0.08] border border-white/[0.08] rounded-full px-4 py-1.5">
+        <span className="text-xs font-medium tracking-widest uppercase text-white/40">
           Section {sectionIndex + 1} / {allSections.length}
         </span>
       </div>
-      <div className="mb-8 w-20 h-20 rounded-2xl bg-gradient-to-br from-bordeaux/10 to-gold/10 border border-bordeaux/15 flex items-center justify-center text-bordeaux">
+      <div className="mb-8 w-20 h-20 rounded-2xl bg-gradient-to-br from-[#c9a96e]/10 to-[#a08050]/10 border border-[#c9a96e]/15 flex items-center justify-center text-[#c9a96e]">
         {renderSectionIcon(section.icon, 'w-10 h-10')}
       </div>
-      <h2 className="text-3xl md:text-4xl font-bold text-navy-dark mb-2 tracking-tight">{section.title}</h2>
-      <p className="text-gold-dark font-medium text-sm tracking-wide uppercase mb-6">{section.subtitle}</p>
-      <p className="max-w-md text-navy/60 leading-relaxed mb-4">{section.description}</p>
+      <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">{section.title}</h2>
+      <p className="text-[#c9a96e] font-medium text-sm tracking-wide uppercase mb-6">{section.subtitle}</p>
+      <p className="max-w-md text-white/50 leading-relaxed mb-4">{section.description}</p>
       <div className="flex items-center gap-6 mb-10">
         <div className="text-center">
-          <p className="text-2xl font-bold text-navy-dark">{section.tests.length}</p>
-          <p className="text-xs text-navy/40 uppercase tracking-wider">Questions</p>
+          <p className="text-2xl font-bold text-white">{section.tests.length}</p>
+          <p className="text-xs text-white/30 uppercase tracking-wider">Questions</p>
         </div>
-        <div className="w-px h-8 bg-beige-300" />
+        <div className="w-px h-8 bg-white/[0.1]" />
         <div className="text-center">
-          <p className="text-2xl font-bold text-navy-dark">{section.maxScore}</p>
-          <p className="text-xs text-navy/40 uppercase tracking-wider">Points max</p>
+          <p className="text-2xl font-bold text-white">{section.maxScore}</p>
+          <p className="text-xs text-white/30 uppercase tracking-wider">Points max</p>
         </div>
       </div>
       <button onClick={onStart} className="btn-secondary">Commencer cette section</button>
@@ -219,21 +219,21 @@ function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, sele
 
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-7 h-7 rounded-lg bg-bordeaux/8 flex items-center justify-center text-bordeaux">
+          <div className="w-7 h-7 rounded-lg bg-[#c9a96e]/8 flex items-center justify-center text-[#c9a96e]">
             {renderSectionIcon(sectionIcon, 'w-4 h-4')}
           </div>
-          <span className="text-xs font-medium tracking-widest uppercase text-navy/40">Question {testIndex + 1}</span>
+          <span className="text-xs font-medium tracking-widest uppercase text-white/30">Question {testIndex + 1}</span>
         </div>
-        <h3 className="text-2xl font-bold text-navy-dark tracking-tight mb-1">{test.name}</h3>
-        <p className="text-sm text-gold-dark font-medium">{test.description}</p>
+        <h3 className="text-2xl font-bold text-white tracking-tight mb-1">{test.name}</h3>
+        <p className="text-sm text-[#c9a96e] font-medium">{test.description}</p>
       </div>
 
-      <div className="bg-beige-50 border border-beige-300 rounded-xl p-4 mb-6">
-        <p className="text-sm text-navy/70 leading-relaxed">{test.criteria}</p>
+      <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 mb-6">
+        <p className="text-sm text-white/50 leading-relaxed">{test.criteria}</p>
         {test.tip && (
-          <div className="flex items-start gap-2 mt-3 pt-3 border-t border-beige-300">
-            <InfoIcon className="w-4 h-4 text-gold-dark flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-navy/50 leading-relaxed">{test.tip}</p>
+          <div className="flex items-start gap-2 mt-3 pt-3 border-t border-white/[0.08]">
+            <InfoIcon className="w-4 h-4 text-[#c9a96e] flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-white/40 leading-relaxed">{test.tip}</p>
           </div>
         )}
       </div>
@@ -252,7 +252,7 @@ function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, sele
       </div>
 
       <div className="flex items-center justify-between">
-        <button onClick={onPrev} className="flex items-center gap-1 text-sm text-navy/50 hover:text-navy-dark transition-colors">
+        <button onClick={onPrev} className="flex items-center gap-1 text-sm text-white/40 hover:text-white transition-colors">
           <ChevronLeft className="w-4 h-4" /> Précédent
         </button>
         <button
@@ -260,8 +260,8 @@ function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, sele
           disabled={!canGoNext}
           className={`flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
             canGoNext
-              ? 'bg-navy-dark text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-              : 'bg-beige-300 text-navy/30 cursor-not-allowed'
+              ? 'bg-[#c9a96e] text-[#0a0a0a] shadow-md hover:shadow-lg hover:-translate-y-0.5'
+              : 'bg-white/[0.1] text-white/20 cursor-not-allowed'
           }`}
         >
           Suivant <ChevronRight className="w-4 h-4" />
@@ -287,7 +287,7 @@ function ScoreGauge({ score, maxScore, label, icon, size = 'md' }: {
     <div className="flex flex-col items-center">
       <div className={`relative ${dims.box}`}>
         <svg className="w-full h-full -rotate-90" viewBox={`0 0 ${(dims.r + dims.stroke) * 2} ${(dims.r + dims.stroke) * 2}`}>
-          <circle cx={dims.r + dims.stroke} cy={dims.r + dims.stroke} r={dims.r} fill="none" stroke="#EDE8DF" strokeWidth={dims.stroke} />
+          <circle cx={dims.r + dims.stroke} cy={dims.r + dims.stroke} r={dims.r} fill="none" stroke="#2a2a2a" strokeWidth={dims.stroke} />
           <circle
             cx={dims.r + dims.stroke}
             cy={dims.r + dims.stroke}
@@ -304,10 +304,10 @@ function ScoreGauge({ score, maxScore, label, icon, size = 'md' }: {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className={`text-2xl font-bold ${color}`}>{pct}%</span>
-          <span className="text-[10px] text-navy/40 mt-0.5">{score}/{maxScore}</span>
+          <span className="text-[10px] text-white/30 mt-0.5">{score}/{maxScore}</span>
         </div>
       </div>
-      <div className="mt-3 flex items-center gap-1.5 text-navy-dark">
+      <div className="mt-3 flex items-center gap-1.5 text-white">
         {renderSectionIcon(icon, 'w-4 h-4')}
         <span className="text-xs font-semibold tracking-wide">{label}</span>
       </div>
@@ -361,14 +361,14 @@ function SectionResultsScreen({ section, sectionIndex, scores, onContinue }: {
 
   return (
     <div className="animate-fade-in flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
-      <div className="w-12 h-px bg-gradient-to-r from-transparent via-gold to-transparent mb-8" />
-      <div className="mb-6 inline-flex items-center gap-2 bg-beige-200 border border-gold/20 rounded-full px-4 py-1.5">
-        <span className="text-xs font-medium tracking-widest uppercase text-navy/50">Section {sectionIndex + 1} terminée</span>
+      <div className="w-12 h-px bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent mb-8" />
+      <div className="mb-6 inline-flex items-center gap-2 bg-white/[0.08] border border-white/[0.08] rounded-full px-4 py-1.5">
+        <span className="text-xs font-medium tracking-widest uppercase text-white/40">Section {sectionIndex + 1} terminée</span>
       </div>
       <ScoreGauge score={sectionScore} maxScore={section.maxScore} label={section.title} icon={section.icon} size="md" />
       <div className="mt-8 max-w-sm">
         <h3 className={`text-xl font-bold mb-2 ${info.color}`}>{feedback.title}</h3>
-        <p className="text-sm text-navy/60 leading-relaxed">{feedback.message}</p>
+        <p className="text-sm text-white/50 leading-relaxed">{feedback.message}</p>
       </div>
       <div className="w-full max-w-sm mt-8 space-y-1.5">
         {section.tests.map((test) => {
@@ -376,8 +376,8 @@ function SectionResultsScreen({ section, sectionIndex, scores, onContinue }: {
           const maxTestScore = Math.max(...test.scoring.map(o => o.value))
           const testColors = scoreColors[s] || scoreColors[0]
           return (
-            <div key={test.id} className="flex items-center justify-between bg-white/60 border border-beige-300 rounded-lg px-3 py-2">
-              <span className="text-xs text-navy/70 truncate mr-2">{test.name}</span>
+            <div key={test.id} className="flex items-center justify-between bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2">
+              <span className="text-xs text-white/50 truncate mr-2">{test.name}</span>
               <span className={`text-xs font-bold tabular-nums ${testColors.text}`}>{s}/{maxTestScore}</span>
             </div>
           )
@@ -387,7 +387,7 @@ function SectionResultsScreen({ section, sectionIndex, scores, onContinue }: {
         {isLast ? 'Voir mes résultats' : 'Section suivante'}
       </button>
       {!isLast && (
-        <p className="mt-4 text-xs text-navy/30">
+        <p className="mt-4 text-xs text-white/20">
           Encore {allSections.length - sectionIndex - 1} section{allSections.length - sectionIndex - 1 > 1 ? 's' : ''} restante{allSections.length - sectionIndex - 1 > 1 ? 's' : ''}
         </p>
       )}
@@ -401,33 +401,33 @@ function SectionResultsScreen({ section, sectionIndex, scores, onContinue }: {
 function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="animate-fade-in flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
-      <div className="w-12 h-px bg-gradient-to-r from-transparent via-gold to-transparent mb-10" />
-      <div className="mb-8 w-16 h-16 rounded-2xl bg-gradient-to-br from-bordeaux/10 to-gold/10 border border-bordeaux/15 flex items-center justify-center text-bordeaux">
+      <div className="w-12 h-px bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent mb-10" />
+      <div className="mb-8 w-16 h-16 rounded-2xl bg-gradient-to-br from-[#c9a96e]/10 to-[#a08050]/10 border border-[#c9a96e]/15 flex items-center justify-center text-[#c9a96e]">
         <SleepIcon className="w-8 h-8" />
       </div>
-      <h1 className="text-3xl md:text-4xl font-bold text-navy-dark mb-3 tracking-tight">Bilan Sommeil</h1>
-      <h2 className="text-sm font-medium tracking-widest uppercase text-gold-dark mb-8">Qualité & hygiène du sommeil</h2>
-      <p className="max-w-md text-navy/60 leading-relaxed mb-10">
+      <h1 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">Bilan Sommeil</h1>
+      <h2 className="text-sm font-medium tracking-widest uppercase text-[#c9a96e] mb-8">Qualité & hygiène du sommeil</h2>
+      <p className="max-w-md text-white/50 leading-relaxed mb-10">
         Ce bilan évalue la qualité de votre sommeil, vos habitudes et détecte d&apos;éventuels
         troubles à travers {allSections.reduce((sum, s) => sum + s.tests.length, 0)} questions réparties en {allSections.length} sections.
         Il est basé sur les questionnaires validés PSQI et SHI.
       </p>
       <div className="w-full max-w-sm space-y-3 mb-10">
         {allSections.map((section) => (
-          <div key={section.id} className="flex items-center gap-4 bg-white/60 border border-beige-300 rounded-xl px-4 py-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-bordeaux/8 to-gold/8 border border-bordeaux/10 flex items-center justify-center text-bordeaux/70">
+          <div key={section.id} className="flex items-center gap-4 bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#c9a96e]/8 to-[#a08050]/8 border border-[#c9a96e]/10 flex items-center justify-center text-[#c9a96e]/70">
               {renderSectionIcon(section.icon, 'w-5 h-5')}
             </div>
             <div className="flex-1 text-left">
-              <p className="text-sm font-semibold text-navy-dark">{section.title}</p>
-              <p className="text-xs text-navy/40">{section.tests.length} questions</p>
+              <p className="text-sm font-semibold text-white">{section.title}</p>
+              <p className="text-xs text-white/30">{section.tests.length} questions</p>
             </div>
-            <span className="text-xs tabular-nums text-navy/30">{section.maxScore} pts</span>
+            <span className="text-xs tabular-nums text-white/20">{section.maxScore} pts</span>
           </div>
         ))}
       </div>
       <button onClick={onStart} className="btn-secondary">Commencer le bilan</button>
-      <p className="mt-6 text-xs text-navy/30 max-w-xs leading-relaxed">
+      <p className="mt-6 text-xs text-white/20 max-w-xs leading-relaxed">
         Répondez le plus honnêtement possible en pensant au dernier mois écoulé.
       </p>
     </div>
@@ -458,31 +458,31 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   return (
     <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
       <div className="text-center mb-12">
-        <div className="w-12 h-px bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mb-8" />
-        <h2 className="text-3xl md:text-4xl font-bold text-navy-dark tracking-tight mb-2">Vos résultats</h2>
-        <p className="text-sm text-navy/50">Bilan sommeil — qualité & hygiène</p>
+        <div className="w-12 h-px bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent mx-auto mb-8" />
+        <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-2">Vos résultats</h2>
+        <p className="text-sm text-white/40">Bilan sommeil — qualité & hygiène</p>
       </div>
 
       {/* Global score */}
-      <div className="bg-white/80 backdrop-blur-sm border border-gold/15 rounded-2xl p-8 mb-8 text-center">
-        <p className="text-xs font-medium tracking-widest uppercase text-navy/40 mb-4">Score global</p>
+      <div className="bg-white/[0.05] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 mb-8 text-center">
+        <p className="text-xs font-medium tracking-widest uppercase text-white/30 mb-4">Score global</p>
         <div className="flex items-center justify-center gap-1 mb-2">
           <span className={`text-6xl font-bold ${overall.color}`}>{totalPct}</span>
-          <span className="text-2xl text-navy/30 font-light">%</span>
+          <span className="text-2xl text-white/20 font-light">%</span>
         </div>
-        <p className="text-sm text-navy/50 mb-3">{totalScore} / {totalMaxScore} points</p>
-        <span className={`inline-block px-4 py-1 rounded-full text-xs font-semibold tracking-wide ${overall.color} bg-beige-200`}>
+        <p className="text-sm text-white/40 mb-3">{totalScore} / {totalMaxScore} points</p>
+        <span className={`inline-block px-4 py-1 rounded-full text-xs font-semibold tracking-wide ${overall.color} bg-white/[0.08]`}>
           {overall.label}
         </span>
       </div>
 
       {/* Interpretation */}
       {interpretation && (
-        <div className="bg-white/70 border border-beige-300 rounded-2xl p-6 mb-8">
-          <p className="text-sm text-navy/70 leading-relaxed mb-3">{interpretation.description}</p>
-          <div className="flex items-start gap-2 pt-3 border-t border-beige-300">
-            <InfoIcon className="w-4 h-4 text-gold-dark flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-navy/60 leading-relaxed">{interpretation.recommendation}</p>
+        <div className="bg-white/[0.05] border border-white/[0.08] rounded-2xl p-6 mb-8">
+          <p className="text-sm text-white/50 leading-relaxed mb-3">{interpretation.description}</p>
+          <div className="flex items-start gap-2 pt-3 border-t border-white/[0.08]">
+            <InfoIcon className="w-4 h-4 text-[#c9a96e] flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-white/50 leading-relaxed">{interpretation.recommendation}</p>
           </div>
         </div>
       )}
@@ -500,23 +500,23 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
           const pct = Math.round((score / section.maxScore) * 100)
           const info = getOverallLabel(pct)
           return (
-            <div key={section.id} className="bg-white/70 border border-beige-300 rounded-xl px-5 py-4">
+            <div key={section.id} className="bg-white/[0.05] border border-white/[0.08] rounded-xl px-5 py-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-bordeaux/8 flex items-center justify-center text-bordeaux/70">
+                  <div className="w-8 h-8 rounded-lg bg-[#c9a96e]/8 flex items-center justify-center text-[#c9a96e]/70">
                     {renderSectionIcon(section.icon, 'w-4 h-4')}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-navy-dark">{section.title}</p>
-                    <p className="text-xs text-navy/40">{section.subtitle}</p>
+                    <p className="text-sm font-semibold text-white">{section.title}</p>
+                    <p className="text-xs text-white/30">{section.subtitle}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className={`text-lg font-bold ${info.color}`}>{pct}%</p>
-                  <p className="text-xs text-navy/40">{score}/{section.maxScore}</p>
+                  <p className="text-xs text-white/30">{score}/{section.maxScore}</p>
                 </div>
               </div>
-              <div className="h-1.5 bg-beige-200 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
                 <div className={`h-full rounded-full ${info.bar} transition-all duration-700`} style={{ width: `${pct}%` }} />
               </div>
             </div>
@@ -531,7 +531,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         </Link>
       </div>
 
-      <div className="w-12 h-px bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mt-12" />
+      <div className="w-12 h-px bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent mx-auto mt-12" />
     </div>
   )
 }
@@ -590,27 +590,27 @@ export default function BilanSommeilPage() {
   }, [testIndex, sectionIndex, router])
 
   return (
-    <div className="min-h-screen bg-beige-100">
+    <div className="min-h-screen bg-[#0a0a0a]">
       {phase === 'testing' && (
-        <div className="sticky top-0 z-30 bg-beige-100/90 backdrop-blur-md border-b border-beige-300">
+        <div className="sticky top-0 z-30 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/[0.08]">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
             <button
               onClick={handlePrev}
-              className="flex items-center gap-1 text-sm text-navy/50 hover:text-navy-dark transition-colors"
+              className="flex items-center gap-1 text-sm text-white/40 hover:text-white transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Retour</span>
             </button>
             <div className="flex items-center gap-2">
-              <span className="text-xs tabular-nums text-navy/40">{flatIndex + 1}/{totalTests}</span>
-              <div className="w-24 h-1 bg-beige-300 rounded-full overflow-hidden">
+              <span className="text-xs tabular-nums text-white/30">{flatIndex + 1}/{totalTests}</span>
+              <div className="w-24 h-1 bg-white/[0.1] rounded-full overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-bordeaux to-gold transition-all duration-500"
+                  className="h-full rounded-full bg-gradient-to-r from-[#c9a96e] to-[#a08050] transition-all duration-500"
                   style={{ width: `${Math.round(((flatIndex + 1) / totalTests) * 100)}%` }}
                 />
               </div>
             </div>
-            <Link href="/onboarding/bilans" className="text-xs text-navy/30 hover:text-navy/60 transition-colors">Quitter</Link>
+            <Link href="/onboarding/bilans" className="text-xs text-white/20 hover:text-white/50 transition-colors">Quitter</Link>
           </div>
         </div>
       )}

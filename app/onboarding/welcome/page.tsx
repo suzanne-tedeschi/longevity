@@ -46,22 +46,16 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col">
       {/* Background */}
-      <div className="absolute inset-0 -z-10 bg-beige-100">
+      <div className="absolute inset-0 -z-10 bg-[#0a0a0a]">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full" style={{
-          background: 'radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 60%)'
-        }} />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-50" style={{
-          background: 'radial-gradient(circle, rgba(107,39,55,0.05) 0%, transparent 70%)'
-        }} />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-50" style={{
-          background: 'radial-gradient(circle, rgba(26,43,74,0.04) 0%, transparent 70%)'
+          background: 'radial-gradient(circle, rgba(201,169,110,0.06) 0%, transparent 60%)'
         }} />
       </div>
 
       {/* Top bar */}
       <nav className="w-full px-6 py-5 flex items-center justify-between">
         <Link href="/" className="text-2xl font-bold">
-          <span className="text-navy-dark">E</span><span className="gradient-text">vo</span>
+          <span className="text-white">E</span><span className="text-[#c9a96e]">vo</span>
         </Link>
       </nav>
 
@@ -72,14 +66,14 @@ export default function WelcomePage() {
             titleVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          <h1 className="text-4xl md:text-5xl font-light text-navy-dark leading-tight tracking-tight mb-2">
+          <h1 className="text-4xl md:text-5xl font-light text-white leading-tight tracking-tight mb-2">
             Bonjour {firstName} !
           </h1>
-          <h2 className="text-3xl md:text-4xl font-light text-navy-dark leading-tight tracking-tight">
-            Bienvenu<span className="text-bordeaux">(e)</span> dans votre
+          <h2 className="text-3xl md:text-4xl font-light text-white leading-tight tracking-tight">
+            Bienvenu<span className="text-[#c9a96e]">(e)</span> dans votre
           </h2>
           <h2 className="text-3xl md:text-4xl font-semibold leading-tight tracking-tight mt-1">
-            <span className="gradient-text">hub de longévité</span>
+            <span className="text-[#c9a96e]">hub de longévité</span>
           </h2>
         </div>
 
@@ -89,8 +83,8 @@ export default function WelcomePage() {
             textVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          <div className="w-16 h-0.5 rounded-full bg-gradient-to-r from-bordeaux to-gold mx-auto mb-6" />
-          <p className="text-lg text-navy/70 leading-relaxed max-w-md mx-auto">
+          <div className="w-16 h-0.5 rounded-full bg-gradient-to-r from-[#c9a96e] to-[#a08050] mx-auto mb-6" />
+          <p className="text-lg text-white/50 leading-relaxed max-w-md mx-auto">
             Nous allons construire ensemble votre programme de longévité personnalisé.
             Commençons par faire connaissance.
           </p>
@@ -111,7 +105,7 @@ export default function WelcomePage() {
         </div>
 
         <p
-          className={`mt-8 text-xs text-navy/30 max-w-xs text-center leading-relaxed transition-all duration-700 ease-out delay-200 ${
+          className={`mt-8 text-xs text-white/20 max-w-xs text-center leading-relaxed transition-all duration-700 ease-out delay-200 ${
             ctaVisible ? 'opacity-100' : 'opacity-0'
           }`}
         >

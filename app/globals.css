@@ -4,10 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-beige-100 text-navy-dark;
-    background-image: 
-      radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.02) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(26, 43, 74, 0.02) 0%, transparent 50%);
+    @apply bg-[#0a0a0a] text-white;
   }
   
   * {
@@ -17,9 +14,9 @@
 
 @layer components {
   .btn-primary {
-    @apply relative bg-navy-dark text-white px-8 py-4 rounded-xl font-semibold text-lg 
-           shadow-[0_4px_14px_0_rgba(26,43,74,0.25)] 
-           hover:shadow-[0_6px_20px_0_rgba(26,43,74,0.35)] 
+    @apply relative bg-[#c9a96e] text-[#0a0a0a] px-8 py-4 rounded-xl font-semibold text-lg 
+           shadow-[0_4px_14px_0_rgba(201,169,110,0.25)] 
+           hover:shadow-[0_6px_20px_0_rgba(201,169,110,0.35)] 
            active:scale-95
            transition-all duration-300 ease-out
            overflow-hidden;
@@ -35,7 +32,7 @@
   
   .btn-primary::before {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent;
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
     transform: translateX(-100%);
     transition: transform 0.6s;
   }
@@ -45,9 +42,9 @@
   }
   
   .btn-secondary {
-    @apply relative bg-gradient-to-br from-bordeaux to-bordeaux-dark text-white px-8 py-4 rounded-xl font-semibold text-lg 
-           shadow-[0_4px_14px_0_rgba(107,39,55,0.3)] 
-           hover:shadow-[0_6px_20px_0_rgba(107,39,55,0.4)]
+    @apply relative bg-gradient-to-br from-[#c9a96e] to-[#a08050] text-[#0a0a0a] px-8 py-4 rounded-xl font-semibold text-lg 
+           shadow-[0_4px_14px_0_rgba(201,169,110,0.3)] 
+           hover:shadow-[0_6px_20px_0_rgba(201,169,110,0.4)]
            active:scale-95
            transition-all duration-300 ease-out
            overflow-hidden;
@@ -63,7 +60,7 @@
   
   .btn-secondary::before {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent;
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
     transform: translateX(-100%);
     transition: transform 0.6s;
   }
@@ -73,39 +70,32 @@
   }
   
   .section-title {
-    @apply text-4xl md:text-5xl font-bold text-navy-dark mb-6 leading-tight;
-    background: linear-gradient(135deg, #1A2B4A 0%, #2C3E5A 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    @apply text-4xl md:text-5xl font-bold text-white mb-6 leading-tight;
   }
   
   .section-subtitle {
-    @apply text-xl md:text-2xl text-navy mb-8;
+    @apply text-xl md:text-2xl text-white/60 mb-8;
   }
   
   .gold-accent {
     @apply relative font-semibold;
-    background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #c9a96e;
   }
   
   .card {
-    @apply relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 
-           shadow-[0_8px_30px_rgba(0,0,0,0.06)] 
-           hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)]
+    @apply relative bg-white/[0.05] backdrop-blur-sm rounded-2xl p-8 
+           shadow-[0_8px_30px_rgba(0,0,0,0.2)] 
+           hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)]
            transition-all duration-500 ease-out
-           border border-gold/10
-           hover:border-gold/30
+           border border-white/[0.08]
+           hover:border-white/[0.15]
            hover:-translate-y-1;
   }
   
   .card::before {
     content: '';
     @apply absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500;
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(26, 43, 74, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(201, 169, 110, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
   }
   
   .card:hover::before {
@@ -113,12 +103,13 @@
   }
   
   .nav-link {
-    @apply relative text-navy-dark hover:text-bordeaux transition-all duration-300;
+    @apply relative text-white/70 hover:text-[#c9a96e] transition-all duration-300;
   }
   
   .nav-link::after {
     content: '';
-    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-bordeaux to-gold transition-all duration-300;
+    @apply absolute bottom-0 left-0 w-0 h-0.5 transition-all duration-300;
+    background: linear-gradient(to right, #c9a96e, #a08050);
   }
   
   .nav-link:hover::after {
@@ -126,10 +117,7 @@
   }
   
   .gradient-text {
-    background: linear-gradient(135deg, #6B2737 0%, #D4AF37 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #c9a96e;
   }
   
   .floating-element {

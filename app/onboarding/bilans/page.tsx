@@ -116,22 +116,22 @@ export default function BilansPage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 -z-10 bg-beige-100">
+      <div className="absolute inset-0 -z-10 bg-[#0a0a0a]">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full" style={{
-          background: 'radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 60%)'
+          background: 'radial-gradient(circle, rgba(201,169,110,0.06) 0%, transparent 60%)'
         }} />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-50" style={{
-          background: 'radial-gradient(circle, rgba(107,39,55,0.05) 0%, transparent 70%)'
+          background: 'radial-gradient(circle, rgba(201,169,110,0.03) 0%, transparent 70%)'
         }} />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-50" style={{
-          background: 'radial-gradient(circle, rgba(26,43,74,0.04) 0%, transparent 70%)'
+          background: 'radial-gradient(circle, rgba(201,169,110,0.02) 0%, transparent 70%)'
         }} />
       </div>
 
       {/* Top bar */}
       <nav className="w-full px-6 py-5 flex items-center justify-between">
         <Link href="/" className="text-2xl font-bold">
-          <span className="text-navy-dark">E</span><span className="gradient-text">vo</span>
+          <span className="text-white">E</span><span className="text-[#c9a96e]">vo</span>
         </Link>
       </nav>
 
@@ -142,8 +142,8 @@ export default function BilansPage() {
             titleVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          <h1 className="text-3xl md:text-4xl font-bold text-navy-dark leading-tight tracking-tight mb-2">
-            Vos <span className="gradient-text">évaluations</span>
+          <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight tracking-tight mb-2">
+            Vos <span className="text-[#c9a96e]">évaluations</span>
           </h1>
         </div>
 
@@ -153,7 +153,7 @@ export default function BilansPage() {
             textVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          <p className="text-lg text-navy/70 leading-relaxed max-w-lg mx-auto">
+          <p className="text-lg text-white/50 leading-relaxed max-w-lg mx-auto">
             Pour construire votre plan de longévité personnalisé, nous avons préparé plusieurs bilans scientifiques.
           </p>
         </div>
@@ -164,7 +164,7 @@ export default function BilansPage() {
             textVisible ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
           }`}
         >
-          <div className="w-16 h-0.5 rounded-full bg-gradient-to-r from-bordeaux to-gold" />
+          <div className="w-16 h-0.5 rounded-full bg-gradient-to-r from-[#c9a96e] to-[#a08050]" />
         </div>
 
         {/* Subtitle */}
@@ -173,7 +173,7 @@ export default function BilansPage() {
             textVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          <p className="text-base text-navy/50 italic">
+          <p className="text-base text-white/40 italic">
             Commencez par ce que vous souhaitez — chaque bilan se fait à votre rythme.
           </p>
         </div>
@@ -190,37 +190,37 @@ export default function BilansPage() {
               {bilan.available ? (
                 <button
                   onClick={() => router.push(bilan.href)}
-                  className="w-full h-full text-center group relative bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] border border-gold/10 hover:border-gold/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-1"
+                  className="w-full h-full text-center group relative bg-white/[0.05] backdrop-blur-sm rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] border border-white/[0.08] hover:border-[#c9a96e]/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-1"
                 >
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-navy-dark/5 to-bordeaux/5 flex items-center justify-center text-navy-dark group-hover:from-navy-dark/10 group-hover:to-bordeaux/10 transition-all duration-500">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#c9a96e]/10 to-[#a08050]/10 flex items-center justify-center text-[#c9a96e] group-hover:from-[#c9a96e]/15 group-hover:to-[#a08050]/15 transition-all duration-500">
                       {bilan.icon}
                     </div>
-                    <h3 className="text-sm font-semibold text-navy-dark group-hover:text-bordeaux transition-colors duration-300 leading-tight">
+                    <h3 className="text-sm font-semibold text-white group-hover:text-[#c9a96e] transition-colors duration-300 leading-tight">
                       {bilan.title}
                     </h3>
-                    <p className="text-xs text-navy/50 leading-relaxed line-clamp-3">
+                    <p className="text-xs text-white/40 leading-relaxed line-clamp-3">
                       {bilan.description}
                     </p>
-                    <span className="text-[11px] font-medium text-navy/40 bg-beige-200 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-medium text-white/30 bg-white/[0.08] px-2 py-0.5 rounded-full">
                       {bilan.duration}
                     </span>
                   </div>
-                  <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-bordeaux to-gold scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left rounded-full" />
+                  <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-[#c9a96e] to-[#a08050] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left rounded-full" />
                 </button>
               ) : (
-                <div className="w-full h-full text-center relative bg-white/40 backdrop-blur-sm rounded-2xl p-5 border border-gray-200/50 opacity-50 cursor-default">
+                <div className="w-full h-full text-center relative bg-white/[0.03] backdrop-blur-sm rounded-2xl p-5 border border-white/[0.06] opacity-50 cursor-default">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-navy/30">
+                    <div className="w-12 h-12 rounded-xl bg-white/[0.06] flex items-center justify-center text-white/20">
                       {bilan.icon}
                     </div>
-                    <h3 className="text-sm font-semibold text-navy/40 leading-tight">
+                    <h3 className="text-sm font-semibold text-white/30 leading-tight">
                       {bilan.title}
                     </h3>
-                    <p className="text-xs text-navy/30 leading-relaxed line-clamp-3">
+                    <p className="text-xs text-white/20 leading-relaxed line-clamp-3">
                       {bilan.description}
                     </p>
-                    <span className="text-[11px] font-medium text-white bg-navy/30 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-medium text-white bg-white/[0.15] px-2 py-0.5 rounded-full">
                       Bientôt
                     </span>
                   </div>
@@ -236,7 +236,7 @@ export default function BilansPage() {
             cardsVisible[bilanOptions.length - 1] ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          <p className="text-sm text-navy/40">
+          <p className="text-sm text-white/30">
             Vous pourrez compléter les autres bilans à tout moment.
           </p>
         </div>
