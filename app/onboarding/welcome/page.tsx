@@ -14,6 +14,13 @@ export default function WelcomePage() {
 
   useEffect(() => {
     async function loadUser() {
+      // If profile already completed, skip to bilans
+      const existingProfile = localStorage.getItem('evo_profil')
+      if (existingProfile) {
+        router.push('/onboarding/bilans')
+        return
+      }
+
       if (isSupabaseConfigured && supabase) {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
@@ -23,6 +30,7 @@ export default function WelcomePage() {
             || user.email?.split('@')[0]
             || 'Utilisateur'
           setFirstName(name)
+          localStorage.setItem('evo_user_name', name)
           return
         }
       }
@@ -46,17 +54,15 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col">
       {/* Background */}
-      <div className="absolute inset-0 -z-10 bg-[#0a0a0a]">
+      <div className="absolute inset-0 -z-10 bg-[#FAF8F5]">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full" style={{
-          background: 'radial-gradient(circle, rgba(201,169,110,0.06) 0%, transparent 60%)'
+          background: 'radial-gradient(circle, rgba(45,106,79,0.04) 0%, transparent 60%)'
         }} />
       </div>
 
       {/* Top bar */}
       <nav className="w-full px-6 py-5 flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold">
-          <span className="text-white">E</span><span className="text-[#c9a96e]">vo</span>
-        </Link>
+        <Link href="/" className="text-2xl font-light tracking-wide text-[#1a1a1a]/90">evo</Link>
       </nav>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20">
@@ -66,14 +72,14 @@ export default function WelcomePage() {
             titleVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          <h1 className="text-4xl md:text-5xl font-light text-white leading-tight tracking-tight mb-2">
+          <h1 className="text-4xl md:text-5xl font-light text-[#1a1a1a] leading-tight tracking-tight mb-2">
             Bonjour {firstName} !
           </h1>
-          <h2 className="text-3xl md:text-4xl font-light text-white leading-tight tracking-tight">
-            Bienvenu<span className="text-[#c9a96e]">(e)</span> dans votre
+          <h2 className="text-3xl md:text-4xl font-light text-[#1a1a1a] leading-tight tracking-tight">
+            Bienvenu<span className="text-[#2D6A4F]">(e)</span> dans votre
           </h2>
           <h2 className="text-3xl md:text-4xl font-semibold leading-tight tracking-tight mt-1">
-            <span className="text-[#c9a96e]">hub de longévité</span>
+            <span className="text-[#2D6A4F]">hub de longévité</span>
           </h2>
         </div>
 
@@ -83,8 +89,8 @@ export default function WelcomePage() {
             textVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          <div className="w-16 h-0.5 rounded-full bg-gradient-to-r from-[#c9a96e] to-[#a08050] mx-auto mb-6" />
-          <p className="text-lg text-white/50 leading-relaxed max-w-md mx-auto">
+          <div className="w-16 h-0.5 rounded-full bg-gradient-to-r from-[#2D6A4F] to-[#1B4332] mx-auto mb-6" />
+          <p className="text-lg text-[#1a1a1a]/50 leading-relaxed max-w-md mx-auto">
             Nous allons construire ensemble votre programme de longévité personnalisé.
             Commençons par faire connaissance.
           </p>
@@ -105,7 +111,7 @@ export default function WelcomePage() {
         </div>
 
         <p
-          className={`mt-8 text-xs text-white/20 max-w-xs text-center leading-relaxed transition-all duration-700 ease-out delay-200 ${
+          className={`mt-8 text-xs text-[#1a1a1a]/20 max-w-xs text-center leading-relaxed transition-all duration-700 ease-out delay-200 ${
             ctaVisible ? 'opacity-100' : 'opacity-0'
           }`}
         >

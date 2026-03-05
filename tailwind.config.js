@@ -37,6 +37,11 @@ module.exports = {
           light: '#E8D7A0',
           dark: '#B8941F',
         },
+        supagreen: {
+          DEFAULT: '#3ECF8E',
+          dark: '#1B9C6E',
+          light: '#A7F5D8',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -53,6 +58,9 @@ module.exports = {
         'orbit': 'orbit 20s linear infinite',
         'twinkle': 'twinkle 3s ease-in-out infinite',
         'rotate-gradient': 'rotateGradient 20s linear infinite',
+        'hero-blob-1': 'heroBlob1 12s ease-in-out infinite',
+        'hero-blob-2': 'heroBlob2 10s ease-in-out infinite',
+        'hero-blob-3': 'heroBlob3 14s ease-in-out infinite',
       },
       keyframes: {
         float: {
@@ -94,6 +102,20 @@ module.exports = {
         rotateGradient: {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' },
+        },
+        heroBlob1: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '33%': { transform: 'translate(-40px, 30px) scale(1.15)' },
+          '66%': { transform: 'translate(30px, -20px) scale(0.9)' },
+        },
+        heroBlob2: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '33%': { transform: 'translate(50px, -40px) scale(1.1)' },
+          '66%': { transform: 'translate(-30px, 25px) scale(0.95)' },
+        },
+        heroBlob3: {
+          '0%, 100%': { transform: 'translate(-50%, -50%) scale(1)', opacity: '0.06' },
+          '50%': { transform: 'translate(-50%, -50%) scale(1.2)', opacity: '0.1' },
         },
       },
     },

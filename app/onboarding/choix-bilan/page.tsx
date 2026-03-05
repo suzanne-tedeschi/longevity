@@ -112,23 +112,21 @@ export default function ChoixBilanPage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 -z-10 bg-[#0a0a0a]">
+      <div className="absolute inset-0 -z-10 bg-[#FAF8F5]">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full" style={{
-          background: 'radial-gradient(circle, rgba(201,169,110,0.06) 0%, transparent 60%)'
+          background: 'radial-gradient(circle, rgba(45,106,79,0.06) 0%, transparent 60%)'
         }} />
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full" style={{
-          background: 'radial-gradient(circle, rgba(201,169,110,0.03) 0%, transparent 70%)'
+          background: 'radial-gradient(circle, rgba(45,106,79,0.03) 0%, transparent 70%)'
         }} />
       </div>
 
       {/* Top bar */}
       <nav className="w-full px-6 py-5 flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold">
-          <span className="text-white">E</span><span className="text-[#c9a96e]">vo</span>
-        </Link>
+        <Link href="/" className="text-2xl font-light tracking-wide text-[#1a1a1a]/90">evo</Link>
         <button
           onClick={() => router.back()}
-          className="text-sm text-white/40 hover:text-white/60 transition-colors duration-300 flex items-center gap-1.5"
+          className="text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a]/60 transition-colors duration-300 flex items-center gap-1.5"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
@@ -140,10 +138,10 @@ export default function ChoixBilanPage() {
       <div className="max-w-3xl mx-auto px-6 pb-20">
         {/* Header */}
         <div className={`text-center mb-12 transition-all duration-700 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
-            Choisissez votre <span className="text-[#c9a96e]">bilan</span>
+          <h1 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] mb-4 leading-tight">
+            Choisissez votre <span className="text-[#2D6A4F]">bilan</span>
           </h1>
-          <p className="text-lg text-white/50 max-w-lg mx-auto">
+          <p className="text-lg text-[#1a1a1a]/50 max-w-lg mx-auto">
             Sélectionnez un domaine à évaluer pour construire votre plan de longévité personnalisé.
           </p>
         </div>
@@ -160,31 +158,31 @@ export default function ChoixBilanPage() {
               {bilan.available ? (
                 <button
                   onClick={() => router.push(bilan.href)}
-                  className="w-full text-left group relative bg-white/[0.05] backdrop-blur-sm rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] border border-white/[0.08] hover:border-[#c9a96e]/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-0.5"
+                  className="w-full text-left group relative bg-white backdrop-blur-sm rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] border border-[#1a1a1a]/[0.08] hover:border-[#2D6A4F]/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-0.5"
                 >
                   <div className="flex items-start gap-5">
                     {/* Icon */}
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#c9a96e]/10 to-[#a08050]/10 flex items-center justify-center flex-shrink-0 text-[#c9a96e] group-hover:from-[#c9a96e]/15 group-hover:to-[#a08050]/15 transition-all duration-500">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#2D6A4F]/10 to-[#1B4332]/10 flex items-center justify-center flex-shrink-0 text-[#2D6A4F] group-hover:from-[#2D6A4F]/15 group-hover:to-[#1B4332]/15 transition-all duration-500">
                       {bilan.icon}
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1.5">
-                        <h3 className="text-lg font-semibold text-white group-hover:text-[#c9a96e] transition-colors duration-300">
+                        <h3 className="text-lg font-semibold text-[#1a1a1a] group-hover:text-[#2D6A4F] transition-colors duration-300">
                           {bilan.title}
                         </h3>
-                        <span className="text-xs font-medium text-white/30 bg-white/[0.08] px-2.5 py-0.5 rounded-full">
+                        <span className="text-xs font-medium text-[#1a1a1a]/30 bg-[#1a1a1a]/[0.04] px-2.5 py-0.5 rounded-full">
                           {bilan.duration}
                         </span>
                       </div>
-                      <p className="text-sm text-white/50 leading-relaxed">
+                      <p className="text-sm text-[#1a1a1a]/50 leading-relaxed">
                         {bilan.description}
                       </p>
                     </div>
 
                     {/* Arrow */}
-                    <div className="flex-shrink-0 mt-3 text-white/20 group-hover:text-[#c9a96e] transition-all duration-300 group-hover:translate-x-1">
+                    <div className="flex-shrink-0 mt-3 text-[#1a1a1a]/20 group-hover:text-[#2D6A4F] transition-all duration-300 group-hover:translate-x-1">
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M9 18l6-6-6-6" />
                       </svg>
@@ -192,27 +190,27 @@ export default function ChoixBilanPage() {
                   </div>
 
                   {/* Hover gold line */}
-                  <div className="absolute bottom-0 left-6 right-6 h-0.5 bg-gradient-to-r from-[#c9a96e] to-[#a08050] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left rounded-full" />
+                  <div className="absolute bottom-0 left-6 right-6 h-0.5 bg-gradient-to-r from-[#2D6A4F] to-[#1B4332] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left rounded-full" />
                 </button>
               ) : (
-                <div className="w-full text-left relative bg-white/[0.03] backdrop-blur-sm rounded-2xl p-6 border border-white/[0.06] opacity-60 cursor-default">
+                <div className="w-full text-left relative bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-[#1a1a1a]/[0.06] opacity-60 cursor-default">
                   <div className="flex items-start gap-5">
                     {/* Icon */}
-                    <div className="w-14 h-14 rounded-xl bg-white/[0.06] flex items-center justify-center flex-shrink-0 text-white/20">
+                    <div className="w-14 h-14 rounded-xl bg-[#1a1a1a]/[0.03] flex items-center justify-center flex-shrink-0 text-[#1a1a1a]/20">
                       {bilan.icon}
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1.5">
-                        <h3 className="text-lg font-semibold text-white/30">
+                        <h3 className="text-lg font-semibold text-[#1a1a1a]/30">
                           {bilan.title}
                         </h3>
-                        <span className="text-xs font-medium text-white bg-white/[0.15] px-2.5 py-0.5 rounded-full">
+                        <span className="text-xs font-medium text-[#1a1a1a] bg-[#1a1a1a]/[0.08] px-2.5 py-0.5 rounded-full">
                           Bientôt disponible
                         </span>
                       </div>
-                      <p className="text-sm text-white/30 leading-relaxed">
+                      <p className="text-sm text-[#1a1a1a]/30 leading-relaxed">
                         {bilan.description}
                       </p>
                     </div>

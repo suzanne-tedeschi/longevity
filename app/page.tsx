@@ -14,6 +14,13 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState('')
   const [formOpen, setFormOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  /* Hero video crossfade */
+  const [activeVideo, setActiveVideo] = useState(0)
+  const video1Ref = useRef<HTMLVideoElement>(null)
+  const video2Ref = useRef<HTMLVideoElement>(null)
+  const heroVideos = ['/hero-bg.mp4', '/Vid%C3%A9o_Fitness_Non_Chinoise_G%C3%A9n%C3%A9r%C3%A9e.mp4']
 
   /* Typewriter */
   const [rotatingWordIndex, setRotatingWordIndex] = useState(0)
@@ -27,6 +34,27 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return
+
+    async function loadSession() {
+      const {
+        data: { session },
+      } = await supabase!.auth.getSession()
+      setIsLoggedIn(Boolean(session?.user))
+    }
+
+    loadSession()
+
+    const {
+      data: { subscription },
+    } = supabase!.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(Boolean(session?.user))
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   /* Animated fitness silhouettes on canvas */
@@ -256,12 +284,15 @@ export default function Home() {
         <span className="text-xl font-light tracking-wide text-white/90">evo</span>
         <div className="flex items-center gap-6">
           <span className="text-[11px] uppercase tracking-[0.25em] text-white/40 font-medium hidden sm:block">Entra&icirc;nement long&eacute;vit&eacute;</span>
-          <a href="/onboarding/login" className="text-[13px] font-medium text-white/70 hover:text-white transition-colors duration-200 border border-white/20 hover:border-white/40 rounded-full px-4 py-1.5">Login</a>
+          <a href={isLoggedIn ? '/onboarding/welcome' : '/onboarding/login'} className="text-[13px] font-medium text-white/70 hover:text-white transition-colors duration-200 border border-white/20 hover:border-white/40 rounded-full px-4 py-1.5">
+            {isLoggedIn ? 'Mon espace' : 'Login'}
+          </a>
         </div>
       </nav>
 
       <section className="relative min-h-screen flex flex-col justify-center px-6 md:px-16 lg:px-24 overflow-hidden">
-        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover z-0"><source src="/hero-bg.mp4" type="video/mp4" /></video>
+        <video ref={video1Ref} autoPlay muted playsInline onEnded={() => { setActiveVideo(1); video2Ref.current?.play() }} className="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-[2000ms] ease-in-out" style={{ opacity: activeVideo === 0 ? 1 : 0 }}><source src={heroVideos[0]} type="video/mp4" /></video>
+        <video ref={video2Ref} muted playsInline onEnded={() => { setActiveVideo(0); video1Ref.current?.play() }} className="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-[2000ms] ease-in-out" style={{ opacity: activeVideo === 1 ? 1 : 0 }}><source src={heroVideos[1]} type="video/mp4" /></video>
         <div className="absolute inset-0 bg-black/50 z-0" />
         <div className="relative z-10 max-w-4xl" style={{ animation: mounted ? 'fadeInUp 0.8s ease-out' : 'none', opacity: mounted ? 1 : 0 }}>
           <div className="inline-flex items-center px-5 py-2.5 rounded-full border border-white/[0.08] mb-16">

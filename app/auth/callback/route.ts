@@ -5,6 +5,7 @@ import type { NextRequest } from 'next/server'
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
+  let redirectTo = '/onboarding/welcome'
 
   if (code) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -28,8 +29,20 @@ export async function GET(request: NextRequest) {
         avatar_url: user.user_metadata?.avatar_url || '',
       }
       await supabase.from('profiles').upsert(profile, { onConflict: 'id' })
+
+      // Check if user already completed their profile questionnaire
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('age, height, weight')
+        .eq('id', user.id)
+        .single()
+
+      if (existingProfile?.age && existingProfile?.height && existingProfile?.weight) {
+        // User already completed onboarding → skip to bilans
+        redirectTo = '/onboarding/bilans'
+      }
     }
   }
 
-  return NextResponse.redirect(new URL('/onboarding/welcome', request.url))
+  return NextResponse.redirect(new URL(redirectTo, request.url))
 }

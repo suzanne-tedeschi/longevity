@@ -89,6 +89,38 @@ Le site met en avant l'approche scientifique de Vincent Foulonneau :
 - **Styling** : Tailwind CSS
 - **Font** : Inter (Google Fonts)
 
+## 📆 Intégration Google Agenda (MVP)
+
+Le projet inclut maintenant une connexion Google Agenda dans le questionnaire initial (`/onboarding/profil`).
+
+### Variables d'environnement requises
+
+Ajoutez dans `.env.local` :
+
+```bash
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+SUPABASE_SERVICE_ROLE_KEY=...
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+CALENDAR_TOKEN_SECRET=une_phrase_longue_et_aleatoire
+```
+
+### Base de données Supabase
+
+Exécutez le script SQL :
+
+```bash
+sql/calendar_google_mvp.sql
+```
+
+### OAuth Google
+
+Dans Google Cloud Console (OAuth Client), ajoutez cette URI de redirection :
+
+```text
+http://localhost:3000/api/calendar/google/callback
+```
+
 ## 📝 License
 
 © 2026 EnTrain. Tous droits réservés.
