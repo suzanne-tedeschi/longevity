@@ -24,7 +24,7 @@ export default function LoginPage() {
         data: { session },
       } = await supabase.auth.getSession()
       if (session?.user) {
-        router.replace('/onboarding/welcome')
+        router.replace('/onboarding/bilans')
       }
     }
     redirectIfAuthenticated()
@@ -88,7 +88,7 @@ export default function LoginPage() {
           return
         }
       }
-      router.push('/onboarding/welcome')
+      router.push('/onboarding/bilans')
     } catch {
       setErrorMsg('Une erreur est survenue. Réessayez.')
       setLoading(false)

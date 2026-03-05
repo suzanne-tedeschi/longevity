@@ -1,0 +1,88 @@
+/* ── Hero blob animations ── */
+@keyframes blob1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-50px, 40px) scale(1.18); }
+  50% { transform: translate(20px, -30px) scale(0.92); }
+  75% { transform: translate(40px, 20px) scale(1.08); }
+}
+@keyframes blob2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(60px, -50px) scale(1.12); }
+  50% { transform: translate(-40px, 30px) scale(0.93); }
+  75% { transform: translate(-20px, -40px) scale(1.06); }
+}
+@keyframes blob3 {
+  0%, 100% { transform: scale(1); opacity: 0.06; }
+  50% { transform: scale(1.35); opacity: 0.14; }
+}
+@keyframes meshRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes shimmerLine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ── Blob elements ── */
+.heroBlob1 { animation: blob1 14s ease-in-out infinite; }
+.heroBlob2 { animation: blob2 12s ease-in-out infinite; }
+.heroBlob3 { animation: blob3 16s ease-in-out infinite; }
+.heroMesh { animation: meshRotate 60s linear infinite; }
+
+/* ── KPI cards ── */
+.kpiCard {
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.kpiCard:hover {
+  transform: translateY(-4px) scale(1.02);
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(201, 169, 110, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.kpiCard:hover .kpiIcon {
+  transform: scale(1.15);
+  background: rgba(255, 255, 255, 0.1);
+}
+.kpiCard:hover .kpiValue {
+  transform: scale(1.05);
+}
+.kpiCard:hover .kpiShimmer::after {
+  animation: shimmerLine 1.5s ease-in-out;
+}
+
+.kpiIcon {
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.kpiValue {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  display: inline-block;
+}
+
+.kpiShimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  overflow: hidden;
+}
+.kpiShimmer::after {
+  content: '';
+  display: block;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.5), transparent);
+  transform: translateX(-100%);
+}
+
+/* ── Hero chart ── */
+.heroChart {
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.heroChart:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 24px rgba(62, 207, 142, 0.06);
+}

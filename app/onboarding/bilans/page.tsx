@@ -21,6 +21,7 @@ import {
   Timer, Zap, Shield, Leaf, Microscope, Lightbulb, ArrowRight, GripVertical,
   Dna, Clock, Wind, Recycle, Bug, Radio, Sprout, Ban, LayoutGrid, Columns3, CalendarDays,
 } from "lucide-react"
+import css from "./bilans.module.css"
 
 /* ─── types ─── */
 interface Session {
@@ -52,34 +53,12 @@ const weeklyActivity = [
   { jour: "J", seances: 1 }, { jour: "V", seances: 0 }, { jour: "S", seances: 1 }, { jour: "D", seances: 0 },
 ]
 
-const sciencePillars: { icon: React.ReactNode; title: string; score: number; tag: string; tagColor: string; desc: string; stats: { label: string; value: string }[]; ref: string }[] = [
-  { icon: <Activity className="w-5 h-5" />, title: "Exercice physique", score: 84, tag: "Priorite #1", tagColor: "#3ECF8E", desc: "L'activite physique reguliere est le facteur modifiable le plus puissant pour la longevite.", stats: [{ label: "VO2max cible", value: "+15%" }, { label: "Zone 2/sem.", value: "150 min" }, { label: "Force/sem.", value: "2x" }], ref: "Attia, Outlive (2023)" },
-  { icon: <Moon className="w-5 h-5" />, title: "Sommeil et recuperation", score: 80, tag: "En progres", tagColor: "#c9a96e", desc: "7-9h par nuit. La restriction chronique accelere le vieillissement cellulaire.", stats: [{ label: "Duree cible", value: "8h" }, { label: "Efficacite", value: ">85%" }, { label: "Consistance", value: "+-30 min" }], ref: "Walker, Why We Sleep (2018)" },
-  { icon: <Apple className="w-5 h-5" />, title: "Nutrition & metabolisme", score: 83, tag: "Stable", tagColor: "#3ECF8E", desc: "Alimentation riche en proteines (1.6g/kg), fibres et polyphenols.", stats: [{ label: "Proteines/j", value: "1.6g/kg" }, { label: "Fibres/j", value: "30g+" }, { label: "Indice NOVA", value: "<10%" }], ref: "Levine et al., Cell Metabolism (2018)" },
-  { icon: <Brain className="w-5 h-5" />, title: "Sante cognitive", score: 72, tag: "A travailler", tagColor: "#ff6b6b", desc: "Stimulation cognitive, gestion du stress et liens sociaux forts.", stats: [{ label: "Meditation/j", value: "10 min" }, { label: "Apprentissage", value: "3x/sem." }, { label: "Social", value: "Actif" }], ref: "Livingston et al., Lancet (2020)" },
-]
-
-const hallmarks: { name: string; icon: React.ReactNode; action: string }[] = [
-  { name: "Instabilite genomique", icon: <Dna className="w-4 h-4" />, action: "Sommeil, antioxydants" },
-  { name: "Attrition des telomeres", icon: <Microscope className="w-4 h-4" />, action: "Exercice aerobie" },
-  { name: "Alterations epigenetiques", icon: <FlaskConical className="w-4 h-4" />, action: "Nutrition, stress" },
-  { name: "Perte de proteostasie", icon: <Shield className="w-4 h-4" />, action: "Jeune intermittent" },
-  { name: "Macroautophagie defaillante", icon: <Recycle className="w-4 h-4" />, action: "Exercice, jeune" },
-  { name: "Deregulation nutriments", icon: <Leaf className="w-4 h-4" />, action: "Nutrition, IGF-1" },
-  { name: "Dysfonction mitochondriale", icon: <Zap className="w-4 h-4" />, action: "Zone 2, froid" },
-  { name: "Senescence cellulaire", icon: <Ban className="w-4 h-4" />, action: "Exercice, senolytiques" },
-  { name: "Epuisement cellules souches", icon: <Sprout className="w-4 h-4" />, action: "Sommeil, jeune" },
-  { name: "Communication intercellulaire", icon: <Radio className="w-4 h-4" />, action: "Social, microbiome" },
-  { name: "Dysbiose chronique", icon: <Bug className="w-4 h-4" />, action: "Fibres, probiotiques" },
-  { name: "Neuroinflammation", icon: <Brain className="w-4 h-4" />, action: "Omega-3, sommeil" },
-]
-
-const bilanOptions: { id: string; title: string; score: number | null; description: string; duration: string; available: boolean; href: string; icon: React.ReactNode }[] = [
-  { id: "condition-physique", title: "Condition physique", score: 84, description: "43 tests — mobilite, force, equilibre, souplesse.", duration: "15 min", available: true, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" /> },
-  { id: "nutrition", title: "Nutrition", score: 83, description: "Symptomes digestifs & confort intestinal (GSRS).", duration: "5 min", available: true, href: "/onboarding/bilan-digestif", icon: <Apple className="w-5 h-5" /> },
-  { id: "sommeil", title: "Sommeil", score: 80, description: "Qualite & recuperation nocturne.", duration: "10 min", available: true, href: "/onboarding/bilan-sommeil", icon: <Moon className="w-5 h-5" /> },
-  { id: "emotionnel", title: "Sante emotionnelle", score: null, description: "Bien-etre emotionnel & desequilibres.", duration: "10 min", available: false, href: "#", icon: <Heart className="w-5 h-5" /> },
-  { id: "stress", title: "Gestion du stress", score: null, description: "Niveau de stress & techniques adaptees.", duration: "8 min", available: false, href: "#", icon: <Wind className="w-5 h-5" /> },
+const bilanOptions: { id: string; title: string; score: number | null; description: string; duration: string; available: boolean; href: string; icon: React.ReactNode; color: string }[] = [
+  { id: "condition-physique", title: "Condition physique", score: null, description: "43 tests — mobilite, force, equilibre, souplesse.", duration: "15 min", available: true, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
+  { id: "nutrition", title: "Nutrition", score: null, description: "Symptomes digestifs & confort intestinal (GSRS).", duration: "5 min", available: true, href: "/onboarding/bilan-digestif", icon: <Apple className="w-5 h-5" />, color: "#c9a96e" },
+  { id: "sommeil", title: "Sommeil", score: null, description: "Qualite & recuperation nocturne.", duration: "10 min", available: true, href: "/onboarding/bilan-sommeil", icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
+  { id: "emotionnel", title: "Sante emotionnelle", score: null, description: "Bien-etre emotionnel & desequilibres.", duration: "10 min", available: false, href: "#", icon: <Heart className="w-5 h-5" />, color: "#ff6b6b" },
+  { id: "stress", title: "Gestion du stress", score: null, description: "Niveau de stress & techniques adaptees.", duration: "8 min", available: false, href: "#", icon: <Wind className="w-5 h-5" />, color: "#60a5fa" },
 ]
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8) // 8h-20h compact
@@ -125,10 +104,12 @@ export default function BilansPage() {
   const [calendarError, setCalendarError] = useState<string | null>(null)
   const [googleEvents, setGoogleEvents] = useState<Session[]>([])
   const [syncingEvents, setSyncingEvents] = useState(false)
+  const [userName, setUserName] = useState<string | null>(null)
 
   /* ── drag & drop ── */
   const dragId = useRef<string | null>(null)
   const [dragOverDay, setDragOverDay] = useState<string | null>(null)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
 
   const onDragStart = useCallback((e: React.DragEvent, sessionId: string) => {
     dragId.current = sessionId
@@ -161,6 +142,28 @@ export default function BilansPage() {
     dragId.current = null
   }, [])
 
+  /* drop with hour calculation from Y position */
+  const onDropTime = useCallback((e: React.DragEvent, targetDate: Date) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOverDay(null)
+    const sid = dragId.current || e.dataTransfer.getData("text/plain")
+    if (!sid) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const y = e.clientY - rect.top
+    const rawHours = 8 + y / H_PX
+    const h = Math.max(8, Math.min(20, Math.floor(rawHours)))
+    const rawMin = (rawHours - Math.floor(rawHours)) * 60
+    const m = Math.min(45, Math.round(rawMin / 15) * 15)
+    setSessions(prev => prev.map(s => {
+      if (s.id !== sid) return s
+      const nd = new Date(targetDate)
+      nd.setHours(h, m, 0, 0)
+      return { ...s, date: nd }
+    }))
+    dragId.current = null
+  }, [])
+
   /* ── google calendar ── */
   const fetchGoogleEvents = async (d: Date, forceSync = false) => {
     try {
@@ -182,6 +185,9 @@ export default function BilansPage() {
         if (!isSupabaseConfigured || !supabase) { setCalendarLoading(false); return }
         const { data: { session } } = await supabase.auth.getSession()
         if (!session?.access_token) { setCalendarLoading(false); return }
+        const u = session.user
+        const name = u?.user_metadata?.first_name || u?.user_metadata?.full_name?.split(' ')[0] || u?.user_metadata?.name?.split(' ')[0] || u?.email?.split('@')[0] || null
+        if (name) setUserName(name.charAt(0).toUpperCase() + name.slice(1))
         const r = await fetch("/api/calendar/google/status", { headers: { Authorization: `Bearer ${session.access_token}` } })
         const body = await r.json() as { connected?: boolean; email?: string | null }
         const c = Boolean(body.connected); setCalendarConnected(c); setCalendarEmail(body.email ?? null)
@@ -234,9 +240,9 @@ export default function BilansPage() {
 
   const sections = [
     { id: "dashboard", label: "Dashboard", icon: <TrendingUp className="w-4 h-4" /> },
+    { id: "bilans", label: "Bilans", icon: <ClipboardList className="w-4 h-4" /> },
     { id: "planning", label: "Planning", icon: <Calendar className="w-4 h-4" /> },
     { id: "science", label: "Science", icon: <FlaskConical className="w-4 h-4" /> },
-    { id: "bilans", label: "Bilans", icon: <ClipboardList className="w-4 h-4" /> },
   ]
 
   const viewOptions: { id: CalView; icon: React.ReactNode; label: string }[] = [
@@ -245,12 +251,14 @@ export default function BilansPage() {
     { id: "day", icon: <CalendarDays className="w-3.5 h-3.5" />, label: "Jour" },
   ]
 
-  /* ── KPI data ── */
-  const kpis = [
-    { label: "Score Global", value: globalScore, unit: "/100", icon: <TrendingUp className="w-5 h-5" />, delta: "+20%", color: "#3ECF8E" },
-    { label: "Age Biologique", value: "-4.2", unit: "ans", icon: <Dna className="w-5 h-5" />, delta: "vs age reel", color: "#3ECF8E" },
-    { label: "Mobilite", value: 84, unit: "/100", icon: <Activity className="w-5 h-5" />, delta: "+22%", color: "#3ECF8E" },
-    { label: "Sommeil", value: 80, unit: "/100", icon: <Moon className="w-5 h-5" />, delta: "+25%", color: "#c9a96e" },
+  /* ── Score cards (fed by bilans) ── */
+  const mobiliteScore = bilanOptions.find(b => b.id === "condition-physique")?.score ?? null
+  const nutritionScore = bilanOptions.find(b => b.id === "nutrition")?.score ?? null
+  const sommeilScore = bilanOptions.find(b => b.id === "sommeil")?.score ?? null
+  const scoreCards = [
+    { label: "Mobilite", score: mobiliteScore, icon: <Activity className="w-5 h-5" />, color: "#3ECF8E" },
+    { label: "Nutrition", score: nutritionScore, icon: <Apple className="w-5 h-5" />, color: "#c9a96e" },
+    { label: "Sommeil", score: sommeilScore, icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
   ]
 
   return (
@@ -261,21 +269,18 @@ export default function BilansPage() {
       </div>
 
       {/* ════════ HERO KPIs ════════ */}
-      <style jsx>{`
-        @keyframes blob1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(-40px,30px) scale(1.15)} 66%{transform:translate(30px,-20px) scale(0.9)} }
-        @keyframes blob2 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(50px,-40px) scale(1.1)} 66%{transform:translate(-30px,25px) scale(0.95)} }
-        @keyframes blob3 { 0%,100%{transform:scale(1);opacity:0.08} 50%{transform:scale(1.3);opacity:0.15} }
-      `}</style>
       <section id="dashboard">
         <div className="relative overflow-hidden bg-[#0a0a0a]">
-          {/* animated gradient blobs */}
+          {/* animated gradient blobs — dynamic */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute w-[600px] h-[600px] rounded-full" style={{ top: "-10%", right: "-10%", background: "radial-gradient(circle, #c9a96e 0%, transparent 70%)", filter: "blur(80px)", opacity: 0.18, animation: "blob1 12s ease-in-out infinite" }} />
-            <div className="absolute w-[500px] h-[500px] rounded-full" style={{ bottom: "-10%", left: "-10%", background: "radial-gradient(circle, #3ECF8E 0%, transparent 70%)", filter: "blur(60px)", opacity: 0.15, animation: "blob2 10s ease-in-out infinite" }} />
-            <div className="absolute w-[400px] h-[400px] rounded-full" style={{ top: "40%", left: "50%", background: "radial-gradient(circle, #6366f1 0%, transparent 70%)", filter: "blur(80px)", opacity: 0.08, animation: "blob3 14s ease-in-out infinite" }} />
+            <div className={`absolute w-[700px] h-[700px] rounded-full ${css.heroBlob1}`} style={{ top: "-20%", right: "-15%", background: "radial-gradient(circle, #c9a96e 0%, transparent 65%)", filter: "blur(100px)", opacity: 0.12 }} />
+            <div className={`absolute w-[600px] h-[600px] rounded-full ${css.heroBlob2}`} style={{ bottom: "-20%", left: "-15%", background: "radial-gradient(circle, #3ECF8E 0%, transparent 65%)", filter: "blur(90px)", opacity: 0.10 }} />
+            <div className={`absolute w-[400px] h-[400px] rounded-full ${css.heroBlob3}`} style={{ top: "30%", left: "50%", background: "radial-gradient(circle, #6366f1 0%, transparent 65%)", filter: "blur(100px)", opacity: 0.06 }} />
+            {/* mesh gradient overlay */}
+            <div className={`absolute w-[900px] h-[900px] ${css.heroMesh}`} style={{ top: "-30%", right: "-20%", background: "conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(201,169,110,0.04) 60deg, transparent 120deg, rgba(62,207,142,0.03) 200deg, transparent 280deg, rgba(99,102,241,0.02) 340deg, transparent 360deg)" }} />
           </div>
-          {/* mesh overlay for texture */}
-          <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 25% 25%, white 1px, transparent 1px), radial-gradient(circle at 75% 75%, white 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
+          {/* subtle noise texture */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.015]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
           {/* ─── nav inside hero ─── */}
           <nav className="sticky top-0 z-30 bg-black/40 backdrop-blur-2xl border-b border-white/[0.06]">
             <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
@@ -291,53 +296,115 @@ export default function BilansPage() {
               <ScoreRing value={globalScore} size={40} />
             </div>
           </nav>
-          <div className="max-w-5xl mx-auto px-6 py-10">
-            <div className="flex items-center gap-2 mb-6">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#c9a96e]">Etat de sante</p>
-              <span className="flex-1 h-px bg-white/[0.06]" />
-              <span className="text-[11px] text-white/20 font-medium">{format(new Date(), "d MMMM yyyy", { locale: fr })}</span>
+          <div className="max-w-5xl mx-auto px-6 pt-10 pb-14">
+            {/* greeting */}
+            <div className="flex items-center gap-2 mb-10">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#c9a96e]/90">{userName ? `Bonjour ${userName}` : "Ton espace sante"}</p>
+              <span className="flex-1 h-px bg-white/[0.08]" />
+              <span className="text-[12px] text-white/40 font-medium">{format(new Date(), "d MMMM yyyy", { locale: fr })}</span>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {kpis.map((kpi, i) => (
-                <div key={i} className={`relative rounded-xl p-5 overflow-hidden ${i === 0 ? "bg-white/[0.06] border border-white/[0.08]" : "bg-white/[0.03] border border-white/[0.05]"}`}>
-                  {i === 0 && <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/40 to-transparent" />}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center" style={{ color: kpi.color }}>{kpi.icon}</div>
-                    {typeof kpi.value === "number" && <ScoreRing value={kpi.value} size={40} />}
-                  </div>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/30 mb-1">{kpi.label}</p>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-3xl font-bold text-white/90 tracking-tight">{kpi.value}</span>
-                    <span className="text-[11px] text-white/20 font-medium">{kpi.unit}</span>
-                  </div>
-                  <p className="text-[11px] mt-1 font-medium" style={{ color: kpi.color }}>{kpi.delta}</p>
+            {/* hero content: age bio left + score cards right */}
+            <div className="flex flex-col md:flex-row items-center md:items-end gap-10 md:gap-16">
+              {/* left: age biologique */}
+              <div className="shrink-0 relative">
+                {/* glow behind number */}
+                <div className="absolute -inset-8 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #3ECF8E 0%, transparent 70%)" }} />
+                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/40 mb-2">Age biologique</p>
+                <div className="flex items-baseline gap-3 relative">
+                  <span className="text-[112px] leading-none font-extrabold tracking-tighter text-white" style={{ textShadow: "0 0 60px rgba(62,207,142,0.25), 0 0 120px rgba(62,207,142,0.1)" }}>-4.2</span>
+                  <span className="text-3xl font-semibold text-white/35">ans</span>
                 </div>
-              ))}
-            </div>
-            {/* mini chart inline */}
-            <div className="mt-6 bg-white/[0.03] border border-white/[0.05] rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[11px] font-medium text-white/30 uppercase tracking-wider">Progression 6 mois</p>
-                <p className="text-[11px] text-[#3ECF8E] font-medium">+20 pts</p>
+                <div className="flex items-center gap-2 mt-3">
+                  <span className="w-2 h-2 rounded-full bg-[#3ECF8E] animate-pulse" />
+                  <p className="text-[14px] text-[#3ECF8E] font-semibold">plus jeune que ton age reel</p>
+                </div>
               </div>
-              <ResponsiveContainer width="100%" height={80}>
-                <AreaChart data={progressData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="gHero" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3ECF8E" stopOpacity={0.25} /><stop offset="95%" stopColor="#3ECF8E" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <Area type="monotone" dataKey="global" stroke="#3ECF8E" strokeWidth={2} fill="url(#gHero)" />
-                  <XAxis dataKey="mois" hide />
-                  <YAxis domain={[50, 100]} hide />
-                </AreaChart>
-              </ResponsiveContainer>
+              {/* right: 3 score cards */}
+              <div className="flex-1 w-full">
+                <div className="grid grid-cols-3 gap-3">
+                  {scoreCards.map((card, i) => (
+                    <div key={i} className={`${css.kpiCard} relative rounded-xl p-4 text-center overflow-hidden bg-white/[0.05] border border-white/[0.08]`}>
+                      <div className={css.kpiShimmer}><div /></div>
+                      <div className={`${css.kpiIcon} w-9 h-9 rounded-lg bg-white/[0.06] flex items-center justify-center mx-auto mb-2.5`} style={{ color: card.color }}>{card.icon}</div>
+                      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-white/35 mb-1.5">{card.label}</p>
+                      {card.score !== null ? (
+                        <div className="flex items-baseline justify-center gap-0.5">
+                          <span className={`${css.kpiValue} text-2xl font-bold text-white`}>{card.score}</span>
+                          <span className="text-[11px] text-white/25 font-medium">/100</span>
+                        </div>
+                      ) : (
+                        <span className="text-lg text-white/15 font-medium">—</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
+          </div>
+          {/* clean edge + glow */}
+          <div className="relative">
+            <div className="h-px bg-gradient-to-r from-transparent via-[#c9a96e]/20 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(10,10,10,0.6) 0%, transparent 100%)", transform: "translateY(100%)" }} />
           </div>
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto px-6 py-10 space-y-20">
+      <div className="max-w-5xl mx-auto px-6 pt-14 pb-10 space-y-20">
+
+        {/* ════════ BILANS ════════ */}
+        <section id="bilans" className="scroll-mt-20">
+          <SectionHeader title="Tes bilans" subtitle="Complete tes bilans pour alimenter ton dashboard" gold />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {bilanOptions.map(bilan => {
+              const completed = bilan.score !== null
+              const pct = completed ? 100 : 0
+              const c = bilan.color
+              return (
+                <div key={bilan.id} onClick={() => bilan.available ? router.push(bilan.href) : undefined}
+                  className={`relative rounded-xl border p-4 transition-all duration-300 flex flex-col items-center text-center group/bilan ${
+                    bilan.available && !completed
+                      ? "bg-white hover:shadow-lg hover:-translate-y-1 cursor-pointer"
+                      : completed
+                      ? "bg-white cursor-pointer"
+                      : "bg-white hover:-translate-y-0.5 cursor-default"
+                  }`}
+                  style={{ borderColor: bilan.available ? `${c}30` : `${c}20` }}>
+                  {/* color accent top */}
+                  <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-xl" style={{ background: `linear-gradient(to right, transparent, ${c}${bilan.available ? '66' : '33'}, transparent)` }} />
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-all duration-300 group-hover/bilan:scale-110"
+                    style={{ background: `${c}15`, color: c }}>
+                    {bilan.icon}
+                  </div>
+                  <h3 className={`text-[13px] font-medium mb-1 leading-tight ${!bilan.available ? "text-[#1a1a1a]/60" : "text-[#1a1a1a]"}`}>{bilan.title}</h3>
+                  {completed && bilan.score !== null ? (
+                    <ScoreRing value={bilan.score} size={44} />
+                  ) : bilan.available ? (
+                    <div className="flex flex-col items-center gap-1.5 mt-1">
+                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md" style={{ color: c, background: `${c}15` }}>{bilan.duration}</span>
+                      <span className="text-[11px] font-medium flex items-center gap-1 transition-colors" style={{ color: c }}>Decouvre ton score <ArrowRight className="w-3 h-3" /></span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1.5 mt-2">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg animate-pulse" style={{ background: `${c}12`, border: `1px dashed ${c}25` }}>
+                        <Zap className="w-3.5 h-3.5" style={{ color: c }} />
+                        <span className="text-[11px] font-bold" style={{ color: c }}>Arrive bientot !</span>
+                      </div>
+                      <p className="text-[10px] text-[#1a1a1a]/35 mt-1 leading-relaxed px-1">{bilan.description.split('.')[0]}</p>
+                    </div>
+                  )}
+                  {(completed || bilan.available) && (
+                    <div className="w-full mt-3">
+                      <div className="rounded-full h-1" style={{ background: `${c}0a` }}>
+                        <div className="h-1 rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: completed ? c : "transparent" }} />
+                      </div>
+                      <p className="text-[10px] text-[#1a1a1a]/25 font-medium mt-1">{pct}%</p>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </section>
 
         {/* ════════ PLANNING ════════ */}
         <section id="planning" className="scroll-mt-20">
@@ -360,7 +427,9 @@ export default function BilansPage() {
           {calendarError && <p className="text-xs text-red-500 bg-red-50/80 px-3 py-2 rounded-lg mb-4">{calendarError}</p>}
 
           {/* calendar */}
-          <div className="bg-white rounded-xl border border-black/[0.04] overflow-hidden">
+          <div className="bg-white rounded-xl border border-black/[0.04] overflow-hidden"
+            onTouchStart={e => { touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY } }}
+            onTouchEnd={e => { if (!touchStartRef.current) return; const dx = touchStartRef.current.x - e.changedTouches[0].clientX; const dy = touchStartRef.current.y - e.changedTouches[0].clientY; touchStartRef.current = null; if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) navigate(dx > 0 ? 1 : -1) }}>
             {/* toolbar */}
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/[0.04]">
               <div className="flex items-center gap-1">
@@ -420,20 +489,23 @@ export default function BilansPage() {
                     const dayKey = day.toISOString()
                     return (
                       <div key={col}
-                        onDragOver={e => onDragOver(e, dayKey)} onDragLeave={onDragLeave} onDrop={e => onDrop(e, day)}
+                        onDragOver={e => onDragOver(e, dayKey)} onDragLeave={onDragLeave}
                         className={`border-r border-black/[0.03] ${isToday(day) ? "bg-[#3ECF8E]/[0.02]" : ""} ${dragOverDay === dayKey ? "bg-[#3ECF8E]/[0.06]" : ""}`}>
                         <div className="h-8 flex flex-col items-center justify-center border-b border-black/[0.04]">
                           <span className="text-[9px] font-medium text-[#1a1a1a]/25 uppercase leading-none">{format(day, "EEE", { locale: fr })}</span>
                           <span className={`text-[11px] font-semibold leading-none ${isToday(day) ? "w-4.5 h-4.5 rounded-full bg-[#3ECF8E] text-white flex items-center justify-center text-[9px] mt-0.5" : "text-[#1a1a1a]/60"}`}>{format(day, "d")}</span>
                         </div>
-                        <div className="relative" style={{ height: HOURS.length * H_PX }}>
+                        <div className="relative" style={{ height: HOURS.length * H_PX }}
+                          onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move" }}
+                          onDrop={e => onDropTime(e, day)}>
                           {HOURS.map(h => <div key={h} className="absolute w-full border-b border-black/[0.03]" style={{ top: (h - 8) * H_PX, height: H_PX }} />)}
+                          <button className="absolute inset-0 w-full z-0 opacity-0" onClick={() => setModal({ open: true, date: day })} />
                           {ds.map(s => {
                             const top = sessionTop(s), height = sessionHeight(s)
                             const cls = s.type === "evo" ? "bg-[#3ECF8E]/15 border-l-2 border-l-[#3ECF8E] text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 border-l-2 border-l-[#4285f4] text-[#1a73e8]" : "bg-[#c9a96e]/12 border-l-2 border-l-[#c9a96e] text-[#a08050]"
                             return (
                               <div key={s.id} draggable={isDraggable(s)} onDragStart={e => isDraggable(s) && onDragStart(e, s.id)}
-                                className={`absolute left-0.5 right-0.5 rounded px-1 py-px overflow-hidden transition-opacity group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : "cursor-default"} ${cls}`}
+                                className={`absolute left-0.5 right-0.5 z-10 rounded px-1 py-px overflow-hidden transition-opacity group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : "cursor-default"} ${cls}`}
                                 style={{ top, height: Math.max(height, 18) }}>
                                 {isDraggable(s) && <GripVertical className="w-2.5 h-2.5 absolute top-0.5 right-0 opacity-0 group-hover/sess:opacity-40 text-current" />}
                                 <p className="text-[8px] font-semibold truncate leading-tight">{s.label}</p>
@@ -441,7 +513,6 @@ export default function BilansPage() {
                               </div>
                             )
                           })}
-                          <button className="absolute inset-0 w-full opacity-0" onClick={() => setModal({ open: true, date: day })} />
                         </div>
                       </div>
                     )
@@ -453,23 +524,26 @@ export default function BilansPage() {
             {/* ── DAY ── */}
             {calView === "day" && (
               <div className="flex"
-                onDragOver={e => onDragOver(e, currentDate.toISOString())} onDragLeave={onDragLeave} onDrop={e => onDrop(e, currentDate)}>
+                onDragOver={e => onDragOver(e, currentDate.toISOString())} onDragLeave={onDragLeave}>
                 <div className="w-12 shrink-0 border-r border-black/[0.04]">
                   {HOURS.map(h => <div key={h} style={{ height: H_PX }} className="flex items-start justify-end pr-2 pt-0.5"><span className="text-[10px] text-[#1a1a1a]/25 font-medium">{String(h).padStart(2, "0")}:00</span></div>)}
                 </div>
-                <div className={`flex-1 relative ${isToday(currentDate) ? "bg-[#3ECF8E]/[0.02]" : ""} ${dragOverDay === currentDate.toISOString() ? "bg-[#3ECF8E]/[0.06]" : ""}`} style={{ height: HOURS.length * H_PX }}>
+                <div className={`flex-1 relative ${isToday(currentDate) ? "bg-[#3ECF8E]/[0.02]" : ""} ${dragOverDay === currentDate.toISOString() ? "bg-[#3ECF8E]/[0.06]" : ""}`} style={{ height: HOURS.length * H_PX }}
+                  onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move" }}
+                  onDrop={e => onDropTime(e, currentDate)}>
                   {HOURS.map(h => <div key={h} className="absolute w-full border-b border-black/[0.03]" style={{ top: (h - 8) * H_PX, height: H_PX }} />)}
                   {isToday(currentDate) && (() => {
                     const now = new Date(), top = (getHours(now) - 8 + getMinutes(now) / 60) * H_PX
                     if (top < 0 || top > HOURS.length * H_PX) return null
                     return <div className="absolute left-0 right-0 z-10 flex items-center" style={{ top }}><div className="w-2 h-2 rounded-full bg-[#ff4444]" /><div className="flex-1 h-px bg-[#ff4444]/50" /></div>
                   })()}
+                  <button className="absolute inset-0 w-full z-0 opacity-0" onClick={() => setModal({ open: true, date: currentDate })} />
                   {sessionsOnDay(currentDate).map(s => {
                     const top = sessionTop(s), height = sessionHeight(s)
                     const cls = s.type === "evo" ? "bg-[#3ECF8E]/15 border-l-[3px] border-l-[#3ECF8E] text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 border-l-[3px] border-l-[#4285f4] text-[#1a73e8]" : "bg-[#c9a96e]/12 border-l-[3px] border-l-[#c9a96e] text-[#a08050]"
                     return (
                       <div key={s.id} draggable={isDraggable(s)} onDragStart={e => isDraggable(s) && onDragStart(e, s.id)}
-                        className={`absolute left-1 right-4 rounded-lg px-3 py-1 overflow-hidden group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${cls}`}
+                        className={`absolute left-1 right-4 z-10 rounded-lg px-3 py-1 overflow-hidden group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${cls}`}
                         style={{ top, height: Math.max(height, 24) }}>
                         {isDraggable(s) && <GripVertical className="w-3 h-3 absolute top-1 right-1 opacity-0 group-hover/sess:opacity-40 text-current" />}
                         <p className="text-[11px] font-semibold truncate">{s.label}</p>
@@ -477,7 +551,6 @@ export default function BilansPage() {
                       </div>
                     )
                   })}
-                  <button className="absolute inset-0 w-full opacity-0" onClick={() => setModal({ open: true, date: currentDate })} />
                 </div>
               </div>
             )}
@@ -531,79 +604,30 @@ export default function BilansPage() {
 
         {/* ════════ SCIENCE ════════ */}
         <section id="science" className="scroll-mt-20">
-          <SectionHeader title="Science de la longevite" subtitle="Piliers basees sur la recherche" />
-          <div className="rounded-xl overflow-hidden mb-6" style={{ background: "linear-gradient(135deg, #0b1a12 0%, #0d2b1a 50%, #0b1a12 100%)" }}>
-            <div className="px-7 py-7 relative">
-              <div className="absolute top-0 right-0 w-48 h-48 opacity-[0.08] pointer-events-none" style={{ background: "radial-gradient(circle, #3ECF8E 0%, transparent 70%)" }} />
-              <p className="text-[11px] font-semibold text-[#3ECF8E]/80 uppercase tracking-[0.15em] mb-2">Longevity Science</p>
-              <h3 className="text-xl font-semibold text-white/90 leading-tight mb-2">La longevite est une <span className="text-[#3ECF8E]">competence</span></h3>
-              <p className="text-[12px] text-white/30 max-w-md leading-relaxed">80% de la longevite en bonne sante est controlable par le comportement.</p>
-              <div className="flex items-center gap-8 mt-4">
-                {[{ label: "Ans gagnes", value: "+7" }, { label: "Mortalite", value: "-35%" }, { label: "Modifiable", value: "80%" }].map((s, i) => (
-                  <div key={i}><p className="text-base font-semibold text-[#3ECF8E]">{s.value}</p><p className="text-[9px] text-white/20 mt-0.5">{s.label}</p></div>
-                ))}
+          <Link href="/science" className="block group">
+            <div className="rounded-2xl overflow-hidden transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-1" style={{ background: "linear-gradient(135deg, #0b1a12 0%, #0d2b1a 40%, #0b1a12 100%)" }}>
+              <div className="px-8 py-10 relative">
+                <div className="absolute top-0 right-0 w-60 h-60 opacity-[0.1] pointer-events-none" style={{ background: "radial-gradient(circle, #3ECF8E 0%, transparent 70%)" }} />
+                <div className="absolute bottom-0 left-0 w-40 h-40 opacity-[0.06] pointer-events-none" style={{ background: "radial-gradient(circle, #c9a96e 0%, transparent 70%)" }} />
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div>
+                    <p className="text-[11px] font-semibold text-[#3ECF8E]/80 uppercase tracking-[0.15em] mb-3">Longevity Science</p>
+                    <h3 className="text-2xl font-bold text-white/90 leading-tight mb-2">La longevite est une <span className="text-[#3ECF8E]">competence</span></h3>
+                    <p className="text-[13px] text-white/30 max-w-md leading-relaxed">Decouvre les piliers scientifiques de la longevite, les 12 hallmarks du vieillissement, et les strategies evidence-based pour vivre plus longtemps en bonne sante.</p>
+                    <div className="flex items-center gap-8 mt-5">
+                      {[{ label: "Ans gagnes", value: "+7" }, { label: "Mortalite", value: "-35%" }, { label: "Modifiable", value: "80%" }].map((s, i) => (
+                        <div key={i}><p className="text-lg font-bold text-[#3ECF8E]">{s.value}</p><p className="text-[9px] text-white/25 mt-0.5">{s.label}</p></div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#3ECF8E] group-hover:gap-3 transition-all duration-300">
+                    <span className="text-[13px] font-semibold">Explorer la science</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            {sciencePillars.map((pillar, i) => (
-              <div key={i} className="bg-white rounded-xl border border-black/[0.04] p-5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2.5"><div className="w-8 h-8 rounded-lg bg-[#f3f4f3] flex items-center justify-center text-[#1a1a1a]/50">{pillar.icon}</div><h3 className="text-[14px] font-medium text-[#1a1a1a]">{pillar.title}</h3></div>
-                  <div className="flex items-center gap-2"><span className="text-[10px] font-semibold px-2 py-0.5 rounded-md" style={{ background: `${pillar.tagColor}10`, color: pillar.tagColor }}>{pillar.tag}</span><ScoreRing value={pillar.score} size={36} /></div>
-                </div>
-                <p className="text-[12px] text-[#1a1a1a]/40 leading-relaxed mb-3">{pillar.desc}</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {pillar.stats.map((s, j) => (<div key={j} className="bg-[#f8f9f8] rounded-lg p-2 text-center"><p className="text-[12px] font-semibold text-[#3ECF8E]">{s.value}</p><p className="text-[8px] text-[#1a1a1a]/30 mt-0.5">{s.label}</p></div>))}
-                </div>
-                <p className="text-[9px] text-[#1a1a1a]/20 mt-2.5">Ref. {pillar.ref}</p>
-              </div>
-            ))}
-          </div>
-          <div className="bg-white rounded-xl border border-black/[0.04] p-5">
-            <h3 className="text-[14px] font-medium text-[#1a1a1a] mb-0.5">Les 12 hallmarks du vieillissement</h3>
-            <p className="text-[11px] text-[#1a1a1a]/30 mb-3">Lopez-Otin et al., Cell (2023)</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {hallmarks.map((h, i) => (
-                <div key={i} className="bg-[#f8f9f8] rounded-lg p-2.5 group hover:bg-[#3ECF8E]/[0.04] transition-colors">
-                  <div className="text-[#1a1a1a]/30 mb-1 group-hover:text-[#3ECF8E] transition-colors">{h.icon}</div>
-                  <p className="text-[10px] font-medium text-[#1a1a1a]/70 leading-tight">{h.name}</p>
-                  <p className="text-[9px] text-[#3ECF8E]/70 mt-0.5 flex items-center gap-0.5"><ArrowRight className="w-2 h-2" /> {h.action}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ════════ BILANS ════════ */}
-        <section id="bilans" className="scroll-mt-20">
-          <SectionHeader title="Bilans de sante" subtitle="Evaluations scientifiques personnalisees" gold />
-          <div className="grid md:grid-cols-2 gap-4 mb-4">
-            {bilanOptions.map(bilan => (
-              <div key={bilan.id} className={`relative rounded-xl border p-5 transition-all duration-300 overflow-hidden ${bilan.available ? "bg-gradient-to-br from-white via-white to-[#c9a96e]/[0.03] border-[#c9a96e]/10 hover:border-[#c9a96e]/25 hover:shadow-[0_4px_24px_rgba(201,169,110,0.08)] cursor-pointer" : "bg-white border-black/[0.03] opacity-50"}`}
-                onClick={() => bilan.available && router.push(bilan.href)}>
-                {bilan.available && <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${bilan.available ? "bg-[#c9a96e]/10 text-[#c9a96e]" : "bg-[#f3f4f3] text-[#1a1a1a]/25"}`}>{bilan.icon}</div>
-                    <div><h3 className="text-[14px] font-medium text-[#1a1a1a]">{bilan.title}</h3><p className="text-[11px] text-[#1a1a1a]/30 mt-0.5">{bilan.duration}</p></div>
-                  </div>
-                  {bilan.score !== null ? <ScoreRing value={bilan.score} size={44} /> : <span className="text-[10px] font-medium bg-[#f3f4f3] text-[#1a1a1a]/30 px-2 py-0.5 rounded-md">Bientot</span>}
-                </div>
-                <p className="text-[13px] text-[#1a1a1a]/40 mt-3 leading-relaxed">{bilan.description}</p>
-                {bilan.available && (
-                  <div className="mt-3 flex items-center gap-3">
-                    <span className="text-[11px] text-[#c9a96e] font-medium shrink-0 flex items-center gap-1">{bilan.score !== null ? "Voir le detail" : "Commencer"} <ArrowRight className="w-3 h-3" /></span>
-                    {bilan.score !== null && <div className="flex-1 bg-[#c9a96e]/10 rounded-full h-1"><div className="h-1 rounded-full transition-all" style={{ width: `${bilan.score}%`, background: "linear-gradient(90deg, #c9a96e, #d4af37)" }} /></div>}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="rounded-xl border border-[#c9a96e]/15 p-4 flex items-center gap-3 bg-gradient-to-r from-[#c9a96e]/[0.04] via-white to-white">
-            <div className="w-8 h-8 rounded-lg bg-[#c9a96e]/10 flex items-center justify-center text-[#c9a96e]"><Lightbulb className="w-4 h-4" /></div>
-            <div><p className="text-[13px] font-medium text-[#1a1a1a]">Prochaine recommandation</p><p className="text-[11px] text-[#1a1a1a]/40 mt-0.5">Completer le bilan Gestion du stress pour affiner ton score cognitif.</p></div>
-          </div>
+          </Link>
         </section>
       </div>
 

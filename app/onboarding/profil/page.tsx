@@ -191,7 +191,7 @@ export default function ProfilPage() {
           <button
             onClick={() => {
               if (step > 0) setStep(step - 1)
-              else router.push('/onboarding/welcome')
+              else router.push('/onboarding/bilans')
             }}
             className="flex items-center gap-1 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors"
           >
@@ -209,7 +209,7 @@ export default function ProfilPage() {
               />
             </div>
           </div>
-          <Link href="/onboarding/welcome" className="text-xs text-[#1a1a1a]/20 hover:text-[#1a1a1a]/40 transition-colors">Quitter</Link>
+          <Link href="/onboarding/bilans" className="text-xs text-[#1a1a1a]/20 hover:text-[#1a1a1a]/40 transition-colors">Quitter</Link>
         </div>
       </div>
 
