@@ -144,13 +144,7 @@ export default function SciencePage() {
   const [expandedHallmark, setExpandedHallmark] = useState<number | null>(null)
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {/* ─── background blobs ─── */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute w-[800px] h-[800px] rounded-full" style={{ top: "-20%", right: "-15%", background: "radial-gradient(circle, #3ECF8E 0%, transparent 65%)", filter: "blur(120px)", opacity: 0.06, animation: "float1 18s ease-in-out infinite" }} />
-        <div className="absolute w-[600px] h-[600px] rounded-full" style={{ bottom: "-15%", left: "-10%", background: "radial-gradient(circle, #c9a96e 0%, transparent 65%)", filter: "blur(100px)", opacity: 0.04, animation: "float2 14s ease-in-out infinite" }} />
-        <div className="absolute w-[400px] h-[400px] rounded-full" style={{ top: "40%", left: "50%", background: "radial-gradient(circle, #a78bfa 0%, transparent 65%)", filter: "blur(100px)", opacity: 0.03, animation: "float3 20s ease-in-out infinite" }} />
-      </div>
+    <div className="min-h-screen">
       <style jsx>{`
         @keyframes float1 { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-40px,30px) scale(1.1); } }
         @keyframes float2 { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,-40px) scale(1.08); } }
@@ -158,12 +152,19 @@ export default function SciencePage() {
       `}</style>
 
       {/* ─── nav ─── */}
+      <div className="bg-[#0a0a0a] text-white relative overflow-hidden">
+        {/* background blobs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute w-[800px] h-[800px] rounded-full" style={{ top: "-20%", right: "-15%", background: "radial-gradient(circle, #3ECF8E 0%, transparent 65%)", filter: "blur(120px)", opacity: 0.06, animation: "float1 18s ease-in-out infinite" }} />
+          <div className="absolute w-[600px] h-[600px] rounded-full" style={{ bottom: "-15%", left: "-10%", background: "radial-gradient(circle, #c9a96e 0%, transparent 65%)", filter: "blur(100px)", opacity: 0.04, animation: "float2 14s ease-in-out infinite" }} />
+          <div className="absolute w-[400px] h-[400px] rounded-full" style={{ top: "40%", left: "50%", background: "radial-gradient(circle, #a78bfa 0%, transparent 65%)", filter: "blur(100px)", opacity: 0.03, animation: "float3 20s ease-in-out infinite" }} />
+        </div>
       <nav className="sticky top-0 z-50 bg-black/60 backdrop-blur-2xl border-b border-white/[0.06]">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/" className="text-xl font-light tracking-wide text-white/80">evo</Link>
             <span className="w-px h-5 bg-white/10" />
-            <span className="text-[11px] font-semibold text-[#3ECF8E]/80 uppercase tracking-[0.15em]">Science</span>
+            <span className="text-[11px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Science</span>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/" className="text-[12px] text-white/30 hover:text-white/60 transition-colors">Accueil</Link>
@@ -178,9 +179,9 @@ export default function SciencePage() {
           <ArrowLeft className="w-3 h-3" /> Retour au dashboard
         </Link>
         <div className="max-w-3xl">
-          <p className="text-[11px] font-semibold text-[#3ECF8E]/80 uppercase tracking-[0.2em] mb-4">Science de la longevite</p>
+          <p className="text-[11px] font-semibold text-[#c9a96e] uppercase tracking-[0.2em] mb-4">Science de la longevite</p>
           <h1 className="text-5xl md:text-7xl font-bold tracking-[-0.03em] leading-[1.05] mb-6">
-            Vivre plus longtemps,<br /><span className="text-[#3ECF8E]">en pleine sante</span>
+            Vivre plus longtemps,<br /><span className="text-[#c9a96e]">en pleine sante</span>
           </h1>
           <p className="text-lg text-white/35 leading-relaxed max-w-2xl mb-10">
             80% de la longevite en bonne sante est controlable par le comportement. Decouvre les piliers scientifiques, les mecanismes du vieillissement, et les strategies validees par la recherche.
@@ -198,12 +199,10 @@ export default function SciencePage() {
           ))}
         </div>
       </section>
+      </div>{/* end dark hero wrapper */}
 
-      {/* separator */}
-      <div className="h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
-
-      {/* ═══════ STATS BAR ═══════ */}
-      <section className="py-16 border-b border-white/[0.04]">
+      {/* ═══════ STATS BAR — LIGHT ═══════ */}
+      <section className="py-16 bg-[#f5f3ef] text-[#1a1a1a]">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-3 gap-8 text-center">
           {[
             { end: 200, suffix: "+", label: "Etudes analysees", sub: "meta-analyses & essais cliniques" },
@@ -211,142 +210,142 @@ export default function SciencePage() {
             { end: 80, suffix: "%", label: "Facteurs modifiables", sub: "de la longevite en bonne sante" },
           ].map((s, i) => (
             <div key={i}>
-              <div className="text-4xl md:text-5xl font-bold text-[#3ECF8E] mb-1"><AnimatedCounter end={s.end} suffix={s.suffix} /></div>
-              <p className="text-[13px] font-medium text-white/50">{s.label}</p>
-              <p className="text-[10px] text-white/20 mt-0.5">{s.sub}</p>
+              <div className="text-4xl md:text-5xl font-bold text-[#c9a96e] mb-1"><AnimatedCounter end={s.end} suffix={s.suffix} /></div>
+              <p className="text-[13px] font-medium text-[#1a1a1a]/55">{s.label}</p>
+              <p className="text-[10px] text-[#1a1a1a]/30 mt-0.5">{s.sub}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ═══════ 4 PILIERS ═══════ */}
-      <section className="max-w-6xl mx-auto px-6 py-20">
-        <div className="mb-12">
-          <p className="text-[11px] font-semibold text-[#c9a96e]/80 uppercase tracking-[0.2em] mb-3">Evidence-based</p>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.02em] mb-2">Les 4 piliers de la longevite</h2>
-          <p className="text-[14px] text-white/30">Chaque pilier est soutenu par des centaines d'etudes. Clique pour explorer.</p>
-        </div>
+      {/* ═══════ 4 PILIERS — LIGHT ═══════ */}
+      <section className="bg-[#f5f3ef] text-[#1a1a1a] pb-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="pt-8 border-t border-[#e0ddd7] mb-12">
+            <p className="text-[11px] font-semibold text-[#c9a96e] uppercase tracking-[0.2em] mb-3">Evidence-based</p>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.02em] mb-2 text-[#1a1a1a]">Les 4 piliers de la longevite</h2>
+            <p className="text-[14px] text-[#1a1a1a]/40">Chaque pilier est soutenu par des centaines d&apos;etudes. Clique pour explorer.</p>
+          </div>
 
-        <div className="space-y-4">
-          {pillars.map((p, i) => {
-            const open = expandedPillar === i
-            return (
-              <div key={i} className="rounded-2xl border border-white/[0.06] overflow-hidden transition-all duration-500" style={{ background: open ? `linear-gradient(135deg, ${p.color}08 0%, transparent 60%)` : "rgba(255,255,255,0.02)" }}>
-                <button onClick={() => setExpandedPillar(open ? null : i)} className="w-full px-6 py-5 flex items-center gap-4 text-left group">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300" style={{ background: `${p.color}15`, color: p.color }}>{p.icon}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-[16px] font-semibold text-white">{p.title}</h3>
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-md" style={{ background: `${p.tagColor}20`, color: p.tagColor }}>{p.tag}</span>
-                    </div>
-                    <p className="text-[12px] text-white/30 truncate">{p.desc.slice(0, 100)}...</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="hidden md:flex items-center gap-2">
-                      {p.stats.map((s, j) => (
-                        <div key={j} className="text-center px-3 py-1 rounded-lg bg-white/[0.04]">
-                          <p className="text-[12px] font-bold" style={{ color: p.color }}>{s.value}</p>
-                          <p className="text-[8px] text-white/20">{s.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <ChevronDown className={`w-5 h-5 text-white/20 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
-                  </div>
-                </button>
-                {open && (
-                  <div className="px-6 pb-6 pt-0">
-                    <div className="border-t border-white/[0.06] pt-5">
-                      <p className="text-[13px] text-white/40 leading-relaxed mb-5">{p.desc}</p>
-                      <div className="grid md:grid-cols-2 gap-3 mb-5">
-                        {p.details.map((d, j) => (
-                          <div key={j} className="flex gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.04]">
-                            <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: p.color }} />
-                            <p className="text-[12px] text-white/45 leading-relaxed">{d}</p>
-                          </div>
-                        ))}
+          <div className="space-y-4">
+            {pillars.map((p, i) => {
+              const open = expandedPillar === i
+              return (
+                <div key={i} className="rounded-2xl border overflow-hidden transition-all duration-500" style={{ borderColor: open ? `${p.color}30` : '#e0ddd7', background: open ? `linear-gradient(135deg, ${p.color}08 0%, #f5f3ef 60%)` : 'white' }}>
+                  <button onClick={() => setExpandedPillar(open ? null : i)} className="w-full px-6 py-5 flex items-center gap-4 text-left group">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300" style={{ background: `${p.color}15`, color: p.color }}>{p.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-[16px] font-semibold text-[#1a1a1a]">{p.title}</h3>
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-md" style={{ background: `${p.tagColor}20`, color: p.tagColor }}>{p.tag}</span>
                       </div>
-                      <div className="flex md:hidden items-center gap-2 mb-4">
+                      <p className="text-[12px] text-[#1a1a1a]/40 truncate">{p.desc.slice(0, 100)}...</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="hidden md:flex items-center gap-2">
                         {p.stats.map((s, j) => (
-                          <div key={j} className="flex-1 text-center p-2 rounded-lg bg-white/[0.04]">
-                            <p className="text-[13px] font-bold" style={{ color: p.color }}>{s.value}</p>
-                            <p className="text-[9px] text-white/20">{s.label}</p>
+                          <div key={j} className="text-center px-3 py-1 rounded-lg bg-[#e8e5df]">
+                            <p className="text-[12px] font-bold" style={{ color: p.color }}>{s.value}</p>
+                            <p className="text-[8px] text-[#1a1a1a]/30">{s.label}</p>
                           </div>
                         ))}
                       </div>
-                      <p className="text-[10px] text-white/15 flex items-center gap-1"><BookOpen className="w-3 h-3" /> {p.ref}</p>
+                      <ChevronDown className={`w-5 h-5 text-[#1a1a1a]/20 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
                     </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
+                  </button>
+                  {open && (
+                    <div className="px-6 pb-6 pt-0">
+                      <div className="border-t border-[#e0ddd7] pt-5">
+                        <p className="text-[13px] text-[#1a1a1a]/50 leading-relaxed mb-5">{p.desc}</p>
+                        <div className="grid md:grid-cols-2 gap-3 mb-5">
+                          {p.details.map((d, j) => (
+                            <div key={j} className="flex gap-3 p-3 rounded-xl bg-white/60 border border-[#e0ddd7]">
+                              <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: p.color }} />
+                              <p className="text-[12px] text-[#1a1a1a]/55 leading-relaxed">{d}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex md:hidden items-center gap-2 mb-4">
+                          {p.stats.map((s, j) => (
+                            <div key={j} className="flex-1 text-center p-2 rounded-lg bg-[#e8e5df]">
+                              <p className="text-[13px] font-bold" style={{ color: p.color }}>{s.value}</p>
+                              <p className="text-[9px] text-[#1a1a1a]/30">{s.label}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-[#1a1a1a]/25 flex items-center gap-1"><BookOpen className="w-3 h-3" /> {p.ref}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       </section>
 
-      {/* separator */}
-      <div className="h-px bg-gradient-to-r from-transparent via-[#3ECF8E]/15 to-transparent" />
+      {/* ═══════ 12 HALLMARKS — DARK ═══════ */}
+      <section className="bg-[#0a0a0a] text-white py-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="mb-12">
+            <p className="text-[11px] font-semibold text-[#3ECF8E]/60 uppercase tracking-[0.2em] mb-3">Lopez-Otin et al., Cell (2023)</p>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.02em] mb-2">Les 12 hallmarks du vieillissement</h2>
+            <p className="text-[14px] text-white/30">Les mecanismes biologiques fondamentaux qui causent le vieillissement — et comment les contrer.</p>
+          </div>
 
-      {/* ═══════ 12 HALLMARKS ═══════ */}
-      <section className="max-w-6xl mx-auto px-6 py-20">
-        <div className="mb-12">
-          <p className="text-[11px] font-semibold text-[#3ECF8E]/60 uppercase tracking-[0.2em] mb-3">Lopez-Otin et al., Cell (2023)</p>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.02em] mb-2">Les 12 hallmarks du vieillissement</h2>
-          <p className="text-[14px] text-white/30">Les mecanismes biologiques fondamentaux qui causent le vieillissement — et comment les contrer.</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {hallmarks.map((h, i) => {
-            const open = expandedHallmark === i
-            return (
-              <div key={i}
-                onClick={() => setExpandedHallmark(open ? null : i)}
-                className={`rounded-xl border p-4 transition-all duration-300 cursor-pointer ${open ? "bg-[#3ECF8E]/[0.04] border-[#3ECF8E]/15" : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04] hover:border-white/[0.10]"}`}>
-                <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors ${open ? "bg-[#3ECF8E]/15 text-[#3ECF8E]" : "bg-white/[0.06] text-white/30"}`}>{h.icon}</div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className={`text-[13px] font-semibold transition-colors ${open ? "text-[#3ECF8E]" : "text-white/70"}`}>{h.name}</h3>
-                    <p className="text-[11px] text-[#3ECF8E]/60 mt-0.5 flex items-center gap-1"><ArrowRight className="w-2.5 h-2.5" /> {h.action}</p>
-                    {open && <p className="text-[11px] text-white/30 mt-2 leading-relaxed">{h.desc}</p>}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {hallmarks.map((h, i) => {
+              const open = expandedHallmark === i
+              return (
+                <div key={i}
+                  onClick={() => setExpandedHallmark(open ? null : i)}
+                  className={`rounded-xl border p-4 transition-all duration-300 cursor-pointer ${open ? "bg-[#3ECF8E]/[0.04] border-[#3ECF8E]/15" : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04] hover:border-white/[0.10]"}`}>
+                  <div className="flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors ${open ? "bg-[#3ECF8E]/15 text-[#3ECF8E]" : "bg-white/[0.06] text-white/30"}`}>{h.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`text-[13px] font-semibold transition-colors ${open ? "text-[#3ECF8E]" : "text-white/70"}`}>{h.name}</h3>
+                      <p className="text-[11px] text-[#3ECF8E]/60 mt-0.5 flex items-center gap-1"><ArrowRight className="w-2.5 h-2.5" /> {h.action}</p>
+                      {open && <p className="text-[11px] text-white/30 mt-2 leading-relaxed">{h.desc}</p>}
+                    </div>
                   </div>
                 </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════ REFERENCES — LIGHT ═══════ */}
+      <section className="bg-[#f5f3ef] text-[#1a1a1a] py-16">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="mb-8">
+            <p className="text-[11px] font-semibold text-[#1a1a1a]/25 uppercase tracking-[0.2em] mb-3">Sources</p>
+            <h2 className="text-2xl font-bold tracking-[-0.02em] text-[#1a1a1a]">References scientifiques</h2>
+          </div>
+          <div className="space-y-2">
+            {references.map((r, i) => (
+              <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-lg bg-white/60 border border-[#e0ddd7]">
+                <BookOpen className="w-4 h-4 text-[#1a1a1a]/20 mt-0.5 shrink-0" />
+                <p className="text-[12px] text-[#1a1a1a]/45 leading-relaxed">{r}</p>
               </div>
-            )
-          })}
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* separator */}
-      <div className="h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
-
-      {/* ═══════ REFERENCES ═══════ */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <div className="mb-8">
-          <p className="text-[11px] font-semibold text-white/20 uppercase tracking-[0.2em] mb-3">Sources</p>
-          <h2 className="text-2xl font-bold tracking-[-0.02em]">References scientifiques</h2>
-        </div>
-        <div className="space-y-2">
-          {references.map((r, i) => (
-            <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-              <BookOpen className="w-4 h-4 text-white/15 mt-0.5 shrink-0" />
-              <p className="text-[12px] text-white/35 leading-relaxed">{r}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══════ CTA ═══════ */}
-      <section className="py-20 border-t border-white/[0.04]">
+      {/* ═══════ CTA — LIGHT ═══════ */}
+      <section className="py-20 bg-[#f5f3ef] text-[#1a1a1a] border-t border-[#e0ddd7]">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.02em] mb-4">Pret a appliquer la science ?</h2>
-          <p className="text-[15px] text-white/30 mb-8">Complete tes bilans pour obtenir un profil personnalise base sur ces piliers scientifiques.</p>
-          <Link href="/onboarding/bilans" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#3ECF8E] text-[#0a0a0a] font-semibold text-[14px] hover:bg-[#2bc07b] transition-all duration-300 hover:shadow-[0_0_30px_rgba(62,207,142,0.25)]">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.02em] mb-4 text-[#1a1a1a]">Pret a appliquer la science ?</h2>
+          <p className="text-[15px] text-[#1a1a1a]/40 mb-8">Complete tes bilans pour obtenir un profil personnalise base sur ces piliers scientifiques.</p>
+          <Link href="/onboarding/bilans" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#1a1a1a] text-white font-semibold text-[14px] hover:bg-[#333] transition-all duration-300 hover:shadow-lg">
             Retour au dashboard <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>
 
-      {/* ─── footer ─── */}
-      <footer className="py-8 px-6 border-t border-white/[0.04]">
+      {/* ─── footer — dark ─── */}
+      <footer className="py-8 px-6 bg-[#0a0a0a] text-white border-t border-white/[0.04]">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <span className="text-[13px] text-white/15">evo — Longevity Science</span>
           <div className="flex items-center gap-4">

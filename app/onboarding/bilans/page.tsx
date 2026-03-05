@@ -20,6 +20,7 @@ import {
   Activity, Moon, Apple, Brain, Dumbbell, Heart, RefreshCw, Plus, X,
   Timer, Zap, Shield, Leaf, Microscope, Lightbulb, ArrowRight, GripVertical,
   Dna, Clock, Wind, Recycle, Bug, Radio, Sprout, Ban, LayoutGrid, Columns3, CalendarDays,
+  MessageCircle,
 } from "lucide-react"
 import css from "./bilans.module.css"
 
@@ -36,12 +37,12 @@ type CalView = "week" | "month" | "day"
 
 /* ─── data ─── */
 const progressData = [
-  { mois: "Oct", mobilite: 62, sommeil: 55, digestion: 70, global: 62 },
-  { mois: "Nov", mobilite: 68, sommeil: 61, digestion: 73, global: 67 },
-  { mois: "Dec", mobilite: 71, sommeil: 68, digestion: 75, global: 71 },
-  { mois: "Jan", mobilite: 75, sommeil: 72, digestion: 78, global: 75 },
-  { mois: "Fev", mobilite: 80, sommeil: 76, digestion: 80, global: 79 },
-  { mois: "Mar", mobilite: 84, sommeil: 80, digestion: 83, global: 82 },
+  { mois: "Oct", renforcement: 58, cardio: 52, sommeil: 55, nutrition: 60, mental: 48 },
+  { mois: "Nov", renforcement: 63, cardio: 57, sommeil: 61, nutrition: 64, mental: 53 },
+  { mois: "Dec", renforcement: 68, cardio: 62, sommeil: 68, nutrition: 69, mental: 58 },
+  { mois: "Jan", renforcement: 72, cardio: 66, sommeil: 72, nutrition: 73, mental: 63 },
+  { mois: "Fev", renforcement: 77, cardio: 71, sommeil: 76, nutrition: 77, mental: 68 },
+  { mois: "Mar", renforcement: 82, cardio: 75, sommeil: 80, nutrition: 80, mental: 72 },
 ]
 const radarData = [
   { label: "Mobilite", value: 84 }, { label: "Sommeil", value: 80 },
@@ -104,6 +105,7 @@ export default function BilansPage() {
   const [calendarError, setCalendarError] = useState<string | null>(null)
   const [googleEvents, setGoogleEvents] = useState<Session[]>([])
   const [syncingEvents, setSyncingEvents] = useState(false)
+  const [calFilters, setCalFilters] = useState({ evo: true, sport: true, google: true })
   const [userName, setUserName] = useState<string | null>(null)
 
   /* ── drag & drop ── */
@@ -212,7 +214,7 @@ export default function BilansPage() {
 
   /* ── derived ── */
   const allSessions = useMemo(() => [...sessions, ...googleEvents], [sessions, googleEvents])
-  const sessionsOnDay = (d: Date) => allSessions.filter(s => isSameDay(s.date, d))
+  const sessionsOnDay = (d: Date) => allSessions.filter(s => isSameDay(s.date, d) && calFilters[s.type])
   const monthDays = eachDayOfInterval({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) })
   const firstDow = (startOfMonth(currentDate).getDay() + 6) % 7
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })
@@ -233,7 +235,8 @@ export default function BilansPage() {
 
   const calTitle = calView === "month" ? format(currentDate, "MMMM yyyy", { locale: fr }) : calView === "week" ? `${format(weekStart, "d MMM", { locale: fr })} — ${format(addDays(weekStart, 6), "d MMM yyyy", { locale: fr })}` : format(currentDate, "EEEE d MMMM yyyy", { locale: fr })
 
-  const globalScore = Math.round(progressData[progressData.length - 1].global)
+  const last = progressData[progressData.length - 1]
+  const globalScore = Math.round((last.renforcement + last.cardio + last.sommeil + last.nutrition + last.mental) / 5)
   const sessionTop = (s: Session) => Math.max(0, (getHours(s.date) - 8 + getMinutes(s.date) / 60) * H_PX)
   const sessionHeight = (s: Session) => Math.max(18, (s.duration / 60) * H_PX)
   const isDraggable = (s: Session) => s.type !== "google" // only local sessions
@@ -340,6 +343,16 @@ export default function BilansPage() {
                 </div>
               </div>
             </div>
+            {/* WhatsApp coach button */}
+            <div className="mt-8">
+              <a href="https://wa.me/message/QTBSFJSLI3PKN1" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#25D366]/10 border border-[#25D366]/20 hover:bg-[#25D366]/20 hover:border-[#25D366]/35 transition-all duration-300 group/wa">
+                <div className="w-7 h-7 rounded-full bg-[#25D366] flex items-center justify-center shrink-0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                </div>
+                <p className="text-[12px] text-white/60 group-hover/wa:text-white/80 transition-colors"><span className="font-semibold text-white/80">Question ?</span> Tout passe par WhatsApp</p>
+              </a>
+            </div>
           </div>
           {/* clean edge + glow */}
           <div className="relative">
@@ -426,6 +439,23 @@ export default function BilansPage() {
           </div>
           {calendarError && <p className="text-xs text-red-500 bg-red-50/80 px-3 py-2 rounded-lg mb-4">{calendarError}</p>}
 
+          {/* filter toggles */}
+          <div className="flex items-center gap-3 mb-3">
+            {([{ key: "evo" as const, label: "EVO", color: "#3ECF8E" }, { key: "sport" as const, label: "Sport", color: "#c9a96e" }, { key: "google" as const, label: "Agenda", color: "#4285f4" }]).map(f => (
+              <label key={f.key} className="flex items-center gap-1.5 cursor-pointer select-none">
+                <input type="checkbox" checked={calFilters[f.key]} onChange={() => setCalFilters(prev => ({ ...prev, [f.key]: !prev[f.key] }))} className="sr-only peer" />
+                <div className="w-3.5 h-3.5 rounded border-2 flex items-center justify-center transition-all" style={{ borderColor: calFilters[f.key] ? f.color : "#d1d5db", background: calFilters[f.key] ? `${f.color}15` : "transparent", color: f.color }}>
+                  {calFilters[f.key] && <svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </div>
+                <span className="text-[11px] font-medium" style={{ color: calFilters[f.key] ? "#1a1a1a" : "#1a1a1a80" }}>{f.label}</span>
+              </label>
+            ))}
+          </div>
+
+          <div className="flex gap-5 items-start">
+          {/* left: calendar */}
+          <div className="flex-1 min-w-0">
+
           {/* calendar */}
           <div className="bg-white rounded-xl border border-black/[0.04] overflow-hidden"
             onTouchStart={e => { touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY } }}
@@ -465,7 +495,7 @@ export default function BilansPage() {
                         <div className="mt-px space-y-px">
                           {ds.slice(0, 2).map(s => (
                             <div key={s.id} draggable={isDraggable(s)} onDragStart={e => isDraggable(s) && onDragStart(e, s.id)}
-                              className={`text-[8px] font-medium px-1 py-px rounded truncate ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${s.type === "evo" ? "bg-[#3ECF8E]/10 text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 text-[#1a73e8]" : "bg-[#c9a96e]/10 text-[#a08050]"}`}>{s.label}</div>
+                              className={`text-[8px] font-medium px-1 py-px rounded truncate ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${s.type === "evo" ? "bg-[#3ECF8E]/10 text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 text-[#1a73e8]" : "bg-[#c9a96e]/10 text-[#a08050]"}`}>{s.type === "google" ? "Occupé" : s.label}</div>
                           ))}
                           {ds.length > 2 && <div className="text-[8px] text-[#1a1a1a]/20">+{ds.length - 2}</div>}
                         </div>
@@ -508,7 +538,7 @@ export default function BilansPage() {
                                 className={`absolute left-0.5 right-0.5 z-10 rounded px-1 py-px overflow-hidden transition-opacity group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : "cursor-default"} ${cls}`}
                                 style={{ top, height: Math.max(height, 18) }}>
                                 {isDraggable(s) && <GripVertical className="w-2.5 h-2.5 absolute top-0.5 right-0 opacity-0 group-hover/sess:opacity-40 text-current" />}
-                                <p className="text-[8px] font-semibold truncate leading-tight">{s.label}</p>
+                                <p className="text-[8px] font-semibold truncate leading-tight">{s.type === "google" ? "Occupé" : s.label}</p>
                                 {height >= 28 && <p className="text-[7px] opacity-50">{format(s.date, "HH:mm")} · {s.duration}m</p>}
                               </div>
                             )
@@ -546,7 +576,7 @@ export default function BilansPage() {
                         className={`absolute left-1 right-4 z-10 rounded-lg px-3 py-1 overflow-hidden group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${cls}`}
                         style={{ top, height: Math.max(height, 24) }}>
                         {isDraggable(s) && <GripVertical className="w-3 h-3 absolute top-1 right-1 opacity-0 group-hover/sess:opacity-40 text-current" />}
-                        <p className="text-[11px] font-semibold truncate">{s.label}</p>
+                        <p className="text-[11px] font-semibold truncate">{s.type === "google" ? "Occupé" : s.label}</p>
                         <p className="text-[10px] opacity-60">{format(s.date, "HH:mm")} — {s.duration} min</p>
                       </div>
                     )
@@ -555,40 +585,92 @@ export default function BilansPage() {
               </div>
             )}
           </div>
-          <div className="flex items-center gap-5 mt-2.5 text-[10px] text-[#1a1a1a]/25">
+          <div className="flex items-center gap-4 mt-2.5 text-[10px] text-[#1a1a1a]/25">
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-[#3ECF8E]/20" /> EVO</span>
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-[#c9a96e]/20" /> Sport</span>
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-[#4285f4]/20" /> Google</span>
+            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-[#4285f4]/20" /> Indisponible</span>
           </div>
+          </div>{/* end left column */}
+
+          {/* ── right: golden planning block ── */}
+          <div className="w-[280px] shrink-0 hidden lg:block rounded-2xl overflow-hidden self-stretch" style={{ background: "#b8976a" }}>
+            <div className="px-5 py-6 h-full flex flex-col relative">
+              <div className="absolute top-0 right-0 w-32 h-32 opacity-[0.08] pointer-events-none" style={{ background: "radial-gradient(circle, white 0%, transparent 70%)" }} />
+              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center mb-4">
+                <Dumbbell className="w-4 h-4 text-white/80" />
+              </div>
+              <p className="text-[15px] font-bold text-white leading-snug mb-2">La cle, c&apos;est de s&apos;y tenir.</p>
+              <p className="text-[12px] text-white/50 leading-relaxed mb-5">Ton programme ne vaut que si tu le suis. Ajoute tes seances, on s&apos;occupe du reste.</p>
+              <div className="flex flex-col gap-2 mb-5">
+                <button onClick={() => setModal({ open: true, date: new Date() })} className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl bg-white text-[#1a1a1a] text-[12px] font-semibold hover:shadow-lg transition-all">
+                  <Plus className="w-3.5 h-3.5" /> Ajouter mes seances sport
+                </button>
+                <button disabled className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl bg-white/10 text-white/40 text-[12px] font-medium cursor-not-allowed border border-white/10">
+                  <Dumbbell className="w-3.5 h-3.5" /> Seances EVO — a venir
+                </button>
+              </div>
+              <div className="mt-auto pt-4 border-t border-white/10 space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <MessageCircle className="w-3.5 h-3.5 text-white/40 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-white/50 leading-relaxed">Modifie ton planning par <span className="text-white/70 font-medium">WhatsApp</span></p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Calendar className="w-3.5 h-3.5 text-white/40 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-white/50 leading-relaxed">Google Agenda = creneaux <span className="text-white/70 font-medium">occupes</span> uniquement</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>{/* end flex wrapper */}
         </section>
 
         {/* ════════ PROGRESSION ════════ */}
         <section id="progression" className="scroll-mt-20">
           <SectionHeader title="Progression" subtitle="Evolution de tes scores sur 6 mois" />
-          <div className="bg-white rounded-xl border border-black/[0.04] p-5 mb-4">
-            <h3 className="text-[13px] font-medium text-[#1a1a1a]/70 mb-4">Scores globaux — 6 mois</h3>
-            <ResponsiveContainer width="100%" height={180}>
+          <div className="bg-white rounded-xl border border-black/[0.04] p-5 mb-4 relative">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Scores par pilier — 6 mois</h3>
+              <span className="text-[9px] font-bold text-[#c9a96e] bg-[#c9a96e]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">Bientot — donnees fictives</span>
+            </div>
+            <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={progressData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                <defs><linearGradient id="gGlobal" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3ECF8E" stopOpacity={0.15} /><stop offset="95%" stopColor="#3ECF8E" stopOpacity={0} /></linearGradient></defs>
+                <defs>
+                  <linearGradient id="gRenf" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3ECF8E" stopOpacity={0.12} /><stop offset="95%" stopColor="#3ECF8E" stopOpacity={0} /></linearGradient>
+                </defs>
                 <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" />
                 <XAxis dataKey="mois" tick={{ fontSize: 11, fill: "#aaa" }} axisLine={false} tickLine={false} />
-                <YAxis domain={[50, 100]} tick={{ fontSize: 11, fill: "#aaa" }} axisLine={false} tickLine={false} />
+                <YAxis domain={[40, 100]} tick={{ fontSize: 11, fill: "#aaa" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid #f0f0f0", fontSize: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} />
-                <Area type="monotone" dataKey="global" stroke="#3ECF8E" strokeWidth={2} fill="url(#gGlobal)" name="Global" />
-                <Area type="monotone" dataKey="mobilite" stroke="#c9a96e" strokeWidth={1.5} fill="none" strokeDasharray="4 2" name="Mobilite" />
+                <Area type="monotone" dataKey="renforcement" stroke="#3ECF8E" strokeWidth={2} fill="url(#gRenf)" name="Renforcement" />
+                <Area type="monotone" dataKey="cardio" stroke="#ff6b6b" strokeWidth={1.5} fill="none" strokeDasharray="4 2" name="Cardio" />
                 <Area type="monotone" dataKey="sommeil" stroke="#a78bfa" strokeWidth={1.5} fill="none" strokeDasharray="4 2" name="Sommeil" />
+                <Area type="monotone" dataKey="nutrition" stroke="#c9a96e" strokeWidth={1.5} fill="none" strokeDasharray="4 2" name="Nutrition" />
+                <Area type="monotone" dataKey="mental" stroke="#60a5fa" strokeWidth={1.5} fill="none" strokeDasharray="4 2" name="Mental" />
               </AreaChart>
             </ResponsiveContainer>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-[10px]">
+              <span className="flex items-center gap-1"><span className="w-2.5 h-0.5 rounded-full bg-[#3ECF8E]" /> Renforcement</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-0.5 rounded-full bg-[#ff6b6b]" /> Cardio</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-0.5 rounded-full bg-[#a78bfa]" /> Sommeil</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-0.5 rounded-full bg-[#c9a96e]" /> Nutrition</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-0.5 rounded-full bg-[#60a5fa]" /> Mental</span>
+            </div>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-white rounded-xl border border-black/[0.04] p-5">
-              <h3 className="text-[13px] font-medium text-[#1a1a1a]/70 mb-3">Profil de sante</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Profil de sante</h3>
+                <span className="text-[9px] font-bold text-[#c9a96e] bg-[#c9a96e]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">Bientot</span>
+              </div>
               <ResponsiveContainer width="100%" height={180}>
                 <RadarChart data={radarData}><PolarGrid stroke="#ececec" /><PolarAngleAxis dataKey="label" tick={{ fontSize: 11, fill: "#999" }} /><Radar name="Score" dataKey="value" stroke="#3ECF8E" fill="#3ECF8E" fillOpacity={0.12} strokeWidth={2} /></RadarChart>
               </ResponsiveContainer>
             </div>
             <div className="bg-white rounded-xl border border-black/[0.04] p-5">
-              <h3 className="text-[13px] font-medium text-[#1a1a1a]/70 mb-3">Activite cette semaine</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Activite cette semaine</h3>
+                <span className="text-[9px] font-bold text-[#c9a96e] bg-[#c9a96e]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">Bientot</span>
+              </div>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={weeklyActivity} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
