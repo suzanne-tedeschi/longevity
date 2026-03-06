@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import {
   allSections,
@@ -10,6 +10,8 @@ import {
   type MobilityTest,
   type SectionIcon,
 } from '@/lib/bilan-mobilite-data'
+import { supabase } from '@/lib/supabase'
+import { saveProgress, loadProgress, clearProgress } from '@/lib/bilan-progress'
 
 /* ═══════════════════════════════════════════════════════
    SVG ICON COMPONENTS — Premium line icons
@@ -687,6 +689,9 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
    RESULTS SCREEN
    ═══════════════════════════════════════════════════════ */
 function ResultsScreen({ scores }: { scores: Record<string, number> }) {
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const hasSaved = useRef(false)
+
   const sectionResults = allSections.map((section) => {
     const score = section.tests.reduce((sum, t) => sum + (scores[t.id] ?? 0), 0)
     return { section, score }
@@ -697,6 +702,38 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   const overall = getOverallLabel(totalPct)
   const standard = checkStandard2026(scores)
 
+  // ── Auto-save to Supabase ──
+  useEffect(() => {
+    if (hasSaved.current) return
+    hasSaved.current = true
+    async function saveResults() {
+      try {
+        const session = await supabase?.auth.getSession()
+        const token = session?.data?.session?.access_token
+        if (!token) { console.warn('[bilan-save] No auth session'); return }
+        setSaveStatus('saving')
+        const payload = {
+          bilanType: 'mobilite',
+          scores,
+          globalScore: totalPct,
+          globalPoints: totalScore,
+          maxPoints: totalMaxScore,
+          subScores: Object.fromEntries(sectionResults.map(r => [r.section.id, { score: r.score, max: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) }])),
+          sectionResults: sectionResults.map(r => ({ sectionId: r.section.id, title: r.section.title, score: r.score, maxScore: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) })),
+        }
+        const res = await fetch('/api/bilan/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        })
+        if (res.ok) { setSaveStatus('saved'); clearProgress('mobilite') }
+        else { setSaveStatus('error') }
+      } catch (e) { console.error('[bilan-save] Failed:', e); setSaveStatus('error') }
+    }
+    saveResults()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
       {/* Header */}
@@ -706,6 +743,9 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
           Vos résultats
         </h2>
         <p className="text-sm text-[#1a1a1a]/40">Bilan de mobilité et condition physique</p>
+        {saveStatus === 'saving' && <p className="text-xs text-[#3ECF8E]/60 mt-2 animate-pulse">Sauvegarde en cours...</p>}
+        {saveStatus === 'saved' && <p className="text-xs text-emerald-500 mt-2">Résultats sauvegardés</p>}
+        {saveStatus === 'error' && <p className="text-xs text-red-400 mt-2">Sauvegarde échouée</p>}
       </div>
 
       {/* Global score */}
@@ -854,6 +894,27 @@ export default function BilanMobilitePage() {
   const [sectionIndex, setSectionIndex] = useState(0)
   const [testIndex, setTestIndex] = useState(0)
   const [scores, setScores] = useState<Record<string, number>>({})
+  const hasRestored = useRef(false)
+
+  // ── Restore progress from localStorage ──
+  useEffect(() => {
+    if (hasRestored.current) return
+    hasRestored.current = true
+    const saved = loadProgress('mobilite')
+    if (saved && Object.keys(saved.scores).length > 0) {
+      setScores(saved.scores)
+      setSectionIndex(saved.sectionIndex)
+      setTestIndex(saved.testIndex)
+      setPhase('testing')
+    }
+  }, [])
+
+  // ── Auto-save progress to localStorage ──
+  useEffect(() => {
+    if (phase === 'results') return
+    if (Object.keys(scores).length === 0) return
+    saveProgress('mobilite', scores, sectionIndex, testIndex)
+  }, [scores, sectionIndex, testIndex, phase])
 
   const currentSection = allSections[sectionIndex]
   const currentTest: MobilityTest | undefined = currentSection?.tests[testIndex]

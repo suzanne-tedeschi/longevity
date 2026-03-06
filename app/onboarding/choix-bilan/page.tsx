@@ -35,10 +35,10 @@ const bilanOptions: BilanOption[] = [
   {
     id: 'nutrition',
     title: 'Nutrition',
-    description: 'Analysez vos habitudes alimentaires et identifiez les leviers pour une alimentation longévité.',
-    duration: '10 min',
-    available: false,
-    href: '#',
+    description: 'Troubles digestifs & habitudes alimentaires pour une alimentation longévité.',
+    duration: '12 min',
+    available: true,
+    href: '/onboarding/bilan-nutrition',
     icon: (
       <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8h1a4 4 0 010 8h-1" />

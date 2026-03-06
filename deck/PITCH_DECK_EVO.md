@@ -1,0 +1,304 @@
+# 🟤 EVO — Pitch Deck
+### *L'entraînement pour le long terme.*
+
+---
+
+## SLIDE 1 — COVER
+
+**evo**
+
+> Bouge aujourd'hui. Vis mieux demain.
+
+Programmes longévité conçus par un expert, délivrés là où vivent vos utilisateurs.
+
+*[Logo evo — fond noir — ambiance premium/minimale]*
+
+---
+
+## SLIDE 2 — LE PROBLÈME (La stat qui fait mal)
+
+### L'industrie fitness est cassée.
+
+| | |
+|---|---|
+| **80 %** | des utilisateurs abandonnent les apps fitness dans les 30 premiers jours |
+| **96 %** | des abonnés en salle arrêtent avant 12 mois |
+| **0** | app mainstream ne programme pour la santé à 60, 70, 80 ans |
+
+**Le fitness traditionnel optimise pour 12 semaines.**
+**La santé se joue sur 12 décennies.**
+
+Les gens ne manquent pas de motivation — ils manquent d'un système qui s'adapte à leur vraie vie et programme pour leur vrai enjeu : **vieillir en bonne santé**.
+
+---
+
+## SLIDE 3 — LE COÛT DE L'INACTION (Pourquoi c'est urgent)
+
+### Vieillir sans bouger, c'est le risque sanitaire n°1.
+
+- **-23 % de risque de mortalité** toutes causes avec la musculation régulière *(Liu et al., British Journal of Sports Medicine, 2022)*
+- **Sarcopénie** : on perd ~3-5 % de masse musculaire par décennie après 30 ans
+- **Chutes** : 1ère cause de décès accidentel chez les +65 ans — directement liée au manque de force et d'équilibre
+- **Coût pour le système** : les maladies chroniques liées à la sédentarité représentent **150 Md€/an en Europe**
+
+> Le meilleur médicament du monde, c'est le mouvement. Il manque juste la bonne ordonnance.
+
+---
+
+## SLIDE 4 — LA SOLUTION (Le "aha moment")
+
+### Un coach expert dans ta poche. Pas une app de plus.
+
+**evo = Programme longévité sur-mesure × Coaching conversationnel via WhatsApp**
+
+```
+┌─────────────────────────────────────────────────┐
+│  Coach : "Tu as une séance force aujourd'hui     │
+│  à 18h30. J'ai vu que ton agenda s'est libéré   │
+│  à 12h. On décale ?"                             │
+│                                                   │
+│                    Toi : "Oui, midi ça m'arrange" │
+│                                                   │
+│  Coach : "C'est noté. Bas du corps, mouvements   │
+│  composés. 42 min. Tu es à 12 jours de           │
+│  régularité 💪"                                   │
+│                                                   │
+│              Toi : "Je mange avant ou à jeun ?"   │
+│                                                   │
+│  Coach : "Pour une séance force à midi, mange    │
+│  léger 1h30 avant. Protéines + glucides lents."  │
+└─────────────────────────────────────────────────┘
+```
+
+**Pas d'app à télécharger. Pas de notifications ignorées.**
+Juste une conversation là où tu passes déjà ton temps.
+
+---
+
+## SLIDE 5 — COMMENT ÇA MARCHE (Le parcours en 3 étapes)
+
+### De l'inscription au premier résultat en 48h.
+
+**① BILAN SCIENTIFIQUE**
+> 5 bilans validés scientifiquement (243 questions)
+> Mobilité (43 tests) · Nutrition (57 q.) · Sommeil (33 q.) · Santé mentale (95 q.)
+> Scores précis, rapports individualisés, recommandations actionnables
+
+**② PROGRAMME SUR-MESURE**
+> Conçu par un kiné & préparateur physique expert en longévité
+> Adapté à ton niveau, tes contraintes, tes objectifs de santé à long terme
+> Force · Mobilité · Équilibre · Santé métabolique
+
+**③ COACHING CONTINU VIA WHATSAPP**
+> Le coach s'adapte à ton agenda en temps réel
+> Répond à toutes tes questions (posture, nutrition, sommeil, récupération)
+> Moteur de régularité : séries, paliers, messages au bon moment
+
+---
+
+## SLIDE 6 — LE PRODUIT (Screenshots / Démo)
+
+### Un dashboard santé + un coach qui te guide.
+
+**Colonne gauche — Dashboard intelligent :**
+- Score global par pilier : Mobilité, Nutrition, Sommeil, Mental
+- Progression mensuelle avec graphiques
+- Compte-rendus scientifiques détaillés par bilan
+- Calendrier intégré (sync Google Calendar)
+
+**Colonne droite — WhatsApp :**
+- Conversations naturelles avec ton coach
+- Adaptation en temps réel à ton emploi du temps
+- Réponses factuelles basées sur la science
+- Suivi de régularité et motivation intelligente
+
+*[Mettre côte à côte : screenshot du dashboard evo + screenshot conversation WhatsApp]*
+
+---
+
+## SLIDE 7 — LA TECH / MOAT (Ce qui nous rend uniques)
+
+### L'intelligence derrière la conversation.
+
+| Brique | Description |
+|---|---|
+| **Bilans scientifiques propriétaires** | 5 bilans (243 questions) basés sur des échelles validées : PSQI, SHI, B-PANAS, TEIQue, GHQ-12, CD-RISC, PSS, GSRS. Scoring normé, interprétation automatique, rapports personnalisés. |
+| **Moteur de programmation longévité** | Méthodologie expert (pas de génération IA générique). Chaque programme cible les 5 piliers : force, mobilité, équilibre, santé métabolique, récupération. |
+| **Sync calendrier** | Intégration Google Calendar. Le coach voit quand tu es dispo et adapte les séances. |
+| **Système de progression** | Sauvegarde en temps réel, reprise de bilans, tracking de régularité, historique complet. |
+| **Canal WhatsApp** | 2 Md+ d'utilisateurs. Taux d'ouverture 98 %. Zéro friction. Pas de téléchargement. |
+
+> **Le moat, ce n'est pas la tech. C'est la boucle : données scientifiques → programme expert → coaching conversationnel → nouvelles données → meilleur programme.**
+
+---
+
+## SLIDE 8 — MARCHÉ
+
+### Un marché massif à l'intersection de 3 tendances.
+
+```
+        LONGÉVITÉ              FITNESS DIGITAL         HEALTH COACHING
+       $44 Md (2028)           $71 Md (2028)           $10 Md (2028)
+           \                      |                     /
+            \                     |                    /
+             ────────── EVO ──────────
+```
+
+**TAM** : $125 Md — Fitness digital + Longévité + Coaching santé
+**SAM** : $6,4 Md — Coaching fitness personnalisé en Europe
+**SOM** : $32 M — Francophones urbains 30-55 ans, CSP+, santé-conscients
+
+**Pourquoi maintenant :**
+- Explosion de la demande "longévité" (+400 % de recherches Google en 3 ans)
+- WhatsApp Business API mature et scalable
+- Peter Attia, Andrew Huberman, Bryan Johnson → le grand public découvre la longévité
+- Les apps fitness saturent → les gens veulent du humain, pas des vidéos
+
+---
+
+## SLIDE 9 — BUSINESS MODEL
+
+### Simple. Récurrent. Scalable.
+
+| Offre | Prix | Contenu |
+|---|---|---|
+| **Bilans gratuits** | 0 € | Attirer, qualifier, démontrer la valeur |
+| **Evo Essentiel** | 49 €/mois | Programme longévité + coaching WhatsApp |
+| **Evo Premium** | 99 €/mois | + Nutrition personnalisée + suivi sommeil + appels mensuels |
+| **Evo Corporate** | Sur devis | Programmes bien-être entreprise (QVT) |
+
+**Unit economics cibles :**
+- CAC : ~25 € (acquisition organique + referral)
+- LTV : ~588 € (12 mois de rétention moyenne à 49 €)
+- LTV/CAC : **23x**
+- Marge brute : **~75 %** (coach assisté par IA, pas remplacé)
+
+---
+
+## SLIDE 10 — TRACTION & MILESTONES
+
+### Ce qui est déjà construit.
+
+| ✅ Done | 🔜 Next |
+|---|---|
+| Plateforme web full-stack (Next.js, Supabase) | Lancement beta fermée (T2 2026) |
+| 5 bilans scientifiques complets (243 questions) | Intégration WhatsApp Business API |
+| Système de scoring & rapports automatisés | Premiers 100 utilisateurs payants |
+| Dashboard santé avec progression | Partenariats kinés / coachs |
+| Sync Google Calendar | App mobile (PWA) |
+| Authentification & persistence des données | Programme d'affiliation |
+| Landing page avec waitlist active | |
+
+**KPIs à date :**
+- Produit fonctionnel en production
+- X inscrits sur la waitlist *(à remplir)*
+- 5 bilans couvrant les 5 piliers de la longévité
+- Temps moyen sur un bilan : ~15 min (engagement fort)
+
+---
+
+## SLIDE 11 — CONCURRENCE
+
+### On ne joue pas dans la même catégorie.
+
+| | Apps fitness (Freeletics, Nike TC) | Coaching en ligne (Fizzup, Trainsweateat) | Coach perso classique | **evo** |
+|---|---|---|---|---|
+| **Personnalisation** | ❌ Templates | 🟡 Basique | ✅ Totale | ✅ Totale |
+| **Focus longévité** | ❌ Body goals | ❌ Body goals | 🟡 Si expert | ✅ Core mission |
+| **Bilans scientifiques** | ❌ | ❌ | 🟡 Optionnel | ✅ 5 bilans intégrés |
+| **Canal** | App dédiée | App dédiée | Présentiel/Zoom | WhatsApp |
+| **Abandon à 30j** | 80 % | ~70 % | ~30 % | **Objectif <20 %** |
+| **Prix** | 10-15 €/mois | 15-30 €/mois | 200-400 €/mois | 49-99 €/mois |
+| **Scalabilité** | ✅ | ✅ | ❌ | ✅ |
+
+> **Positionnement unique : la rigueur scientifique d'un expert longévité, la scalabilité d'une app, l'intimité d'une conversation.**
+
+---
+
+## SLIDE 12 — ÉQUIPE
+
+### Des builders, pas des théoriciens.
+
+**[Fondatrice]**
+- *Rôle + background*
+- Pourquoi la longévité (story personnelle)
+
+**Vincent — Head of Programs**
+- Kinésithérapeute & préparateur physique
+- Conçoit chaque programme personnellement
+- Expert longévité et prévention
+
+**Tech**
+- Stack moderne : Next.js 14, Supabase, TypeScript
+- Produit construit, déployé, fonctionnel
+- IA en support du coach (pas en remplacement)
+
+---
+
+## SLIDE 13 — LA VISION (The big picture)
+
+### Evo n'est pas une app fitness. C'est l'OS de la longévité.
+
+**2026 →** Coaching longévité via WhatsApp (force, mobilité, équilibre)
+**2027 →** Ajout nutrition personnalisée, suivi sommeil, biomarqueurs
+**2028 →** Plateforme ouverte : kinés, coachs, nutritionnistes utilisent evo pour leurs patients
+**2029 →** API santé longévité : entreprises, mutuelles, assureurs intègrent nos bilans
+**2030 →** Standard de référence pour le "healthspan" en Europe
+
+> De la conversation au système de santé préventive. Un utilisateur à la fois.
+
+---
+
+## SLIDE 14 — L'ASK (La demande)
+
+### On lève [X] € pour lancer et scaler.
+
+**Allocation :**
+
+| Poste | % | Usage |
+|---|---|---|
+| **Produit & Tech** | 40 % | Intégration WhatsApp, IA coaching, app mobile |
+| **Acquisition** | 30 % | Content marketing, referral program, partenariats |
+| **Équipe** | 20 % | Recrutement coach(s), growth, ops |
+| **Réserve** | 10 % | |
+
+**Objectifs à 18 mois :**
+- 1 000 utilisateurs payants
+- MRR 50-80 K€
+- Rétention >70 % à 6 mois
+- Extension marché DACH (Allemagne, Autriche, Suisse)
+
+---
+
+## SLIDE 15 — CLOSE
+
+### L'industrie fitness vend du "summer body". Nous, on construit des décennies de vie en bonne santé.
+
+**evo** — L'entraînement pour le long terme.
+
+> *« La meilleure décennie de ta vie, c'est la prochaine. »*
+
+📧 [email]
+🌐 [url site]
+
+---
+
+# NOTES DE DESIGN
+
+## Identité visuelle
+- **Palette** : Noir profond (#0a0a0a) + Or/sable (#c9a96e) + Vert émeraude (#3ECF8E) + Blanc cassé (#FAF8F5)
+- **Typo** : Sans-serif moderne, poids variable (light pour le corps, bold pour les titres)
+- **Ambiance** : Premium, épuré, scientifique mais chaleureux — pas "tech froide"
+- **Imagerie** : Vidéos fitness naturelles, silhouettes en mouvement, pas de bodybuilding
+
+## Principes par slide
+- **1 idée par slide, maximum**
+- **Les chiffres parlent** : chaque argument est soutenu par une donnée
+- **Contraste fort** : fond sombre avec accents dorés pour les slides de vision
+- **Screenshots réels** du produit (le dashboard existe !)
+- **La conversation WhatsApp** est l'élément visuel star — c'est le différenciant
+
+## Format recommandé
+- 16:9
+- 15 slides max
+- ~45 secondes par slide en présentation orale (total ~12 min)

@@ -20,7 +20,9 @@ export default function Home() {
   const [activeVideo, setActiveVideo] = useState(0)
   const video1Ref = useRef<HTMLVideoElement>(null)
   const video2Ref = useRef<HTMLVideoElement>(null)
-  const heroVideos = ['/hero-bg.mp4', '/Vid%C3%A9o_Fitness_Non_Chinoise_G%C3%A9n%C3%A9r%C3%A9e.mp4']
+  const video3Ref = useRef<HTMLVideoElement>(null)
+  const heroVideos = ['/hero-bg.mp4', '/Vid%C3%A9o_Fitness_Non_Chinoise_G%C3%A9n%C3%A9r%C3%A9e.mp4', '/Vid%C3%A9o_optimis%C3%A9e_mouvements_et_esth%C3%A9tique.mp4']
+  const videoRefs = [video1Ref, video2Ref, video3Ref]
 
   /* Typewriter */
   const [rotatingWordIndex, setRotatingWordIndex] = useState(0)
@@ -291,8 +293,14 @@ export default function Home() {
       </nav>
 
       <section className="relative min-h-screen flex flex-col justify-center px-6 md:px-16 lg:px-24 overflow-hidden">
-        <video ref={video1Ref} autoPlay muted playsInline onEnded={() => { setActiveVideo(1); video2Ref.current?.play() }} className="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-[2000ms] ease-in-out" style={{ opacity: activeVideo === 0 ? 1 : 0 }}><source src={heroVideos[0]} type="video/mp4" /></video>
-        <video ref={video2Ref} muted playsInline onEnded={() => { setActiveVideo(0); video1Ref.current?.play() }} className="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-[2000ms] ease-in-out" style={{ opacity: activeVideo === 1 ? 1 : 0 }}><source src={heroVideos[1]} type="video/mp4" /></video>
+        {heroVideos.map((src, i) => (
+          <video key={i} ref={videoRefs[i]} autoPlay={i === 0} muted playsInline
+            onEnded={() => { const next = (i + 1) % heroVideos.length; setActiveVideo(next); videoRefs[next].current?.play() }}
+            className="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-[2000ms] ease-in-out"
+            style={{ opacity: activeVideo === i ? 1 : 0 }}>
+            <source src={src} type="video/mp4" />
+          </video>
+        ))}
         <div className="absolute inset-0 bg-black/50 z-0" />
         <div className="relative z-10 max-w-4xl" style={{ animation: mounted ? 'fadeInUp 0.8s ease-out' : 'none', opacity: mounted ? 1 : 0 }}>
           <div className="inline-flex items-center px-5 py-2.5 rounded-full border border-white/[0.08] mb-16">

@@ -1,128 +1,67 @@
-'use client'
+"use client"
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  allSections,
-  totalMaxScore,
-  sommeilInterpretations,
-  type TestSection,
-  type SommeilTest,
-  type SectionIcon,
-} from '@/lib/bilan-sommeil-data'
+  allSections, totalMaxScore, emotionnelInterpretations,
+  type TestSection, type EmotionnelTest, type SectionIcon, type ScoreOption,
+} from '@/lib/bilan-emotionnel-data'
+import {
+  getSectionReport, getSectionRecommendation, getTriggeredInsights, globalKeyInsights,
+} from '@/lib/bilan-emotionnel-report'
 import { supabase } from '@/lib/supabase'
 import { saveProgress, loadProgress, clearProgress } from '@/lib/bilan-progress'
 
 /* ═══════════════════════════════════════════════════════
-   SVG ICON COMPONENTS — Sleep-themed line icons
+   INLINE SVG ICONS
    ═══════════════════════════════════════════════════════ */
-
-function MoonIcon({ className = 'w-6 h-6' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-    </svg>
-  )
+function HeartIcon({ className = 'w-6 h-6' }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.3l7.8-7.8 1-1.1a5.5 5.5 0 0 0 0-7.8z" /></svg>
 }
-
-function StarIcon({ className = 'w-6 h-6' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-    </svg>
-  )
+function SmileIcon({ className = 'w-6 h-6' }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></svg>
 }
-
-function ShieldIcon({ className = 'w-6 h-6' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      <path d="M9 12l2 2 4-4" />
-    </svg>
-  )
-}
-
 function BrainIcon({ className = 'w-6 h-6' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2a5 5 0 015 5c0 1.5-.5 2.5-1.5 3.5.6.5 1 1.2 1 2 0 1.5-1.2 2.7-2.5 3 .3.8.5 1.5.5 2.5a3 3 0 01-5 2.24A3 3 0 014.5 18c0-1 .2-1.7.5-2.5C3.7 15.2 2.5 14 2.5 12.5c0-.8.4-1.5 1-2C2.5 9.5 2 8.5 2 7a5 5 0 015-5" />
-      <path d="M12 2v20" />
-    </svg>
-  )
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a5 5 0 0 1 5 5c0 .8-.2 1.5-.5 2.2A5 5 0 0 1 19 14a5 5 0 0 1-3 4.6V22h-4v-3.4A5 5 0 0 1 9 14a5 5 0 0 1 2.5-4.3A5 5 0 0 1 12 2z" /><path d="M12 2v4" /><path d="M9 10h6" /></svg>
 }
-
-function ChevronLeft({ className = 'w-5 h-5' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
-  )
-}
-
-function ChevronRight({ className = 'w-5 h-5' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 18l6-6-6-6" />
-    </svg>
-  )
-}
-
 function CheckCircle({ className = 'w-5 h-5' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-      <polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
-  )
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
 }
-
+function ChevronLeft({ className = 'w-4 h-4' }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+}
+function ChevronRight({ className = 'w-4 h-4' }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+}
 function InfoIcon({ className = 'w-4 h-4' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="16" x2="12" y2="12" />
-      <line x1="12" y1="8" x2="12.01" y2="8" />
-    </svg>
-  )
-}
-
-function SleepIcon({ className = 'w-6 h-6' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-      <path d="M14 5l3 0" />
-      <path d="M14 5l1.5-1.5" />
-      <path d="M17 8l2 0" />
-      <path d="M17 8l1-1" />
-    </svg>
-  )
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
 }
 
 function renderSectionIcon(icon: SectionIcon, className = 'w-6 h-6') {
   switch (icon) {
-    case 'troubles': return <MoonIcon className={className} />
-    case 'quality':  return <StarIcon className={className} />
-    case 'hygiene':  return <ShieldIcon className={className} />
-    case 'profile':  return <BrainIcon className={className} />
+    case 'emotions':      return <HeartIcon className={className} />
+    case 'satisfaction':   return <SmileIcon className={className} />
+    case 'intelligence':   return <BrainIcon className={className} />
   }
 }
 
 /* ═══════════════════════════════════════════════════════
-   SCORE COLOR HELPERS
+   SCORE COLOR HELPERS (dynamic, works with any scale)
    ═══════════════════════════════════════════════════════ */
-const scoreColors: Record<number, { bg: string; border: string; text: string; ring: string }> = {
-  0: { bg: 'bg-red-50',     border: 'border-red-200',     text: 'text-red-700',     ring: 'ring-red-300' },
-  1: { bg: 'bg-amber-50',   border: 'border-amber-200',   text: 'text-amber-700',   ring: 'ring-amber-300' },
-  2: { bg: 'bg-sky-50',     border: 'border-sky-200',     text: 'text-sky-700',     ring: 'ring-sky-300' },
-  3: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', ring: 'ring-emerald-300' },
+function getScoreColor(value: number, maxValue: number) {
+  const ratio = maxValue > 0 ? value / maxValue : 0
+  if (ratio >= 0.75) return { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', ring: 'ring-emerald-300' }
+  if (ratio >= 0.5)  return { bg: 'bg-sky-50',     border: 'border-sky-200',     text: 'text-sky-700',     ring: 'ring-sky-300' }
+  if (ratio >= 0.25) return { bg: 'bg-amber-50',   border: 'border-amber-200',   text: 'text-amber-700',   ring: 'ring-amber-300' }
+  return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', ring: 'ring-red-300' }
 }
 
 function getOverallLabel(pct: number) {
-  if (pct >= 80) return { label: 'Excellent', color: 'text-emerald-600', bar: 'bg-emerald-500' }
-  if (pct >= 60) return { label: 'Bon', color: 'text-sky-600', bar: 'bg-sky-500' }
-  if (pct >= 40) return { label: 'Moyen', color: 'text-amber-600', bar: 'bg-amber-500' }
-  return { label: 'À améliorer', color: 'text-red-600', bar: 'bg-red-500' }
+  if (pct >= 80) return { label: 'Excellent',    color: 'text-emerald-600', bar: 'bg-emerald-500' }
+  if (pct >= 60) return { label: 'Bon',          color: 'text-sky-600',     bar: 'bg-sky-500' }
+  if (pct >= 40) return { label: 'Moyen',        color: 'text-amber-600',   bar: 'bg-amber-500' }
+  return { label: 'À améliorer', color: 'text-red-600',     bar: 'bg-red-500' }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -137,60 +76,56 @@ function ProgressBar({ current, total, sectionTitle }: { current: number; total:
         <span className="text-xs tabular-nums text-[#1a1a1a]/40">{current}/{total}</span>
       </div>
       <div className="h-1 w-full bg-[#1a1a1a]/[0.06] rounded-full overflow-hidden">
-        <div className="h-full rounded-full bg-gradient-to-r from-supagreen to-supagreen-dark transition-all duration-700 ease-out" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-gradient-to-r from-rose-400 to-rose-600 transition-all duration-700 ease-out" style={{ width: `${pct}%` }} />
       </div>
     </div>
   )
 }
 
 /* ═══════════════════════════════════════════════════════
-   SCORE BUTTON
+   LIKERT SCORE BUTTON (adaptive for any scale)
    ═══════════════════════════════════════════════════════ */
-function ScoreButton({ value, label, description, selected, onSelect }: {
-  value: number; label: string; description: string; selected: boolean; onSelect: () => void
+function LikertButton({ option, selected, onSelect, maxValue }: {
+  option: ScoreOption; selected: boolean; onSelect: () => void; maxValue: number
 }) {
-  const colors = scoreColors[value] || scoreColors[0]
+  const colors = getScoreColor(option.value, maxValue)
   return (
     <button
       onClick={onSelect}
-      className={`group relative w-full text-left rounded-xl border-2 p-4 transition-all duration-300 ease-out ${
+      className={`group relative w-full text-left rounded-xl border-2 p-3 transition-all duration-300 ease-out ${
         selected
           ? `${colors.bg} ${colors.border} ring-2 ${colors.ring} shadow-md`
           : 'border-[#1a1a1a]/[0.08] bg-white hover:border-[#1a1a1a]/[0.12] hover:shadow-sm'
       }`}
     >
-      <div className="flex items-start gap-3">
-        <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-          selected ? `${colors.bg} ${colors.text} ${colors.border} border` : 'bg-[#1a1a1a]/[0.05] text-[#1a1a1a]/30 border border-[#1a1a1a]/[0.08]'
-        }`}>
-          {value}
-        </div>
+      <div className="flex items-center gap-3">
+        <div className={`flex-shrink-0 w-3 h-3 rounded-full transition-all duration-300 ${
+          selected ? `${colors.bg} border-2 ${colors.border} shadow-sm` : 'bg-[#1a1a1a]/[0.08] border border-[#1a1a1a]/[0.08]'
+        }`} style={selected ? { backgroundColor: option.value / maxValue >= 0.75 ? '#10b981' : option.value / maxValue >= 0.5 ? '#0ea5e9' : option.value / maxValue >= 0.25 ? '#f59e0b' : '#ef4444' } : {}} />
         <div className="flex-1 min-w-0">
-          <p className={`font-semibold text-sm transition-colors duration-300 ${selected ? colors.text : 'text-[#1a1a1a]'}`}>{label}</p>
-          <p className="text-xs text-[#1a1a1a]/40 mt-0.5 leading-relaxed">{description}</p>
+          <p className={`font-semibold text-sm transition-colors duration-300 ${selected ? colors.text : 'text-[#1a1a1a]'}`}>{option.label}</p>
+          <p className="text-xs text-[#1a1a1a]/40 mt-0.5 leading-relaxed">{option.description}</p>
         </div>
-        {selected && <CheckCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${colors.text}`} />}
+        {selected && <CheckCircle className={`w-5 h-5 flex-shrink-0 ${colors.text}`} />}
       </div>
     </button>
   )
 }
 
 /* ═══════════════════════════════════════════════════════
-   SECTION INTRO SCREEN
+   SECTION INTRO
    ═══════════════════════════════════════════════════════ */
 function SectionIntro({ section, sectionIndex, onStart }: { section: TestSection; sectionIndex: number; onStart: () => void }) {
   return (
     <div className="animate-fade-in flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
       <div className="mb-6 inline-flex items-center gap-2 bg-[#1a1a1a]/[0.05] border border-[#1a1a1a]/[0.08] rounded-full px-4 py-1.5">
-        <span className="text-xs font-medium tracking-widest uppercase text-[#1a1a1a]/40">
-          Section {sectionIndex + 1} / {allSections.length}
-        </span>
+        <span className="text-xs font-medium tracking-widest uppercase text-[#1a1a1a]/40">Section {sectionIndex + 1} / {allSections.length}</span>
       </div>
-      <div className="mb-8 w-20 h-20 rounded-2xl bg-gradient-to-br from-supagreen/10 to-supagreen-dark/10 border border-supagreen/15 flex items-center justify-center text-supagreen">
+      <div className="mb-8 w-20 h-20 rounded-2xl bg-gradient-to-br from-rose-500/10 to-rose-600/10 border border-rose-500/15 flex items-center justify-center text-rose-500">
         {renderSectionIcon(section.icon, 'w-10 h-10')}
       </div>
       <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] mb-2 tracking-tight">{section.title}</h2>
-      <p className="text-supagreen font-medium text-sm tracking-wide uppercase mb-6">{section.subtitle}</p>
+      <p className="text-rose-500 font-medium text-sm tracking-wide uppercase mb-6">{section.subtitle}</p>
       <p className="max-w-md text-[#1a1a1a]/50 leading-relaxed mb-4">{section.description}</p>
       <div className="flex items-center gap-6 mb-10">
         <div className="text-center">
@@ -203,7 +138,7 @@ function SectionIntro({ section, sectionIndex, onStart }: { section: TestSection
           <p className="text-xs text-[#1a1a1a]/30 uppercase tracking-wider">Points max</p>
         </div>
       </div>
-      <button onClick={onStart} className="btn-secondary">Commencer cette section</button>
+      <button onClick={onStart} className="px-8 py-3 rounded-xl bg-rose-500 text-white font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">Commencer cette section</button>
     </div>
   )
 }
@@ -212,58 +147,44 @@ function SectionIntro({ section, sectionIndex, onStart }: { section: TestSection
    TEST CARD
    ═══════════════════════════════════════════════════════ */
 function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, selectedScore, onScore, onPrev, onNext, canGoNext }: {
-  test: SommeilTest; testIndex: number; totalTests: number; sectionTitle: string; sectionIcon: SectionIcon
+  test: EmotionnelTest; testIndex: number; totalTests: number; sectionTitle: string; sectionIcon: SectionIcon
   selectedScore: number | undefined; onScore: (v: number) => void; onPrev: () => void; onNext: () => void; canGoNext: boolean
 }) {
+  const maxValue = Math.max(...test.scoring.map(o => o.value))
   return (
     <div className="animate-fade-in max-w-lg mx-auto">
       <ProgressBar current={testIndex + 1} total={totalTests} sectionTitle={sectionTitle} />
-
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-7 h-7 rounded-lg bg-supagreen/8 flex items-center justify-center text-supagreen">
+          <div className="w-7 h-7 rounded-lg bg-rose-500/8 flex items-center justify-center text-rose-500">
             {renderSectionIcon(sectionIcon, 'w-4 h-4')}
           </div>
           <span className="text-xs font-medium tracking-widest uppercase text-[#1a1a1a]/30">Question {testIndex + 1}</span>
         </div>
         <h3 className="text-2xl font-bold text-[#1a1a1a] tracking-tight mb-1">{test.name}</h3>
-        <p className="text-sm text-supagreen font-medium">{test.description}</p>
+        <p className="text-sm text-rose-500 font-medium">{test.description}</p>
       </div>
-
       <div className="bg-[#1a1a1a]/[0.02] border border-[#1a1a1a]/[0.08] rounded-xl p-4 mb-6">
         <p className="text-sm text-[#1a1a1a]/50 leading-relaxed">{test.criteria}</p>
         {test.tip && (
           <div className="flex items-start gap-2 mt-3 pt-3 border-t border-[#1a1a1a]/[0.08]">
-            <InfoIcon className="w-4 h-4 text-supagreen flex-shrink-0 mt-0.5" />
+            <InfoIcon className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-[#1a1a1a]/40 leading-relaxed">{test.tip}</p>
           </div>
         )}
       </div>
-
-      <div className="space-y-2.5 mb-8">
-        {test.scoring.map((option) => (
-          <ScoreButton
-            key={option.value}
-            value={option.value}
-            label={option.label}
-            description={option.description}
-            selected={selectedScore === option.value}
-            onSelect={() => onScore(option.value)}
-          />
+      <div className="space-y-2 mb-8">
+        {test.scoring.map((option, idx) => (
+          <LikertButton key={idx} option={option} selected={selectedScore === option.value} onSelect={() => onScore(option.value)} maxValue={maxValue} />
         ))}
       </div>
-
       <div className="flex items-center justify-between">
         <button onClick={onPrev} className="flex items-center gap-1 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors">
           <ChevronLeft className="w-4 h-4" /> Précédent
         </button>
-        <button
-          onClick={onNext}
-          disabled={!canGoNext}
+        <button onClick={onNext} disabled={!canGoNext}
           className={`flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-            canGoNext
-              ? 'bg-supagreen text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-              : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/20 cursor-not-allowed'
+            canGoNext ? 'bg-rose-500 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5' : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/20 cursor-not-allowed'
           }`}
         >
           Suivant <ChevronRight className="w-4 h-4" />
@@ -284,25 +205,15 @@ function ScoreGauge({ score, maxScore, label, icon, size = 'md' }: {
   const dims = size === 'sm' ? { box: 'w-28 h-28', r: 44, stroke: 5 } : { box: 'w-36 h-36', r: 56, stroke: 6 }
   const circ = 2 * Math.PI * dims.r
   const dashOffset = circ - (pct / 100) * circ
-
   return (
     <div className="flex flex-col items-center">
       <div className={`relative ${dims.box}`}>
         <svg className="w-full h-full -rotate-90" viewBox={`0 0 ${(dims.r + dims.stroke) * 2} ${(dims.r + dims.stroke) * 2}`}>
           <circle cx={dims.r + dims.stroke} cy={dims.r + dims.stroke} r={dims.r} fill="none" stroke="#e5e0d8" strokeWidth={dims.stroke} />
-          <circle
-            cx={dims.r + dims.stroke}
-            cy={dims.r + dims.stroke}
-            r={dims.r}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={dims.stroke}
-            strokeDasharray={circ}
-            strokeDashoffset={dashOffset}
-            strokeLinecap="round"
+          <circle cx={dims.r + dims.stroke} cy={dims.r + dims.stroke} r={dims.r} fill="none" stroke="currentColor" strokeWidth={dims.stroke}
+            strokeDasharray={circ} strokeDashoffset={dashOffset} strokeLinecap="round"
             className={`${color} transition-all duration-1000 ease-out`}
-            style={{ color: pct >= 80 ? '#10b981' : pct >= 60 ? '#0ea5e9' : pct >= 40 ? '#f59e0b' : '#ef4444' }}
-          />
+            style={{ color: pct >= 80 ? '#10b981' : pct >= 60 ? '#0ea5e9' : pct >= 40 ? '#f59e0b' : '#ef4444' }} />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className={`text-2xl font-bold ${color}`}>{pct}%</span>
@@ -322,30 +233,23 @@ function ScoreGauge({ score, maxScore, label, icon, size = 'md' }: {
    ═══════════════════════════════════════════════════════ */
 function getSectionFeedback(sectionId: string, pct: number): { title: string; message: string } {
   const level = pct >= 80 ? 'high' : pct >= 50 ? 'mid' : 'low'
-
   const feedback: Record<string, Record<string, { title: string; message: string }>> = {
-    'troubles-sommeil': {
-      high: { title: 'Peu de troubles nocturnes', message: 'Vos nuits semblent peu perturbées. C\u2019est un atout majeur pour votre récupération et votre santé.' },
-      mid:  { title: 'Troubles modérés', message: 'Certains facteurs perturbent votre sommeil. Le programme identifiera les leviers d\u2019amélioration prioritaires.' },
-      low:  { title: 'Troubles fréquents', message: 'Vos nuits sont significativement perturbées. C\u2019est un axe prioritaire pour améliorer votre bien-être.' },
+    'b-panas': {
+      high: { title: 'Bel équilibre émotionnel', message: 'Vos émotions positives prédominent nettement. C\'est un excellent indicateur de bien-être psychologique.' },
+      mid:  { title: 'Équilibre émotionnel modéré', message: 'Certaines émotions négatives sont significatives. Le programme identifiera les leviers d\'amélioration.' },
+      low:  { title: 'Déséquilibre émotionnel', message: 'Les affects négatifs sont dominants. C\'est un axe prioritaire pour votre bien-être.' },
     },
-    'qualite-impact': {
-      high: { title: 'Bonne qualité ressentie', message: 'Vous percevez votre sommeil comme satisfaisant et il n\u2019affecte pas votre quotidien.' },
-      mid:  { title: 'Impact modéré', message: 'Votre sommeil a un certain impact sur votre énergie et votre motivation. Des ajustements ciblés peuvent aider.' },
-      low:  { title: 'Impact quotidien important', message: 'La qualité de votre sommeil affecte significativement votre journée. C\u2019est un enjeu de santé important.' },
+    'satisfaction-vie': {
+      high: { title: 'Grande satisfaction de vie', message: 'Vous êtes très satisfait(e) de votre vie. C\'est un facteur protecteur majeur pour la longévité.' },
+      mid:  { title: 'Satisfaction modérée', message: 'Certains aspects de votre vie ne vous satisfont pas pleinement. Des ajustements ciblés peuvent faire la différence.' },
+      low:  { title: 'Insatisfaction significative', message: 'Votre satisfaction de vie est faible. Un travail sur vos valeurs et objectifs de vie est recommandé.' },
     },
-    'hygiene-sommeil': {
-      high: { title: 'Excellente hygiène de sommeil', message: 'Vos habitudes sont favorables à un bon sommeil. Vous avez une base solide.' },
-      mid:  { title: 'Hygiène à améliorer', message: 'Quelques habitudes nuisent à votre sommeil. De petits changements peuvent avoir un grand impact.' },
-      low:  { title: 'Hygiène problématique', message: 'Plusieurs habitudes compromettent votre sommeil. Le programme proposera un plan d\u2019action concret.' },
-    },
-    'profil-complementaire': {
-      high: { title: 'Profil rassurant', message: 'Aucun signal d\u2019alerte majeur détecté. Votre terrain physiologique semble favorable.' },
-      mid:  { title: 'Quelques points d\u2019attention', message: 'Certains signaux méritent une attention. Le programme tiendra compte de votre profil spécifique.' },
-      low:  { title: 'Signaux d\u2019alerte détectés', message: 'Plusieurs indicateurs suggèrent un trouble sous-jacent. Nous vous recommandons un avis médical complémentaire.' },
+    'teiq': {
+      high: { title: 'Intelligence émotionnelle élevée', message: 'Vous avez une excellente capacité à comprendre et gérer vos émotions et celles des autres.' },
+      mid:  { title: 'IE modérée', message: 'Certaines compétences émotionnelles peuvent être renforcées pour améliorer vos relations et votre bien-être.' },
+      low:  { title: 'IE à développer', message: 'Des compétences émotionnelles clés nécessitent un développement. C\'est un investissement à fort rendement.' },
     },
   }
-
   return feedback[sectionId]?.[level] ?? { title: level === 'high' ? 'Très bien' : level === 'mid' ? 'Correct' : 'À améliorer', message: '' }
 }
 
@@ -360,10 +264,9 @@ function SectionResultsScreen({ section, sectionIndex, scores, onContinue }: {
   const info = getOverallLabel(pct)
   const feedback = getSectionFeedback(section.id, pct)
   const isLast = sectionIndex === allSections.length - 1
-
   return (
     <div className="animate-fade-in flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
-      <div className="w-12 h-px bg-gradient-to-r from-transparent via-supagreen to-transparent mb-8" />
+      <div className="w-12 h-px bg-gradient-to-r from-transparent via-rose-500 to-transparent mb-8" />
       <div className="mb-6 inline-flex items-center gap-2 bg-[#1a1a1a]/[0.05] border border-[#1a1a1a]/[0.08] rounded-full px-4 py-1.5">
         <span className="text-xs font-medium tracking-widest uppercase text-[#1a1a1a]/40">Section {sectionIndex + 1} terminée</span>
       </div>
@@ -372,26 +275,11 @@ function SectionResultsScreen({ section, sectionIndex, scores, onContinue }: {
         <h3 className={`text-xl font-bold mb-2 ${info.color}`}>{feedback.title}</h3>
         <p className="text-sm text-[#1a1a1a]/50 leading-relaxed">{feedback.message}</p>
       </div>
-      <div className="w-full max-w-sm mt-8 space-y-1.5">
-        {section.tests.map((test) => {
-          const s = scores[test.id] ?? 0
-          const maxTestScore = Math.max(...test.scoring.map(o => o.value))
-          const testColors = scoreColors[s] || scoreColors[0]
-          return (
-            <div key={test.id} className="flex items-center justify-between bg-white border border-[#1a1a1a]/[0.08] rounded-lg px-3 py-2">
-              <span className="text-xs text-[#1a1a1a]/50 truncate mr-2">{test.name}</span>
-              <span className={`text-xs font-bold tabular-nums ${testColors.text}`}>{s}/{maxTestScore}</span>
-            </div>
-          )
-        })}
-      </div>
-      <button onClick={onContinue} className="btn-secondary mt-10">
+      <button onClick={onContinue} className="px-8 py-3 rounded-xl bg-rose-500 text-white font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 mt-10">
         {isLast ? 'Voir mes résultats' : 'Section suivante'}
       </button>
       {!isLast && (
-        <p className="mt-4 text-xs text-[#1a1a1a]/20">
-          Encore {allSections.length - sectionIndex - 1} section{allSections.length - sectionIndex - 1 > 1 ? 's' : ''} restante{allSections.length - sectionIndex - 1 > 1 ? 's' : ''}
-        </p>
+        <p className="mt-4 text-xs text-[#1a1a1a]/20">Encore {allSections.length - sectionIndex - 1} section{allSections.length - sectionIndex - 1 > 1 ? 's' : ''} restante{allSections.length - sectionIndex - 1 > 1 ? 's' : ''}</p>
       )}
     </div>
   )
@@ -403,21 +291,21 @@ function SectionResultsScreen({ section, sectionIndex, scores, onContinue }: {
 function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="animate-fade-in flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
-      <div className="w-12 h-px bg-gradient-to-r from-transparent via-supagreen to-transparent mb-10" />
-      <div className="mb-8 w-16 h-16 rounded-2xl bg-gradient-to-br from-supagreen/10 to-supagreen-dark/10 border border-supagreen/15 flex items-center justify-center text-supagreen">
-        <SleepIcon className="w-8 h-8" />
+      <div className="w-12 h-px bg-gradient-to-r from-transparent via-rose-500 to-transparent mb-10" />
+      <div className="mb-8 w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500/10 to-rose-600/10 border border-rose-500/15 flex items-center justify-center text-rose-500">
+        <HeartIcon className="w-8 h-8" />
       </div>
-      <h1 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] mb-3 tracking-tight">Bilan Sommeil</h1>
-      <h2 className="text-sm font-medium tracking-widest uppercase text-supagreen mb-8">Qualité & hygiène du sommeil</h2>
+      <h1 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] mb-3 tracking-tight">Bilan Santé Émotionnelle</h1>
+      <h2 className="text-sm font-medium tracking-widest uppercase text-rose-500 mb-8">Bien-être émotionnel & intelligence émotionnelle</h2>
       <p className="max-w-md text-[#1a1a1a]/50 leading-relaxed mb-10">
-        Ce bilan évalue la qualité de votre sommeil, vos habitudes et détecte d&apos;éventuels
-        troubles à travers {allSections.reduce((sum, s) => sum + s.tests.length, 0)} questions réparties en {allSections.length} sections.
-        Il est basé sur les questionnaires validés PSQI et SHI.
+        Ce bilan évalue votre état émotionnel, votre satisfaction de vie et votre intelligence émotionnelle
+        à travers {allSections.reduce((sum, s) => sum + s.tests.length, 0)} questions réparties en {allSections.length} sections.
+        Il est basé sur les questionnaires validés B-PANAS, Diener (SWLS) et TEIQue.
       </p>
       <div className="w-full max-w-sm space-y-3 mb-10">
         {allSections.map((section) => (
           <div key={section.id} className="flex items-center gap-4 bg-white border border-[#1a1a1a]/[0.08] rounded-xl px-4 py-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-supagreen/8 to-supagreen-dark/8 border border-supagreen/10 flex items-center justify-center text-supagreen/70">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500/8 to-rose-600/8 border border-rose-500/10 flex items-center justify-center text-rose-500/70">
               {renderSectionIcon(section.icon, 'w-5 h-5')}
             </div>
             <div className="flex-1 text-left">
@@ -428,16 +316,14 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
           </div>
         ))}
       </div>
-      <button onClick={onStart} className="btn-secondary">Commencer le bilan</button>
-      <p className="mt-6 text-xs text-[#1a1a1a]/20 max-w-xs leading-relaxed">
-        Répondez le plus honnêtement possible en pensant au dernier mois écoulé.
-      </p>
+      <button onClick={onStart} className="px-8 py-3 rounded-xl bg-rose-500 text-white font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">Commencer le bilan</button>
+      <p className="mt-6 text-xs text-[#1a1a1a]/20 max-w-xs leading-relaxed">Répondez le plus honnêtement possible en pensant aux dernières semaines.</p>
     </div>
   )
 }
 
 /* ═══════════════════════════════════════════════════════
-   RESULTS SCREEN
+   RESULTS SCREEN (with auto-save)
    ═══════════════════════════════════════════════════════ */
 function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
@@ -451,40 +337,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   const totalPct = Math.round((totalScore / totalMaxScore) * 100)
   const overall = getOverallLabel(totalPct)
 
-  // ── Auto-save to Supabase ──
-  useEffect(() => {
-    if (hasSaved.current) return
-    hasSaved.current = true
-    async function saveResults() {
-      try {
-        const session = await supabase?.auth.getSession()
-        const token = session?.data?.session?.access_token
-        if (!token) { console.warn('[bilan-save] No auth session'); return }
-        setSaveStatus('saving')
-        const payload = {
-          bilanType: 'sommeil',
-          scores,
-          globalScore: totalPct,
-          globalPoints: totalScore,
-          maxPoints: totalMaxScore,
-          subScores: Object.fromEntries(sectionResults.map(r => [r.section.id, { score: r.score, max: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) }])),
-          sectionResults: sectionResults.map(r => ({ sectionId: r.section.id, title: r.section.title, score: r.score, maxScore: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) })),
-        }
-        const res = await fetch('/api/bilan/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(payload),
-        })
-        if (res.ok) { setSaveStatus('saved'); clearProgress('sommeil') }
-        else { setSaveStatus('error') }
-      } catch (e) { console.error('[bilan-save] Failed:', e); setSaveStatus('error') }
-    }
-    saveResults()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Find matching interpretation
-  const interpretation = sommeilInterpretations.find((interp, i) => {
+  const interpretation = emotionnelInterpretations.find((_, i) => {
     if (totalPct >= 80 && i === 0) return true
     if (totalPct >= 60 && totalPct < 80 && i === 1) return true
     if (totalPct >= 40 && totalPct < 60 && i === 2) return true
@@ -492,13 +345,72 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
     return false
   })
 
+  const allResults = sectionResults.map(({ section, score }) => ({
+    sectionId: section.id,
+    pct: Math.round((score / section.maxScore) * 100),
+    score,
+    maxScore: section.maxScore,
+    title: section.title,
+    subtitle: section.subtitle,
+    icon: section.icon,
+  }))
+
+  // ── Auto-save results to Supabase ──
+  useEffect(() => {
+    if (hasSaved.current) return
+    hasSaved.current = true
+
+    async function saveResults() {
+      try {
+        const session = await supabase?.auth.getSession()
+        const token = session?.data?.session?.access_token
+        if (!token) { console.warn('[bilan-save] No auth session'); return }
+        setSaveStatus('saving')
+
+        const sectionReports = allResults.map(r => {
+          const report = getSectionReport(r.sectionId)
+          if (!report) return null
+          const rec = getSectionRecommendation(report, r.pct)
+          const triggered = getTriggeredInsights(report, scores)
+          return {
+            sectionId: r.sectionId, title: r.title, pct: r.pct, score: r.score, maxScore: r.maxScore,
+            level: rec.level, recommendationTitle: rec.title, recommendationText: rec.text, context: report.context,
+            triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation })),
+            references: report.references,
+          }
+        }).filter(Boolean)
+
+        const payload = {
+          bilanType: 'emotionnel',
+          scores,
+          globalScore: totalPct,
+          globalPoints: totalScore,
+          maxPoints: totalMaxScore,
+          subScores: Object.fromEntries(allResults.map(r => [r.sectionId, { score: r.score, max: r.maxScore, pct: r.pct }])),
+          sectionResults: allResults.map(r => ({ sectionId: r.sectionId, title: r.title, score: r.score, maxScore: r.maxScore, pct: r.pct })),
+          report: { sectionReports, globalInsights: globalKeyInsights },
+        }
+
+        const res = await fetch('/api/bilan/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        })
+        if (res.ok) { setSaveStatus('saved'); clearProgress('emotionnel') }
+        else { setSaveStatus('error') }
+      } catch (e) { console.error('[bilan-save] Failed:', e); setSaveStatus('error') }
+    }
+    saveResults()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
       <div className="text-center mb-12">
-        <div className="w-12 h-px bg-gradient-to-r from-transparent via-supagreen to-transparent mx-auto mb-8" />
+        <div className="w-12 h-px bg-gradient-to-r from-transparent via-rose-500 to-transparent mx-auto mb-8" />
         <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] tracking-tight mb-2">Vos résultats</h2>
-        <p className="text-sm text-[#1a1a1a]/40">Bilan sommeil — qualité & hygiène</p>
-        {saveStatus === 'saving' && <p className="text-xs text-[#a78bfa]/60 mt-2 animate-pulse">Sauvegarde en cours...</p>}
+        <p className="text-sm text-[#1a1a1a]/40">Bilan santé émotionnelle</p>
+        {saveStatus === 'saving' && <p className="text-xs text-rose-500/60 mt-2 animate-pulse">Sauvegarde en cours...</p>}
         {saveStatus === 'saved' && <p className="text-xs text-emerald-500 mt-2">Résultats sauvegardés</p>}
         {saveStatus === 'error' && <p className="text-xs text-red-400 mt-2">Sauvegarde échouée</p>}
       </div>
@@ -511,9 +423,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
           <span className="text-2xl text-[#1a1a1a]/20 font-light">%</span>
         </div>
         <p className="text-sm text-[#1a1a1a]/40 mb-3">{totalScore} / {totalMaxScore} points</p>
-        <span className={`inline-block px-4 py-1 rounded-full text-xs font-semibold tracking-wide ${overall.color} bg-[#1a1a1a]/[0.05]`}>
-          {overall.label}
-        </span>
+        <span className={`inline-block px-4 py-1 rounded-full text-xs font-semibold tracking-wide ${overall.color} bg-[#1a1a1a]/[0.05]`}>{overall.label}</span>
       </div>
 
       {/* Interpretation */}
@@ -521,14 +431,14 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         <div className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl p-6 mb-8">
           <p className="text-sm text-[#1a1a1a]/50 leading-relaxed mb-3">{interpretation.description}</p>
           <div className="flex items-start gap-2 pt-3 border-t border-[#1a1a1a]/[0.08]">
-            <InfoIcon className="w-4 h-4 text-supagreen flex-shrink-0 mt-0.5" />
+            <InfoIcon className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{interpretation.recommendation}</p>
           </div>
         </div>
       )}
 
       {/* Section gauges */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-3 gap-6 mb-10">
         {sectionResults.map(({ section, score }) => (
           <ScoreGauge key={section.id} score={score} maxScore={section.maxScore} label={section.title.split(' ')[0]} icon={section.icon} size="sm" />
         ))}
@@ -543,7 +453,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
             <div key={section.id} className="bg-white border border-[#1a1a1a]/[0.08] rounded-xl px-5 py-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-supagreen/8 flex items-center justify-center text-supagreen/70">
+                  <div className="w-8 h-8 rounded-lg bg-rose-500/8 flex items-center justify-center text-rose-500/70">
                     {renderSectionIcon(section.icon, 'w-4 h-4')}
                   </div>
                   <div>
@@ -566,12 +476,9 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
-        <Link href="/onboarding/bilans" className="btn-primary text-center inline-block">
-          Retour aux bilans
-        </Link>
+        <Link href="/onboarding/bilans" className="px-8 py-3 rounded-xl bg-rose-500 text-white font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center inline-block">Retour aux bilans</Link>
       </div>
-
-      <div className="w-12 h-px bg-gradient-to-r from-transparent via-supagreen to-transparent mx-auto mt-12" />
+      <div className="w-12 h-px bg-gradient-to-r from-transparent via-rose-500 to-transparent mx-auto mt-12" />
     </div>
   )
 }
@@ -579,11 +486,11 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
 /* ═══════════════════════════════════════════════════════
    MAIN ORCHESTRATOR
    ═══════════════════════════════════════════════════════ */
-type Phase = 'testing' | 'results'
+type Phase = 'welcome' | 'intro' | 'testing' | 'section-results' | 'results'
 
-export default function BilanSommeilPage() {
+export default function BilanEmotionnelPage() {
   const router = useRouter()
-  const [phase, setPhase] = useState<Phase>('testing')
+  const [phase, setPhase] = useState<Phase>('welcome')
   const [sectionIndex, setSectionIndex] = useState(0)
   const [testIndex, setTestIndex] = useState(0)
   const [scores, setScores] = useState<Record<string, number>>({})
@@ -593,11 +500,12 @@ export default function BilanSommeilPage() {
   useEffect(() => {
     if (hasRestored.current) return
     hasRestored.current = true
-    const saved = loadProgress('sommeil')
+    const saved = loadProgress('emotionnel')
     if (saved && Object.keys(saved.scores).length > 0) {
       setScores(saved.scores)
       setSectionIndex(saved.sectionIndex)
       setTestIndex(saved.testIndex)
+      setPhase('testing')
     }
   }, [])
 
@@ -605,11 +513,11 @@ export default function BilanSommeilPage() {
   useEffect(() => {
     if (phase === 'results') return
     if (Object.keys(scores).length === 0) return
-    saveProgress('sommeil', scores, sectionIndex, testIndex)
+    saveProgress('emotionnel', scores, sectionIndex, testIndex)
   }, [scores, sectionIndex, testIndex, phase])
 
   const currentSection = allSections[sectionIndex]
-  const currentTest: SommeilTest | undefined = currentSection?.tests[testIndex]
+  const currentTest: EmotionnelTest | undefined = currentSection?.tests[testIndex]
 
   const flatIndex = useMemo(() => {
     let idx = 0
@@ -625,17 +533,24 @@ export default function BilanSommeilPage() {
   }, [currentTest])
 
   const handleNext = useCallback(() => {
-    if (!currentTest) return
-    if (scores[currentTest.id] === undefined) return
+    if (!currentTest || scores[currentTest.id] === undefined) return
     if (testIndex < currentSection.tests.length - 1) {
       setTestIndex(testIndex + 1)
-    } else if (sectionIndex < allSections.length - 1) {
+    } else {
+      // End of section
+      setPhase('section-results')
+    }
+  }, [currentTest, scores, testIndex, currentSection])
+
+  const handleSectionContinue = useCallback(() => {
+    if (sectionIndex < allSections.length - 1) {
       setSectionIndex(sectionIndex + 1)
       setTestIndex(0)
+      setPhase('intro')
     } else {
       setPhase('results')
     }
-  }, [currentTest, scores, testIndex, currentSection, sectionIndex])
+  }, [sectionIndex])
 
   const handlePrev = useCallback(() => {
     if (testIndex > 0) {
@@ -644,6 +559,7 @@ export default function BilanSommeilPage() {
       const prevSection = allSections[sectionIndex - 1]
       setSectionIndex(sectionIndex - 1)
       setTestIndex(prevSection.tests.length - 1)
+      setPhase('testing')
     } else {
       router.push('/onboarding/bilans')
     }
@@ -654,20 +570,14 @@ export default function BilanSommeilPage() {
       {phase === 'testing' && (
         <div className="sticky top-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#1a1a1a]/[0.08]">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-            <button
-              onClick={handlePrev}
-              className="flex items-center gap-1 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Retour</span>
+            <button onClick={handlePrev} className="flex items-center gap-1 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors">
+              <ChevronLeft className="w-4 h-4" /><span className="hidden sm:inline">Retour</span>
             </button>
             <div className="flex items-center gap-2">
               <span className="text-xs tabular-nums text-[#1a1a1a]/30">{flatIndex + 1}/{totalTests}</span>
               <div className="w-24 h-1 bg-[#1a1a1a]/[0.06] rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-supagreen to-supagreen-dark transition-all duration-500"
-                  style={{ width: `${Math.round(((flatIndex + 1) / totalTests) * 100)}%` }}
-                />
+                <div className="h-full rounded-full bg-gradient-to-r from-rose-400 to-rose-600 transition-all duration-500"
+                  style={{ width: `${Math.round(((flatIndex + 1) / totalTests) * 100)}%` }} />
               </div>
             </div>
             <Link href="/onboarding/bilans" className="text-xs text-[#1a1a1a]/20 hover:text-[#1a1a1a]/50 transition-colors">Quitter</Link>
@@ -676,6 +586,8 @@ export default function BilanSommeilPage() {
       )}
 
       <main className="max-w-2xl mx-auto px-4 py-6">
+        {phase === 'welcome' && <WelcomeScreen onStart={() => setPhase('intro')} />}
+        {phase === 'intro' && <SectionIntro section={currentSection} sectionIndex={sectionIndex} onStart={() => setPhase('testing')} />}
         {phase === 'testing' && currentTest && (
           <TestCard
             test={currentTest} testIndex={flatIndex} totalTests={totalTests}
@@ -683,6 +595,9 @@ export default function BilanSommeilPage() {
             selectedScore={scores[currentTest.id]} onScore={handleScore}
             onPrev={handlePrev} onNext={handleNext} canGoNext={scores[currentTest.id] !== undefined}
           />
+        )}
+        {phase === 'section-results' && (
+          <SectionResultsScreen section={currentSection} sectionIndex={sectionIndex} scores={scores} onContinue={handleSectionContinue} />
         )}
         {phase === 'results' && <ResultsScreen scores={scores} />}
       </main>

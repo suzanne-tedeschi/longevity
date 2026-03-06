@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { isSupabaseConfigured, supabase } from "@/lib/supabase"
+import { getProgressPercent, BILAN_TOTAL_QUESTIONS } from "@/lib/bilan-progress"
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, RadarChart, PolarGrid,
@@ -54,13 +55,39 @@ const weeklyActivity = [
   { jour: "J", seances: 1 }, { jour: "V", seances: 0 }, { jour: "S", seances: 1 }, { jour: "D", seances: 0 },
 ]
 
-const bilanOptions: { id: string; title: string; score: number | null; description: string; duration: string; available: boolean; href: string; icon: React.ReactNode; color: string }[] = [
-  { id: "condition-physique", title: "Condition physique", score: null, description: "43 tests — mobilite, force, equilibre, souplesse.", duration: "15 min", available: true, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
-  { id: "nutrition", title: "Nutrition", score: null, description: "Symptomes digestifs & confort intestinal (GSRS).", duration: "5 min", available: true, href: "/onboarding/bilan-digestif", icon: <Apple className="w-5 h-5" />, color: "#c9a96e" },
-  { id: "sommeil", title: "Sommeil", score: null, description: "Qualite & recuperation nocturne.", duration: "10 min", available: true, href: "/onboarding/bilan-sommeil", icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
-  { id: "emotionnel", title: "Sante emotionnelle", score: null, description: "Bien-etre emotionnel & desequilibres.", duration: "10 min", available: false, href: "#", icon: <Heart className="w-5 h-5" />, color: "#ff6b6b" },
-  { id: "stress", title: "Gestion du stress", score: null, description: "Niveau de stress & techniques adaptees.", duration: "8 min", available: false, href: "#", icon: <Wind className="w-5 h-5" />, color: "#60a5fa" },
+const bilanOptionsDefs: { id: string; bilanType: string; title: string; description: string; duration: string; available: boolean; href: string; icon: React.ReactNode; color: string }[] = [
+  { id: "condition-physique", bilanType: "mobilite", title: "Condition physique", description: "43 tests — mobilite, force, equilibre, souplesse.", duration: "15 min", available: true, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
+  { id: "nutrition", bilanType: "nutrition", title: "Nutrition", description: "Troubles digestifs & habitudes alimentaires.", duration: "12 min", available: true, href: "/onboarding/bilan-nutrition", icon: <Apple className="w-5 h-5" />, color: "#c9a96e" },
+  { id: "sommeil", bilanType: "sommeil", title: "Sommeil", description: "Qualite & recuperation nocturne.", duration: "10 min", available: true, href: "/onboarding/bilan-sommeil", icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
+  { id: "mental", bilanType: "mental", title: "Sante mentale", description: "Emotions, stress, resilience — 2 questionnaires.", duration: "25 min", available: true, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
 ]
+
+/* Hidden defs for report lookup (emotionnel + stress saved separately in DB) */
+const subBilanDefs = [
+  { id: "emotionnel", bilanType: "emotionnel", title: "Sante emotionnelle", color: "#ff6b6b", icon: <Heart className="w-5 h-5" /> },
+  { id: "stress", bilanType: "stress", title: "Gestion du stress", color: "#60a5fa", icon: <Wind className="w-5 h-5" /> },
+]
+
+interface BilanResult {
+  id: string
+  bilan_type: string
+  global_score: number
+  global_points: number
+  max_points: number
+  sub_scores: Record<string, { score: number; max: number; pct: number }>
+  section_results: { sectionId: string; title: string; pct: number; score: number; maxScore: number; isDigestif?: boolean }[]
+  report: {
+    topActions?: { priority: number; action: string; sectionTitle: string; level: string }[]
+    sectionReports?: {
+      sectionId: string; title: string; pct: number; score: number; maxScore: number
+      level: string; recommendationTitle: string; recommendationText: string; context: string
+      triggeredInsights: { questionId: string; insight: string; recommendation: string }[]
+      references: { authors: string; title: string; journal: string; year: number; doi?: string; pmid?: string }[]
+    }[]
+    globalInsights?: { title: string; description: string; reference: string }[]
+  }
+  completed_at: string
+}
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8) // 8h-20h compact
 const H_PX = 44 // px per hour — compact
@@ -92,6 +119,9 @@ export default function BilansPage() {
   const router = useRouter()
   const [calView, setCalView] = useState<CalView>("week")
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [bilanResults, setBilanResults] = useState<BilanResult[]>([])
+  const [expandedReport, setExpandedReport] = useState<string | null>(null)
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [sessions, setSessions] = useState<Session[]>([
     { id: "1", date: (() => { const d = new Date(); d.setHours(9, 0, 0, 0); return d })(), type: "evo", label: "Seance EVO Mobilite", duration: 45 },
     { id: "2", date: (() => { const d = new Date(); d.setHours(14, 0, 0, 0); return d })(), type: "sport", label: "Run 5km", duration: 30 },
@@ -190,10 +220,19 @@ export default function BilansPage() {
         const u = session.user
         const name = u?.user_metadata?.first_name || u?.user_metadata?.full_name?.split(' ')[0] || u?.user_metadata?.name?.split(' ')[0] || u?.email?.split('@')[0] || null
         if (name) setUserName(name.charAt(0).toUpperCase() + name.slice(1))
+        // Fetch calendar status
         const r = await fetch("/api/calendar/google/status", { headers: { Authorization: `Bearer ${session.access_token}` } })
         const body = await r.json() as { connected?: boolean; email?: string | null }
         const c = Boolean(body.connected); setCalendarConnected(c); setCalendarEmail(body.email ?? null)
         if (c) fetchGoogleEvents(currentDate)
+        // Fetch bilan results
+        try {
+          const br = await fetch("/api/bilan/results", { headers: { Authorization: `Bearer ${session.access_token}` } })
+          if (br.ok) {
+            const brBody = await br.json() as { results?: BilanResult[] }
+            if (brBody.results) setBilanResults(brBody.results)
+          }
+        } catch { /* bilan results fetch failed — not critical */ }
       } catch {} finally { setCalendarLoading(false) }
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -244,6 +283,7 @@ export default function BilansPage() {
   const sections = [
     { id: "dashboard", label: "Dashboard", icon: <TrendingUp className="w-4 h-4" /> },
     { id: "bilans", label: "Bilans", icon: <ClipboardList className="w-4 h-4" /> },
+    ...(bilanResults.length > 0 ? [{ id: "compte-rendu", label: "Rapport", icon: <Microscope className="w-4 h-4" /> }] : []),
     { id: "planning", label: "Planning", icon: <Calendar className="w-4 h-4" /> },
     { id: "science", label: "Science", icon: <FlaskConical className="w-4 h-4" /> },
   ]
@@ -254,15 +294,40 @@ export default function BilansPage() {
     { id: "day", icon: <CalendarDays className="w-3.5 h-3.5" />, label: "Jour" },
   ]
 
+  /* ── Bilan options with real scores from DB ── */
+  const bilanOptions = useMemo(() => {
+    return bilanOptionsDefs.map(def => {
+      if (def.bilanType === 'mental') {
+        // Compute average of emotionnel + stress scores
+        const emo = bilanResults.find(r => r.bilan_type === 'emotionnel')
+        const str = bilanResults.find(r => r.bilan_type === 'stress')
+        const scores = [emo?.global_score, str?.global_score].filter((s): s is number => s != null)
+        const score = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null
+        return { ...def, score }
+      }
+      const result = bilanResults.find(r => r.bilan_type === def.bilanType)
+      return { ...def, score: result ? result.global_score : null }
+    })
+  }, [bilanResults])
+
   /* ── Score cards (fed by bilans) ── */
-  const mobiliteScore = bilanOptions.find(b => b.id === "condition-physique")?.score ?? null
-  const nutritionScore = bilanOptions.find(b => b.id === "nutrition")?.score ?? null
-  const sommeilScore = bilanOptions.find(b => b.id === "sommeil")?.score ?? null
+  const mobiliteScore = bilanResults.find(r => r.bilan_type === "mobilite")?.global_score ?? null
+  const nutritionScore = bilanResults.find(r => r.bilan_type === "nutrition")?.global_score ?? null
+  const sommeilScore = bilanResults.find(r => r.bilan_type === "sommeil")?.global_score ?? null
+  const mentalScores = [bilanResults.find(r => r.bilan_type === "emotionnel")?.global_score, bilanResults.find(r => r.bilan_type === "stress")?.global_score].filter((s): s is number => s != null)
+  const mentalScore = mentalScores.length > 0 ? Math.round(mentalScores.reduce((a, b) => a + b, 0) / mentalScores.length) : null
   const scoreCards = [
     { label: "Mobilite", score: mobiliteScore, icon: <Activity className="w-5 h-5" />, color: "#3ECF8E" },
     { label: "Nutrition", score: nutritionScore, icon: <Apple className="w-5 h-5" />, color: "#c9a96e" },
     { label: "Sommeil", score: sommeilScore, icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
+    { label: "Mental", score: mentalScore, icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
   ]
+
+  /* ── Active report for display ── */
+  const activeReport = useMemo(() => {
+    if (!expandedReport) return null
+    return bilanResults.find(r => r.bilan_type === expandedReport) ?? null
+  }, [expandedReport, bilanResults])
 
   return (
     <div className="min-h-screen bg-[#fafbfa]">
@@ -322,9 +387,9 @@ export default function BilansPage() {
                   <p className="text-[14px] text-[#3ECF8E] font-semibold">plus jeune que ton age reel</p>
                 </div>
               </div>
-              {/* right: 3 score cards */}
+              {/* right: 4 score cards */}
               <div className="flex-1 w-full">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-3">
                   {scoreCards.map((card, i) => (
                     <div key={i} className={`${css.kpiCard} relative rounded-xl p-4 text-center overflow-hidden bg-white/[0.05] border border-white/[0.08]`}>
                       <div className={css.kpiShimmer}><div /></div>
@@ -367,22 +432,46 @@ export default function BilansPage() {
         {/* ════════ BILANS ════════ */}
         <section id="bilans" className="scroll-mt-20">
           <SectionHeader title="Tes bilans" subtitle="Complete tes bilans pour alimenter ton dashboard" gold />
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {bilanOptions.map(bilan => {
               const completed = bilan.score !== null
-              const pct = completed ? 100 : 0
+              // Compute progress % from localStorage for in-progress bilans
+              let pct = completed ? 100 : 0
+              if (!completed && bilan.available) {
+                if (bilan.bilanType === 'mental') {
+                  const emoQ = BILAN_TOTAL_QUESTIONS['emotionnel'] ?? 55
+                  const strQ = BILAN_TOTAL_QUESTIONS['stress'] ?? 40
+                  const emoPct = getProgressPercent('emotionnel', emoQ)
+                  const strPct = getProgressPercent('stress', strQ)
+                  if (emoPct > 0 || strPct > 0) {
+                    pct = Math.round((emoPct + strPct) / 2)
+                  }
+                } else {
+                  const totalQ = BILAN_TOTAL_QUESTIONS[bilan.bilanType] ?? 0
+                  if (totalQ > 0) {
+                    pct = getProgressPercent(bilan.bilanType, totalQ)
+                  }
+                }
+              }
+              const inProgress = !completed && pct > 0
               const c = bilan.color
               return (
-                <div key={bilan.id} onClick={() => bilan.available ? router.push(bilan.href) : undefined}
+                <div key={bilan.id} onClick={() => {
+                  if (completed && bilan.bilanType !== 'mental') {
+                    setExpandedReport(bilan.bilanType)
+                    setTimeout(() => document.getElementById('compte-rendu')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+                  } else if (bilan.available) {
+                    router.push(bilan.href)
+                  }
+                }}
                   className={`relative rounded-xl border p-4 transition-all duration-300 flex flex-col items-center text-center group/bilan ${
                     bilan.available && !completed
                       ? "bg-white hover:shadow-lg hover:-translate-y-1 cursor-pointer"
                       : completed
-                      ? "bg-white cursor-pointer"
+                      ? "bg-white cursor-pointer hover:shadow-lg hover:-translate-y-1"
                       : "bg-white hover:-translate-y-0.5 cursor-default"
                   }`}
                   style={{ borderColor: bilan.available ? `${c}30` : `${c}20` }}>
-                  {/* color accent top */}
                   <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-xl" style={{ background: `linear-gradient(to right, transparent, ${c}${bilan.available ? '66' : '33'}, transparent)` }} />
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-all duration-300 group-hover/bilan:scale-110"
                     style={{ background: `${c}15`, color: c }}>
@@ -390,11 +479,14 @@ export default function BilansPage() {
                   </div>
                   <h3 className={`text-[13px] font-medium mb-1 leading-tight ${!bilan.available ? "text-[#1a1a1a]/60" : "text-[#1a1a1a]"}`}>{bilan.title}</h3>
                   {completed && bilan.score !== null ? (
-                    <ScoreRing value={bilan.score} size={44} />
+                    <div className="flex flex-col items-center gap-1 mt-1">
+                      <ScoreRing value={bilan.score} size={44} />
+                      <span className="text-[10px] font-medium flex items-center gap-1 mt-1 transition-colors" style={{ color: c }}>{bilan.bilanType === 'mental' ? 'Voir les tests' : 'Voir le rapport'} <ArrowRight className="w-3 h-3" /></span>
+                    </div>
                   ) : bilan.available ? (
                     <div className="flex flex-col items-center gap-1.5 mt-1">
-                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md" style={{ color: c, background: `${c}15` }}>{bilan.duration}</span>
-                      <span className="text-[11px] font-medium flex items-center gap-1 transition-colors" style={{ color: c }}>Decouvre ton score <ArrowRight className="w-3 h-3" /></span>
+                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md" style={{ color: c, background: `${c}15` }}>{inProgress ? `${pct}% complété` : bilan.duration}</span>
+                      <span className="text-[11px] font-medium flex items-center gap-1 transition-colors" style={{ color: c }}>{inProgress ? 'Reprendre' : 'Decouvre ton score'} <ArrowRight className="w-3 h-3" /></span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-1.5 mt-2">
@@ -408,7 +500,7 @@ export default function BilansPage() {
                   {(completed || bilan.available) && (
                     <div className="w-full mt-3">
                       <div className="rounded-full h-1" style={{ background: `${c}0a` }}>
-                        <div className="h-1 rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: completed ? c : "transparent" }} />
+                        <div className="h-1 rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: (completed || inProgress) ? c : "transparent" }} />
                       </div>
                       <p className="text-[10px] text-[#1a1a1a]/25 font-medium mt-1">{pct}%</p>
                     </div>
@@ -418,6 +510,261 @@ export default function BilansPage() {
             })}
           </div>
         </section>
+
+        {/* ════════ COMPTE-RENDU / REPORT ════════ */}
+        {bilanResults.length > 0 && (
+          <section id="compte-rendu" className="scroll-mt-20">
+            <SectionHeader title="Compte-rendu" subtitle="Bilan global, connaissances scientifiques & prochaines etapes" gold />
+
+            {/* ── Report cards per bilan ── */}
+            <div className="space-y-4">
+              {bilanResults.map(result => {
+                const def = bilanOptionsDefs.find(d => d.bilanType === result.bilan_type) || subBilanDefs.find(d => d.bilanType === result.bilan_type)
+                if (!def) return null
+                const isOpen = expandedReport === result.bilan_type
+                const report = result.report
+                const subScores = result.sub_scores
+                const levelColor = (level: string) => {
+                  if (level === 'alerte') return { bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-700', dot: 'bg-red-400' }
+                  if (level === 'vigilance') return { bg: 'bg-amber-50', border: 'border-amber-200', badge: 'bg-amber-100 text-amber-700', dot: 'bg-amber-400' }
+                  if (level === 'bon') return { bg: 'bg-emerald-50', border: 'border-emerald-200', badge: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-400' }
+                  return { bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-700', dot: 'bg-blue-400' }
+                }
+                return (
+                  <div key={result.bilan_type} className="bg-white rounded-2xl border border-[#1a1a1a]/[0.08] overflow-hidden">
+                    {/* ── Report header with score ── */}
+                    <button
+                      onClick={() => setExpandedReport(isOpen ? null : result.bilan_type)}
+                      className="w-full text-left px-6 py-5 flex items-center gap-4 hover:bg-[#1a1a1a]/[0.02] transition-colors"
+                    >
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${def.color}15`, color: def.color }}>
+                        {def.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3 className="text-base font-semibold text-[#1a1a1a]">{def.title}</h3>
+                          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full" style={{ color: def.color, background: `${def.color}15` }}>
+                            {result.global_score}%
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#1a1a1a]/40">
+                          {result.global_points}/{result.max_points} pts
+                          {subScores?.digestif && subScores?.alimentaire && (
+                            <> · Digestif {subScores.digestif.pct}% · Alimentaire {subScores.alimentaire.pct}%</>
+                          )}
+                        </p>
+                      </div>
+                      <ScoreRing value={result.global_score} size={48} />
+                      <div className={`w-6 h-6 flex items-center justify-center transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`}>
+                        <ChevronRight className="w-4 h-4 text-[#1a1a1a]/30" />
+                      </div>
+                    </button>
+
+                    {/* ── Expanded report ── */}
+                    {isOpen && report && (
+                      <div className="px-6 pb-6 space-y-6 animate-fade-in border-t border-[#1a1a1a]/[0.06]">
+
+                        {/* 1. Bilan global */}
+                        <div className="pt-5">
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="w-7 h-7 rounded-lg bg-[#2D6A4F]/10 flex items-center justify-center">
+                              <ClipboardList className="w-3.5 h-3.5 text-[#2D6A4F]" />
+                            </div>
+                            <h4 className="text-sm font-bold text-[#1a1a1a]">1. Bilan global</h4>
+                          </div>
+
+                          {/* Sub-score bars */}
+                          {subScores?.digestif && subScores?.alimentaire && (
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                              <div className="bg-[#2D6A4F]/[0.04] rounded-xl p-4 text-center">
+                                <p className="text-[10px] font-medium tracking-widest uppercase text-[#1a1a1a]/35 mb-1">Digestif</p>
+                                <p className="text-2xl font-bold text-[#2D6A4F]">{subScores.digestif.pct}%</p>
+                                <p className="text-[10px] text-[#1a1a1a]/30 mt-0.5">{subScores.digestif.score}/{subScores.digestif.max} pts</p>
+                              </div>
+                              <div className="bg-[#c9a96e]/[0.06] rounded-xl p-4 text-center">
+                                <p className="text-[10px] font-medium tracking-widest uppercase text-[#1a1a1a]/35 mb-1">Alimentaire</p>
+                                <p className="text-2xl font-bold text-[#c9a96e]">{subScores.alimentaire.pct}%</p>
+                                <p className="text-[10px] text-[#1a1a1a]/30 mt-0.5">{subScores.alimentaire.score}/{subScores.alimentaire.max} pts</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Section breakdown mini-bars */}
+                          {result.section_results && result.section_results.length > 0 && (
+                            <div className="space-y-2">
+                              {result.section_results.map(sr => (
+                                <div key={sr.sectionId} className="flex items-center gap-3">
+                                  <span className="text-[11px] text-[#1a1a1a]/50 w-28 truncate">{sr.title}</span>
+                                  <div className="flex-1 h-2 bg-[#1a1a1a]/[0.04] rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full transition-all duration-700"
+                                      style={{
+                                        width: `${sr.pct}%`,
+                                        background: sr.pct >= 75 ? '#3ECF8E' : sr.pct >= 50 ? '#c9a96e' : '#ff6b6b',
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="text-[11px] font-semibold text-[#1a1a1a]/50 w-10 text-right tabular-nums">{sr.pct}%</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 2. Knowledge scientifique */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center">
+                              <Microscope className="w-3.5 h-3.5 text-purple-600" />
+                            </div>
+                            <h4 className="text-sm font-bold text-[#1a1a1a]">2. Connaissances scientifiques</h4>
+                          </div>
+
+                          {/* Global insights */}
+                          {report.globalInsights && report.globalInsights.length > 0 && (
+                            <div className="space-y-2 mb-4">
+                              {report.globalInsights.map((insight, i) => (
+                                <div key={i} className="bg-gradient-to-br from-[#FAF8F5] to-white border border-[#1a1a1a]/[0.06] rounded-xl p-4">
+                                  <h5 className="text-xs font-bold text-[#1a1a1a] mb-1">{insight.title}</h5>
+                                  <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed mb-1.5">{insight.description}</p>
+                                  <p className="text-[10px] text-[#2D6A4F]/50 italic">{insight.reference}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Per-section detailed reports */}
+                          {report.sectionReports && report.sectionReports.length > 0 && (
+                            <div className="space-y-2">
+                              {report.sectionReports.map(sr => {
+                                const lc = levelColor(sr.level)
+                                const isExpSec = expandedSections.has(sr.sectionId)
+                                return (
+                                  <div key={sr.sectionId} className={`rounded-xl border overflow-hidden ${lc.border} ${lc.bg}`}>
+                                    <button
+                                      onClick={() => setExpandedSections(prev => {
+                                        const next = new Set(prev)
+                                        if (next.has(sr.sectionId)) next.delete(sr.sectionId); else next.add(sr.sectionId)
+                                        return next
+                                      })}
+                                      className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-white/30 transition-colors"
+                                    >
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <h5 className="text-xs font-semibold text-[#1a1a1a]">{sr.title}</h5>
+                                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${lc.badge}`}>
+                                            {sr.recommendationTitle}
+                                          </span>
+                                          <span className="text-[10px] text-[#1a1a1a]/30 ml-auto tabular-nums">{sr.pct}%</span>
+                                        </div>
+                                      </div>
+                                      <div className={`w-4 h-4 flex items-center justify-center transition-transform duration-200 ${isExpSec ? 'rotate-90' : ''}`}>
+                                        <ChevronRight className="w-3 h-3 text-[#1a1a1a]/25" />
+                                      </div>
+                                    </button>
+
+                                    {isExpSec && (
+                                      <div className="px-4 pb-4 space-y-3 animate-fade-in">
+                                        {/* Context */}
+                                        <div className="bg-white/60 rounded-lg p-3">
+                                          <p className="text-[10px] font-semibold tracking-widest uppercase text-[#1a1a1a]/25 mb-1">Contexte scientifique</p>
+                                          <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed">{sr.context}</p>
+                                        </div>
+
+                                        {/* Recommendation */}
+                                        <div className="bg-white/80 rounded-lg p-3 border border-[#1a1a1a]/[0.05]">
+                                          <div className="flex items-center gap-1.5 mb-1.5">
+                                            <div className={`w-1.5 h-1.5 rounded-full ${lc.dot}`} />
+                                            <p className="text-[11px] font-bold text-[#1a1a1a]">{sr.recommendationTitle}</p>
+                                          </div>
+                                          <p className="text-[11px] text-[#1a1a1a]/60 leading-relaxed">{sr.recommendationText}</p>
+                                        </div>
+
+                                        {/* Triggered insights */}
+                                        {sr.triggeredInsights && sr.triggeredInsights.length > 0 && (
+                                          <div className="space-y-1.5">
+                                            <p className="text-[9px] font-semibold tracking-widest uppercase text-[#1a1a1a]/25">Points d&apos;attention</p>
+                                            {sr.triggeredInsights.map(ti => (
+                                              <div key={ti.questionId} className="bg-white rounded-lg p-3 border border-[#1a1a1a]/[0.06]">
+                                                <p className="text-[11px] font-semibold text-[#1a1a1a] mb-1 flex items-center gap-1.5">
+                                                  <span className="w-1 h-1 rounded-full bg-amber-400 flex-shrink-0" /> {ti.insight}
+                                                </p>
+                                                <p className="text-[10px] text-[#1a1a1a]/50 leading-relaxed pl-2.5">{ti.recommendation}</p>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+
+                                        {/* References */}
+                                        {sr.references && sr.references.length > 0 && (
+                                          <div>
+                                            <p className="text-[9px] font-semibold tracking-widest uppercase text-[#1a1a1a]/25 mb-1.5">Références</p>
+                                            <div className="space-y-1">
+                                              {sr.references.map((ref: { authors: string; title: string; journal: string; year: number; pmid?: string }, i: number) => (
+                                                <p key={i} className="text-[9px] text-[#1a1a1a]/30 leading-relaxed">
+                                                  <span className="text-[#2D6A4F]/40 font-mono">[{i + 1}]</span> {ref.authors}. &ldquo;{ref.title}&rdquo; <em>{ref.journal}</em> ({ref.year}).
+                                                  {ref.pmid && <span className="text-[#2D6A4F]/40"> PMID: {ref.pmid}</span>}
+                                                </p>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 3. Next steps */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
+                              <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
+                            </div>
+                            <h4 className="text-sm font-bold text-[#1a1a1a]">3. Prochaines etapes</h4>
+                          </div>
+
+                          {report.topActions && report.topActions.length > 0 ? (
+                            <div className="space-y-2">
+                              {report.topActions.map(action => (
+                                <div key={action.priority} className={`flex items-start gap-3 p-3.5 rounded-xl border ${
+                                  action.level === 'alerte'
+                                    ? 'bg-red-50/50 border-red-200'
+                                    : 'bg-amber-50/50 border-amber-200'
+                                }`}>
+                                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold ${
+                                    action.level === 'alerte'
+                                      ? 'bg-red-100 text-red-600'
+                                      : 'bg-amber-100 text-amber-700'
+                                  }`}>
+                                    {action.priority}
+                                  </div>
+                                  <p className="text-[11px] text-[#1a1a1a]/70 leading-relaxed flex-1">{action.action}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-emerald-600 font-medium">Excellent ! Pas d&apos;action prioritaire — maintenez vos bonnes habitudes.</p>
+                          )}
+                        </div>
+
+                        {/* Disclaimer */}
+                        <div className="bg-[#1a1a1a]/[0.02] border border-[#1a1a1a]/[0.06] rounded-lg p-3 mt-2">
+                          <p className="text-[9px] text-[#1a1a1a]/30 leading-relaxed">
+                            Ce compte-rendu est base sur vos reponses et la litterature scientifique peer-reviewed. Il ne constitue pas un avis medical. Consultez un professionnel de sante pour un avis personnalise.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
 
         {/* ════════ PLANNING ════════ */}
         <section id="planning" className="scroll-mt-20">
