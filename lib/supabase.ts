@@ -6,7 +6,14 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 
 export const supabase = isSupabaseConfigured
-	? createClient(supabaseUrl!, supabaseAnonKey!)
+	? createClient(supabaseUrl!, supabaseAnonKey!, {
+		auth: {
+			flowType: 'pkce',
+			autoRefreshToken: true,
+			persistSession: true,
+			detectSessionInUrl: true,
+		},
+	})
 	: null
 
 /**
