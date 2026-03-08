@@ -311,6 +311,65 @@ function SectionIntro({
 }
 
 /* ═══════════════════════════════════════════════════════
+   COUNTDOWN TIMER COMPONENT
+   ═══════════════════════════════════════════════════════ */
+function CountdownTimer({
+  duration,
+  running,
+  onComplete,
+}: {
+  duration: number
+  running: boolean
+  onComplete: () => void
+}) {
+  const [timeLeft, setTimeLeft] = useState(duration)
+  const completedRef = useRef(false)
+
+  useEffect(() => {
+    setTimeLeft(duration)
+    completedRef.current = false
+  }, [duration])
+
+  useEffect(() => {
+    if (!running || timeLeft <= 0) return
+    const id = setInterval(() => {
+      setTimeLeft((prev) => {
+        const next = +(prev - 0.1).toFixed(1)
+        if (next <= 0 && !completedRef.current) {
+          completedRef.current = true
+          setTimeout(onComplete, 0)
+          return 0
+        }
+        return Math.max(0, next)
+      })
+    }, 100)
+    return () => clearInterval(id)
+  }, [running, timeLeft, onComplete])
+
+  const pct = (timeLeft / duration) * 100
+  const secs = Math.ceil(timeLeft)
+  const r = 40, circ = 2 * Math.PI * r
+  const dash = (pct / 100) * circ
+  const color = timeLeft > 3 ? '#3ECF8E' : '#ef4444'
+
+  return (
+    <div className="flex flex-col items-center">
+      <svg width="96" height="96" className="-rotate-90">
+        <circle cx="48" cy="48" r={r} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="4" />
+        <circle
+          cx="48" cy="48" r={r} fill="none" stroke={color} strokeWidth="4"
+          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+          className="transition-all duration-100"
+        />
+      </svg>
+      <span className="absolute text-3xl font-bold text-white tabular-nums" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+        {secs}s
+      </span>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════
    INDIVIDUAL TEST CARD
    ═══════════════════════════════════════════════════════ */
 function TestCard({
@@ -336,6 +395,187 @@ function TestCard({
   onNext: () => void
   canGoNext: boolean
 }) {
+  const hasVideo = Boolean(test.videoUrl)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [timerRunning, setTimerRunning] = useState(false)
+  const [timerDone, setTimerDone] = useState(false)
+  const [videoReady, setVideoReady] = useState(false)
+  const timerStartedRef = useRef(false)
+
+  // Reset timer state when test changes
+  useEffect(() => {
+    setTimerRunning(false)
+    setTimerDone(false)
+    setVideoReady(false)
+    timerStartedRef.current = false
+  }, [test.id])
+
+  // Start timer at specific video time
+  useEffect(() => {
+    if (!hasVideo || !videoRef.current || !test.timerStartAt) return
+    const video = videoRef.current
+    const handleTimeUpdate = () => {
+      if (!timerStartedRef.current && video.currentTime >= test.timerStartAt!) {
+        timerStartedRef.current = true
+        setTimerRunning(true)
+      }
+    }
+    video.addEventListener('timeupdate', handleTimeUpdate)
+    return () => video.removeEventListener('timeupdate', handleTimeUpdate)
+  }, [hasVideo, test.timerStartAt, test.id])
+
+  const handleTimerComplete = useCallback(() => {
+    setTimerRunning(false)
+    setTimerDone(true)
+  }, [])
+
+  // ── VIDEO TEST (immersive full-screen style) ──
+  if (hasVideo) {
+    return (
+      <div className="animate-fade-in -mx-4 -mt-6">
+        {/* Full-height container */}
+        <div className="relative w-full" style={{ minHeight: 'calc(100vh - 56px)' }}>
+          {/* Video background — full screen */}
+          <video
+            ref={videoRef}
+            src={test.videoUrl}
+            playsInline
+            muted
+            autoPlay
+            loop
+            onCanPlay={() => setVideoReady(true)}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ minHeight: 'calc(100vh - 56px)' }}
+          />
+          {/* Subtle gradient on the right side for the panel */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/70" />
+          {/* Top gradient for text readability */}
+          <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/60 to-transparent" />
+
+          {/* Content overlay */}
+          <div className="relative z-10 flex flex-col h-full" style={{ minHeight: 'calc(100vh - 56px)' }}>
+
+            {/* Top bar: progress + instruction */}
+            <div className="px-4 pt-4 pb-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium tracking-widest uppercase text-white/50">
+                  {sectionTitle}
+                </span>
+                <span className="text-xs tabular-nums text-white/40">
+                  {testIndex + 1}/{totalTests}
+                </span>
+              </div>
+              <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mb-3">
+                <div
+                  className="h-full rounded-full bg-[#3ECF8E] transition-all duration-700 ease-out"
+                  style={{ width: `${Math.round(((testIndex + 1) / totalTests) * 100)}%` }}
+                />
+              </div>
+              {/* Instruction card — visible over video */}
+              <div className="bg-black/50 backdrop-blur-sm rounded-xl border border-white/10 p-3 max-w-[70%]">
+                <h3 className="text-base font-bold text-white tracking-tight mb-1">
+                  {test.name}
+                </h3>
+                <p className="text-sm text-white/80 leading-relaxed">
+                  {test.criteria}
+                </p>
+                {test.tip && (
+                  <p className="text-xs text-[#3ECF8E]/90 mt-1.5 flex items-start gap-1.5">
+                    <InfoIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                    {test.tip}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Middle: Timer floating on the left */}
+            {test.timerDuration && (
+              <div className="flex-1 flex items-center px-6">
+                <div className="relative flex items-center justify-center">
+                  <CountdownTimer
+                    duration={test.timerDuration}
+                    running={timerRunning}
+                    onComplete={handleTimerComplete}
+                  />
+                  {timerDone && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-2xl font-bold text-[#3ECF8E]" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+                        ✓
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Right side panel: compact score options */}
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-[140px] flex flex-col gap-2">
+              {test.scoring.map((option) => {
+                const selected = selectedScore === option.value
+                const colors = scoreColors[option.value] || scoreColors[0]
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => onScore(option.value)}
+                    className={`
+                      rounded-xl border p-2.5 transition-all duration-200 text-center
+                      ${selected
+                        ? `bg-white/95 ${colors.border} shadow-lg scale-105`
+                        : 'bg-black/50 backdrop-blur-md border-white/15 hover:bg-black/60 hover:border-white/25'
+                      }
+                    `}
+                  >
+                    <div
+                      className={`
+                        w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold mx-auto mb-1
+                        ${selected
+                          ? `${colors.bg} ${colors.text} ${colors.border} border`
+                          : 'bg-white/10 text-white/60'
+                        }
+                      `}
+                    >
+                      {option.value}
+                    </div>
+                    <p className={`font-semibold text-xs leading-tight ${selected ? colors.text : 'text-white/90'}`}>
+                      {option.label}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Bottom navigation */}
+            <div className="flex items-center justify-between px-4 pb-5 pt-2">
+              <button
+                onClick={onPrev}
+                className="flex items-center gap-1 text-sm text-white/40 hover:text-white transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Précédent
+              </button>
+              <button
+                onClick={onNext}
+                disabled={!canGoNext}
+                className={`
+                  flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold
+                  transition-all duration-300
+                  ${canGoNext
+                    ? 'bg-[#3ECF8E] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
+                    : 'bg-white/10 text-white/20 cursor-not-allowed'
+                  }
+                `}
+              >
+                Suivant
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── REGULAR TEST (existing design) ──
   return (
     <div className="animate-fade-in max-w-lg mx-auto">
       <ProgressBar

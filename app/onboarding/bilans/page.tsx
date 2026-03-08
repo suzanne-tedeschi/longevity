@@ -379,12 +379,12 @@ export default function BilansPage() {
                 <div className="absolute -inset-8 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #3ECF8E 0%, transparent 70%)" }} />
                 <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/40 mb-2">Age biologique</p>
                 <div className="flex items-baseline gap-3 relative">
-                  <span className="text-[112px] leading-none font-extrabold tracking-tighter text-white" style={{ textShadow: "0 0 60px rgba(62,207,142,0.25), 0 0 120px rgba(62,207,142,0.1)" }}>-4.2</span>
+                  <span className="text-[112px] leading-none font-extrabold tracking-tighter text-white" style={{ textShadow: "0 0 60px rgba(62,207,142,0.25), 0 0 120px rgba(62,207,142,0.1)" }}>46.2</span>
                   <span className="text-3xl font-semibold text-white/35">ans</span>
                 </div>
                 <div className="flex items-center gap-2 mt-3">
                   <span className="w-2 h-2 rounded-full bg-[#3ECF8E] animate-pulse" />
-                  <p className="text-[14px] text-[#3ECF8E] font-semibold">plus jeune que ton age reel</p>
+                  <p className="text-[14px] text-[#3ECF8E] font-semibold">−9 mois vs ton age reel</p>
                 </div>
               </div>
               {/* right: 4 score cards */}

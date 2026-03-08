@@ -15,6 +15,9 @@ export interface MobilityTest {
   criteria: string
   scoring: ScoreOption[]
   tip?: string
+  videoUrl?: string
+  timerDuration?: number   // seconds — countdown timer
+  timerStartAt?: number    // seconds into video where timer starts
 }
 
 export type SectionIcon = 'flexibility' | 'movement' | 'balance' | 'core' | 'strength'
@@ -63,6 +66,9 @@ const mobiliteStatique: TestSection = {
       description: 'Flexion genou / cheville',
       criteria: "S'asseoir sur ses talons pendant 10 secondes, buste droit, sans douleur.",
       tip: 'Vous pouvez vous aider des mains pour descendre, mais la position finale doit être tenue sans appui.',
+      videoUrl: '/mobilite-test-1.mov',
+      timerDuration: 10,
+      timerStartAt: 3.25,
       scoring: [
         { value: 0, label: 'Impossible', description: 'Impossible ou douleur aiguë' },
         { value: 1, label: 'Partiel', description: 'Ne tient pas 10 sec ou douleur modérée' },
@@ -76,6 +82,9 @@ const mobiliteStatique: TestSection = {
       description: 'Squat complet – 10 sec',
       criteria: 'Pieds stables, talons au sol, bassin sous la parallèle, buste non effondré. Tenir 10 secondes.',
       tip: "Si vos talons décollent, essayez d'écarter un peu plus les pieds.",
+      videoUrl: '/mobilite-test-2.mov',
+      timerDuration: 10,
+      timerStartAt: 3.25,
       scoring: [
         { value: 0, label: 'Impossible', description: 'Impossible ou douleur' },
         { value: 1, label: 'Partiel', description: 'Flexion partielle ou buste effondré' },
