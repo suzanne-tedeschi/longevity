@@ -13,6 +13,12 @@ export const metadata: Metadata = {
   description: 'Programmes longévité conçus par un expert, délivrés via WhatsApp. Ton coach s\'adapte à ta vraie vie, te garde régulier, et répond à toutes tes questions.',
 }
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover' as const,
+}
+
 export default function RootLayout({
   children,
 }: {

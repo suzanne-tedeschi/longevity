@@ -450,8 +450,8 @@ function TestCard({
   if (hasVideo) {
     return (
       <div className="animate-fade-in -mx-4 -mt-6">
-        {/* Full-height container */}
-        <div className="relative w-full" style={{ minHeight: 'calc(100vh - 56px)' }}>
+        {/* Full-height container — use dvh for mobile to account for iOS bars */}
+        <div className="relative w-full" style={{ minHeight: 'calc(100dvh - 56px)' }}>
           {/* Video background — full screen */}
           <video
             ref={videoRef}
@@ -462,7 +462,7 @@ function TestCard({
             loop
             onCanPlay={() => setVideoReady(true)}
             className="absolute inset-0 w-full h-full object-cover"
-            style={{ minHeight: 'calc(100vh - 56px)' }}
+            style={{ minHeight: 'calc(100dvh - 56px)' }}
           />
           {/* Subtle gradient on the right side for the panel */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/70" />
@@ -470,7 +470,7 @@ function TestCard({
           <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/60 to-transparent" />
 
           {/* Content overlay */}
-          <div className="relative z-10 flex flex-col h-full" style={{ minHeight: 'calc(100vh - 56px)' }}>
+          <div className="relative z-10 flex flex-col h-full" style={{ minHeight: 'calc(100dvh - 56px)', paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
 
             {/* Top bar: progress + instruction */}
             <div className="px-4 pt-4 pb-2">
@@ -601,7 +601,7 @@ function TestCard({
             </div>
 
             {/* Bottom navigation */}
-            <div className="flex items-center justify-between px-4 pb-5 pt-2">
+            <div className="flex items-center justify-between px-4 pb-3 pt-2" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
               <button
                 onClick={onPrev}
                 className="flex items-center gap-1 text-sm text-white/40 hover:text-white transition-colors"
