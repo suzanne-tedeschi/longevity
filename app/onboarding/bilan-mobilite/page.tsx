@@ -411,7 +411,7 @@ function TestCard({
     setTimerDone(false)
     setVideoReady(false)
     timerStartedRef.current = false
-    setTimerResetKey(0)
+    setTimerResetKey(k => k + 1)
   }, [test.id])
 
   // Start timer at specific video time + restart on loop
