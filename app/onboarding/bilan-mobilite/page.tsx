@@ -317,10 +317,12 @@ function CountdownTimer({
   duration,
   running,
   onComplete,
+  resetKey,
 }: {
   duration: number
   running: boolean
   onComplete: () => void
+  resetKey?: number
 }) {
   const [timeLeft, setTimeLeft] = useState(duration)
   const completedRef = useRef(false)
@@ -328,7 +330,7 @@ function CountdownTimer({
   useEffect(() => {
     setTimeLeft(duration)
     completedRef.current = false
-  }, [duration])
+  }, [duration, resetKey])
 
   useEffect(() => {
     if (!running || timeLeft <= 0) return
@@ -348,21 +350,21 @@ function CountdownTimer({
 
   const pct = (timeLeft / duration) * 100
   const secs = Math.ceil(timeLeft)
-  const r = 40, circ = 2 * Math.PI * r
+  const r = 22, circ = 2 * Math.PI * r
   const dash = (pct / 100) * circ
   const color = timeLeft > 3 ? '#3ECF8E' : '#ef4444'
 
   return (
-    <div className="flex flex-col items-center">
-      <svg width="96" height="96" className="-rotate-90">
-        <circle cx="48" cy="48" r={r} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="4" />
+    <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-black/60 backdrop-blur-sm border border-white/15">
+      <svg width="52" height="52" className="absolute -rotate-90">
+        <circle cx="26" cy="26" r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
         <circle
-          cx="48" cy="48" r={r} fill="none" stroke={color} strokeWidth="4"
+          cx="26" cy="26" r={r} fill="none" stroke={color} strokeWidth="3"
           strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
           className="transition-all duration-100"
         />
       </svg>
-      <span className="absolute text-3xl font-bold text-white tabular-nums" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+      <span className="text-lg font-bold tabular-nums" style={{ color, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
         {secs}s
       </span>
     </div>
@@ -400,6 +402,7 @@ function TestCard({
   const [timerRunning, setTimerRunning] = useState(false)
   const [timerDone, setTimerDone] = useState(false)
   const [videoReady, setVideoReady] = useState(false)
+  const [timerResetKey, setTimerResetKey] = useState(0)
   const timerStartedRef = useRef(false)
 
   // Reset timer state when test changes
@@ -408,9 +411,10 @@ function TestCard({
     setTimerDone(false)
     setVideoReady(false)
     timerStartedRef.current = false
+    setTimerResetKey(0)
   }, [test.id])
 
-  // Start timer at specific video time
+  // Start timer at specific video time + restart on loop
   useEffect(() => {
     if (!hasVideo || !videoRef.current || !test.timerStartAt) return
     const video = videoRef.current
@@ -420,8 +424,21 @@ function TestCard({
         setTimerRunning(true)
       }
     }
+    const handleSeeked = () => {
+      // Video looped (currentTime reset near 0)
+      if (video.currentTime < 1) {
+        timerStartedRef.current = false
+        setTimerRunning(false)
+        setTimerDone(false)
+        setTimerResetKey(k => k + 1)
+      }
+    }
     video.addEventListener('timeupdate', handleTimeUpdate)
-    return () => video.removeEventListener('timeupdate', handleTimeUpdate)
+    video.addEventListener('seeked', handleSeeked)
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate)
+      video.removeEventListener('seeked', handleSeeked)
+    }
   }, [hasVideo, test.timerStartAt, test.id])
 
   const handleTimerComplete = useCallback(() => {
@@ -471,42 +488,43 @@ function TestCard({
                   style={{ width: `${Math.round(((testIndex + 1) / totalTests) * 100)}%` }}
                 />
               </div>
-              {/* Instruction card — visible over video */}
-              <div className="bg-black/50 backdrop-blur-sm rounded-xl border border-white/10 p-3 max-w-[70%]">
-                <h3 className="text-base font-bold text-white tracking-tight mb-1">
-                  {test.name}
-                </h3>
-                <p className="text-sm text-white/80 leading-relaxed">
-                  {test.criteria}
-                </p>
-                {test.tip && (
-                  <p className="text-xs text-[#3ECF8E]/90 mt-1.5 flex items-start gap-1.5">
-                    <InfoIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                    {test.tip}
+              {/* Instruction card + timer row */}
+              <div className="flex items-start gap-3 max-w-[75%] md:max-w-[70%]">
+                <div className="flex-1 bg-black/50 backdrop-blur-sm rounded-xl border border-white/10 p-3">
+                  <h3 className="text-base font-bold text-white tracking-tight mb-1">
+                    {test.name}
+                  </h3>
+                  <p className="text-sm text-white/80 leading-relaxed">
+                    {test.criteria}
                   </p>
+                  {test.tip && (
+                    <p className="text-xs text-[#3ECF8E]/90 mt-1.5 flex items-start gap-1.5">
+                      <InfoIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                      {test.tip}
+                    </p>
+                  )}
+                </div>
+                {/* Timer — top right of instruction */}
+                {test.timerDuration && (
+                  <div className="shrink-0 relative">
+                    <CountdownTimer
+                      duration={test.timerDuration}
+                      running={timerRunning}
+                      onComplete={handleTimerComplete}
+                      resetKey={timerResetKey}
+                    />
+                    {timerDone && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-lg font-bold text-[#3ECF8E]" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>✓</span>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Middle: Timer floating on the left */}
-            {test.timerDuration && (
-              <div className="flex-1 flex items-center px-6">
-                <div className="relative flex items-center justify-center">
-                  <CountdownTimer
-                    duration={test.timerDuration}
-                    running={timerRunning}
-                    onComplete={handleTimerComplete}
-                  />
-                  {timerDone && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-2xl font-bold text-[#3ECF8E]" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
-                        ✓
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Spacer */}
+            {test.timerDuration && <div className="flex-1" />}
 
             {/* Score options — bottom row on mobile, right panel on desktop */}
             {/* Desktop: right panel */}
