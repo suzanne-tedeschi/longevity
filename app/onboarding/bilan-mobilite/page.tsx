@@ -508,8 +508,9 @@ function TestCard({
               </div>
             )}
 
-            {/* Right side panel: compact score options */}
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-[140px] flex flex-col gap-2">
+            {/* Score options — bottom row on mobile, right panel on desktop */}
+            {/* Desktop: right panel */}
+            <div className="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 w-[140px] flex-col gap-2">
               {test.scoring.map((option) => {
                 const selected = selectedScore === option.value
                 const colors = scoreColors[option.value] || scoreColors[0]
@@ -542,6 +543,43 @@ function TestCard({
                   </button>
                 )
               })}
+            </div>
+            {/* Mobile: horizontal row at bottom */}
+            <div className="md:hidden mt-auto px-4 pb-1">
+              <div className="flex gap-2 justify-center">
+                {test.scoring.map((option) => {
+                  const selected = selectedScore === option.value
+                  const colors = scoreColors[option.value] || scoreColors[0]
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => onScore(option.value)}
+                      className={`
+                        flex-1 rounded-xl border py-2.5 px-1 transition-all duration-200 text-center
+                        ${selected
+                          ? `bg-white/95 ${colors.border} shadow-lg scale-105`
+                          : 'bg-black/50 backdrop-blur-md border-white/15 active:bg-black/60'
+                        }
+                      `}
+                    >
+                      <div
+                        className={`
+                          w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold mx-auto mb-1
+                          ${selected
+                            ? `${colors.bg} ${colors.text} ${colors.border} border`
+                            : 'bg-white/10 text-white/60'
+                          }
+                        `}
+                      >
+                        {option.value}
+                      </div>
+                      <p className={`font-semibold text-[10px] leading-tight ${selected ? colors.text : 'text-white/90'}`}>
+                        {option.label}
+                      </p>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
             {/* Bottom navigation */}
