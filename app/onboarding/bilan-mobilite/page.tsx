@@ -927,7 +927,7 @@ function checkStandard2026(scores: Record<string, number>): { passed: boolean; c
 /* ═══════════════════════════════════════════════════════
    WELCOME SCREEN
    ═══════════════════════════════════════════════════════ */
-function WelcomeScreen({ onStart }: { onStart: () => void }) {
+function WelcomeScreen({ onStart, hasProgress }: { onStart: () => void; hasProgress?: boolean }) {
   return (
     <div className="animate-fade-in flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
       {/* Decorative top line */}
@@ -970,7 +970,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
       </div>
 
       <button onClick={onStart} className="btn-secondary">
-        Commencer le bilan
+        {hasProgress ? 'Continuer le bilan' : 'Commencer le bilan'}
       </button>
 
       <p className="mt-6 text-xs text-[#1a1a1a]/20 max-w-xs leading-relaxed">
@@ -1201,7 +1201,7 @@ export default function BilanMobilitePage() {
       setScores(saved.scores)
       setSectionIndex(saved.sectionIndex)
       setTestIndex(saved.testIndex)
-      setPhase('testing')
+      // Stay on welcome — user clicks "Commencer" to resume
     }
   }, [])
 
@@ -1308,7 +1308,14 @@ export default function BilanMobilitePage() {
 
       {/* Content */}
       <main className="max-w-2xl mx-auto px-4 py-6">
-        {phase === 'welcome' && <WelcomeScreen onStart={() => setPhase('section-intro')} />}
+        {phase === 'welcome' && <WelcomeScreen hasProgress={Object.keys(scores).length > 0} onStart={() => {
+          // If we have restored progress, go straight to testing; otherwise section-intro
+          if (Object.keys(scores).length > 0) {
+            setPhase('testing')
+          } else {
+            setPhase('section-intro')
+          }
+        }} />}
 
         {phase === 'section-intro' && currentSection && (
           <SectionIntro
