@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { isSupabaseConfigured, supabase } from "@/lib/supabase"
-import { getProgressPercent, BILAN_TOTAL_QUESTIONS } from "@/lib/bilan-progress"
+import { getProgressPercent, BILAN_TOTAL_QUESTIONS, clearProgress } from "@/lib/bilan-progress"
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, RadarChart, PolarGrid,
@@ -87,6 +87,10 @@ interface BilanResult {
     globalInsights?: { title: string; description: string; reference: string }[]
   }
   completed_at: string
+  /* progression tracking */
+  previous_score: number | null
+  delta: number | null
+  attempt: number
 }
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8) // 8h-20h compact
@@ -298,15 +302,22 @@ export default function BilansPage() {
   const bilanOptions = useMemo(() => {
     return bilanOptionsDefs.map(def => {
       if (def.bilanType === 'mental') {
-        // Compute average of emotionnel + stress scores
         const emo = bilanResults.find(r => r.bilan_type === 'emotionnel')
         const str = bilanResults.find(r => r.bilan_type === 'stress')
         const scores = [emo?.global_score, str?.global_score].filter((s): s is number => s != null)
         const score = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null
-        return { ...def, score }
+        const deltas = [emo?.delta, str?.delta].filter((d): d is number => d != null)
+        const delta = deltas.length > 0 ? Math.round(deltas.reduce((a, b) => a + b, 0) / deltas.length) : null
+        const attempt = Math.max(emo?.attempt ?? 1, str?.attempt ?? 1)
+        return { ...def, score, delta, attempt }
       }
       const result = bilanResults.find(r => r.bilan_type === def.bilanType)
-      return { ...def, score: result ? result.global_score : null }
+      return {
+        ...def,
+        score: result ? result.global_score : null,
+        delta: result?.delta ?? null,
+        attempt: result?.attempt ?? 1,
+      }
     })
   }, [bilanResults])
 
@@ -481,7 +492,18 @@ export default function BilansPage() {
                   {completed && bilan.score !== null ? (
                     <div className="flex flex-col items-center gap-1 mt-1">
                       <ScoreRing value={bilan.score} size={44} />
-                      <span className="text-[10px] font-medium flex items-center gap-1 mt-1 transition-colors" style={{ color: c }}>{bilan.bilanType === 'mental' ? 'Voir les tests' : 'Voir le rapport'} <ArrowRight className="w-3 h-3" /></span>
+                      {bilan.delta !== null && bilan.delta !== 0 && (
+                        <span className={`text-[10px] font-bold ${bilan.delta > 0 ? 'text-emerald-500' : 'text-red-400'}`}>
+                          {bilan.delta > 0 ? '+' : ''}{bilan.delta} pts vs v{(bilan.attempt ?? 2) - 1}
+                        </span>
+                      )}
+                      <span className="text-[10px] font-medium flex items-center gap-1 mt-0.5 transition-colors" style={{ color: c }}>{bilan.bilanType === 'mental' ? 'Voir les tests' : 'Voir le rapport'} <ArrowRight className="w-3 h-3" /></span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); clearProgress(bilan.bilanType === 'mental' ? 'emotionnel' : bilan.bilanType); if (bilan.bilanType === 'mental') clearProgress('stress'); router.push(bilan.href) }}
+                        className="text-[9px] font-medium px-2 py-0.5 rounded-md mt-0.5 transition-all hover:scale-105"
+                        style={{ color: `${c}aa`, background: `${c}10`, border: `1px solid ${c}20` }}>
+                        <RefreshCw className="w-2.5 h-2.5 inline mr-0.5 -mt-px" />Refaire (v{(bilan.attempt ?? 1) + 1})
+                      </button>
                     </div>
                   ) : bilan.available ? (
                     <div className="flex flex-col items-center gap-1.5 mt-1">

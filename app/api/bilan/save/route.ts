@@ -26,17 +26,8 @@ export async function POST(request: Request) {
 
     const admin = getSupabaseAdmin()
 
-    // Upsert: keep the latest result per user+bilan_type
-    // First check if user already has a result for this bilan
-    const { data: existing } = await admin
-      .from('bilan_results')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('bilan_type', bilanType)
-      .order('completed_at', { ascending: false })
-      .limit(1)
-      .single()
-
+    // Always INSERT a new row — keeps full history for progression tracking.
+    // The results endpoint returns the latest per bilan_type + delta vs previous.
     const resultData = {
       user_id: user.id,
       bilan_type: bilanType,
@@ -50,27 +41,12 @@ export async function POST(request: Request) {
       completed_at: new Date().toISOString(),
     }
 
-    let savedResult
-    if (existing?.id) {
-      // Update the existing record
-      const { data, error } = await admin
-        .from('bilan_results')
-        .update(resultData)
-        .eq('id', existing.id)
-        .select()
-        .single()
-      if (error) throw error
-      savedResult = data
-    } else {
-      // Insert new
-      const { data, error } = await admin
-        .from('bilan_results')
-        .insert(resultData)
-        .select()
-        .single()
-      if (error) throw error
-      savedResult = data
-    }
+    const { data: savedResult, error } = await admin
+      .from('bilan_results')
+      .insert(resultData)
+      .select()
+      .single()
+    if (error) throw error
 
     return NextResponse.json({ ok: true, result: savedResult })
   } catch (error) {
