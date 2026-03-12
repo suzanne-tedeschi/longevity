@@ -13,6 +13,10 @@ import {
 } from '@/lib/bilan-sommeil-data'
 import { supabase } from '@/lib/supabase'
 import { saveProgress, loadProgress, clearProgress } from '@/lib/bilan-progress'
+import {
+  getSectionReport, getSectionRecommendation, getTriggeredInsights, globalKeyInsights,
+  generateFullReport,
+} from '@/lib/bilan-sommeil-report'
 
 /* ═══════════════════════════════════════════════════════
    SVG ICON COMPONENTS — Sleep-themed line icons
@@ -437,6 +441,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
    ═══════════════════════════════════════════════════════ */
 function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [showReport, setShowReport] = useState(false)
   const hasSaved = useRef(false)
 
   const sectionResults = allSections.map((section) => {
@@ -447,35 +452,53 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   const totalPct = Math.round((totalScore / totalMaxScore) * 100)
   const overall = getOverallLabel(totalPct)
 
-  // ── Auto-save to Supabase ──
+  const allResults = sectionResults.map(({ section, score }) => ({
+    sectionId: section.id,
+    pct: Math.round((score / section.maxScore) * 100),
+    score,
+    maxScore: section.maxScore,
+    title: section.title,
+  }))
+
+  // ── Save logic (callable for retry) ──
+  async function doSave() {
+    try {
+      const session = await supabase?.auth.getSession()
+      const token = session?.data?.session?.access_token
+      if (!token) { console.warn('[bilan-save] No auth session'); setSaveStatus('error'); return }
+      setSaveStatus('saving')
+
+      const fullReport = generateFullReport(allResults, scores)
+
+      const payload = {
+        bilanType: 'sommeil',
+        scores,
+        globalScore: totalPct,
+        globalPoints: totalScore,
+        maxPoints: totalMaxScore,
+        subScores: Object.fromEntries(sectionResults.map(r => [r.section.id, { score: r.score, max: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) }])),
+        sectionResults: sectionResults.map(r => ({ sectionId: r.section.id, title: r.section.title, score: r.score, maxScore: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) })),
+        report: fullReport,
+      }
+      const res = await fetch('/api/bilan/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      })
+      if (res.ok) { setSaveStatus('saved'); clearProgress('sommeil') }
+      else {
+        const err = await res.json().catch(() => ({}))
+        console.error('[bilan-save] API error:', err)
+        setSaveStatus('error')
+      }
+    } catch (e) { console.error('[bilan-save] Failed:', e); setSaveStatus('error') }
+  }
+
+  // ── Auto-save on mount ──
   useEffect(() => {
     if (hasSaved.current) return
     hasSaved.current = true
-    async function saveResults() {
-      try {
-        const session = await supabase?.auth.getSession()
-        const token = session?.data?.session?.access_token
-        if (!token) { console.warn('[bilan-save] No auth session'); return }
-        setSaveStatus('saving')
-        const payload = {
-          bilanType: 'sommeil',
-          scores,
-          globalScore: totalPct,
-          globalPoints: totalScore,
-          maxPoints: totalMaxScore,
-          subScores: Object.fromEntries(sectionResults.map(r => [r.section.id, { score: r.score, max: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) }])),
-          sectionResults: sectionResults.map(r => ({ sectionId: r.section.id, title: r.section.title, score: r.score, maxScore: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) })),
-        }
-        const res = await fetch('/api/bilan/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(payload),
-        })
-        if (res.ok) { setSaveStatus('saved'); clearProgress('sommeil') }
-        else { setSaveStatus('error') }
-      } catch (e) { console.error('[bilan-save] Failed:', e); setSaveStatus('error') }
-    }
-    saveResults()
+    doSave()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -490,13 +513,18 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
 
   return (
     <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
-      <div className="text-center mb-12">
+      <div className="text-center mb-10">
         <div className="w-12 h-px bg-gradient-to-r from-transparent via-supagreen to-transparent mx-auto mb-8" />
         <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] tracking-tight mb-2">Vos résultats</h2>
         <p className="text-sm text-[#1a1a1a]/40">Bilan sommeil — qualité & hygiène</p>
         {saveStatus === 'saving' && <p className="text-xs text-[#a78bfa]/60 mt-2 animate-pulse">Sauvegarde en cours...</p>}
         {saveStatus === 'saved' && <p className="text-xs text-emerald-500 mt-2">Résultats sauvegardés</p>}
-        {saveStatus === 'error' && <p className="text-xs text-red-400 mt-2">Sauvegarde échouée</p>}
+        {saveStatus === 'error' && (
+          <div className="mt-2">
+            <p className="text-xs text-red-400">Sauvegarde échouée</p>
+            <button onClick={doSave} className="text-xs text-red-400 underline hover:text-red-500 mt-1">Réessayer</button>
+          </div>
+        )}
       </div>
 
       {/* Global score */}
@@ -512,26 +540,8 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         </span>
       </div>
 
-      {/* Interpretation */}
-      {interpretation && (
-        <div className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl p-6 mb-8">
-          <p className="text-sm text-[#1a1a1a]/50 leading-relaxed mb-3">{interpretation.description}</p>
-          <div className="flex items-start gap-2 pt-3 border-t border-[#1a1a1a]/[0.08]">
-            <InfoIcon className="w-4 h-4 text-supagreen flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{interpretation.recommendation}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Section gauges */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10">
-        {sectionResults.map(({ section, score }) => (
-          <ScoreGauge key={section.id} score={score} maxScore={section.maxScore} label={section.title.split(' ')[0]} icon={section.icon} size="sm" />
-        ))}
-      </div>
-
-      {/* Per-section detail */}
-      <div className="space-y-4 mb-10">
+      {/* Segmentation */}
+      <div className="space-y-3 mb-10">
         {sectionResults.map(({ section, score }) => {
           const pct = Math.round((score / section.maxScore) * 100)
           const info = getOverallLabel(pct)
@@ -542,10 +552,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
                   <div className="w-8 h-8 rounded-lg bg-supagreen/8 flex items-center justify-center text-supagreen/70">
                     {renderSectionIcon(section.icon, 'w-4 h-4')}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#1a1a1a]">{section.title}</p>
-                    <p className="text-xs text-[#1a1a1a]/30">{section.subtitle}</p>
-                  </div>
+                  <p className="text-sm font-semibold text-[#1a1a1a]">{section.title}</p>
                 </div>
                 <div className="text-right">
                   <p className={`text-lg font-bold ${info.color}`}>{pct}%</p>
@@ -560,12 +567,47 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         })}
       </div>
 
-      {/* Actions */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
-        <Link href="/onboarding/bilans" className="btn-primary text-center inline-block px-10 py-4 text-base">
-          Retour aux bilans
-        </Link>
-      </div>
+      {!showReport ? (
+        <div className="flex flex-col items-center gap-4">
+          <button
+            onClick={() => setShowReport(true)}
+            className="group inline-flex items-center gap-3 bg-gradient-to-r from-supagreen-dark to-supagreen text-white rounded-2xl px-6 py-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 w-full max-w-sm justify-center"
+          >
+            <p className="font-semibold text-sm">Accéder à mon compte rendu</p>
+            <ChevronRight className="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+          </button>
+          <Link href="/onboarding/bilans" className="text-sm text-[#1a1a1a]/30 hover:text-[#1a1a1a]/50 transition-colors">
+            Retour aux bilans
+          </Link>
+        </div>
+      ) : (
+        <div className="animate-fade-in">
+          {/* Interpretation */}
+          {interpretation && (
+            <div className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl p-6 mb-8">
+              <p className="text-sm text-[#1a1a1a]/50 leading-relaxed mb-3">{interpretation.description}</p>
+              <div className="flex items-start gap-2 pt-3 border-t border-[#1a1a1a]/[0.08]">
+                <InfoIcon className="w-4 h-4 text-supagreen flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{interpretation.recommendation}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Section gauges */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10">
+            {sectionResults.map(({ section, score }) => (
+              <ScoreGauge key={section.id} score={score} maxScore={section.maxScore} label={section.title.split(' ')[0]} icon={section.icon} size="sm" />
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
+            <Link href="/onboarding/bilans" className="btn-primary text-center inline-block">
+              Retour aux bilans
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="w-12 h-px bg-gradient-to-r from-transparent via-supagreen to-transparent mx-auto mt-12" />
     </div>

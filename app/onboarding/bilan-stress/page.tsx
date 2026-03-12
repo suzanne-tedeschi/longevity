@@ -8,7 +8,7 @@ import {
   type TestSection, type StressTest, type SectionIcon, type ScoreOption,
 } from '@/lib/bilan-stress-data'
 import {
-  getSectionReport, getSectionRecommendation, getTriggeredInsights, globalKeyInsights,
+  getSectionReport, getSectionRecommendation, getTriggeredInsights, globalKeyInsights, generateFullReport,
 } from '@/lib/bilan-stress-report'
 import { supabase } from '@/lib/supabase'
 import { saveProgress, loadProgress, clearProgress } from '@/lib/bilan-progress'
@@ -327,6 +327,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
    ═══════════════════════════════════════════════════════ */
 function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [showReport, setShowReport] = useState(false)
   const hasSaved = useRef(false)
 
   const sectionResults = allSections.map((section) => {
@@ -355,64 +356,63 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
     icon: section.icon,
   }))
 
-  // ── Auto-save results to Supabase ──
+  // ── Save logic (callable for retry) ──
+  async function doSave() {
+    try {
+      const session = await supabase?.auth.getSession()
+      const token = session?.data?.session?.access_token
+      if (!token) { console.warn('[bilan-save] No auth session'); setSaveStatus('error'); return }
+      setSaveStatus('saving')
+
+      const fullReport = generateFullReport(allResults, scores)
+
+      const payload = {
+        bilanType: 'stress',
+        scores,
+        globalScore: totalPct,
+        globalPoints: totalScore,
+        maxPoints: totalMaxScore,
+        subScores: Object.fromEntries(allResults.map(r => [r.sectionId, { score: r.score, max: r.maxScore, pct: r.pct }])),
+        sectionResults: allResults.map(r => ({ sectionId: r.sectionId, title: r.title, score: r.score, maxScore: r.maxScore, pct: r.pct })),
+        report: fullReport,
+      }
+
+      const res = await fetch('/api/bilan/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      })
+      if (res.ok) { setSaveStatus('saved'); clearProgress('stress') }
+      else {
+        const err = await res.json().catch(() => ({}))
+        console.error('[bilan-save] API error:', err)
+        setSaveStatus('error')
+      }
+    } catch (e) { console.error('[bilan-save] Failed:', e); setSaveStatus('error') }
+  }
+
+  // ── Auto-save on mount ──
   useEffect(() => {
     if (hasSaved.current) return
     hasSaved.current = true
-
-    async function saveResults() {
-      try {
-        const session = await supabase?.auth.getSession()
-        const token = session?.data?.session?.access_token
-        if (!token) { console.warn('[bilan-save] No auth session'); return }
-        setSaveStatus('saving')
-
-        const sectionReports = allResults.map(r => {
-          const report = getSectionReport(r.sectionId)
-          if (!report) return null
-          const rec = getSectionRecommendation(report, r.pct)
-          const triggered = getTriggeredInsights(report, scores)
-          return {
-            sectionId: r.sectionId, title: r.title, pct: r.pct, score: r.score, maxScore: r.maxScore,
-            level: rec.level, recommendationTitle: rec.title, recommendationText: rec.text, context: report.context,
-            triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation })),
-            references: report.references,
-          }
-        }).filter(Boolean)
-
-        const payload = {
-          bilanType: 'stress',
-          scores,
-          globalScore: totalPct,
-          globalPoints: totalScore,
-          maxPoints: totalMaxScore,
-          subScores: Object.fromEntries(allResults.map(r => [r.sectionId, { score: r.score, max: r.maxScore, pct: r.pct }])),
-          sectionResults: allResults.map(r => ({ sectionId: r.sectionId, title: r.title, score: r.score, maxScore: r.maxScore, pct: r.pct })),
-          report: { sectionReports, globalInsights: globalKeyInsights },
-        }
-
-        const res = await fetch('/api/bilan/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(payload),
-        })
-        if (res.ok) { setSaveStatus('saved'); clearProgress('stress') }
-        else { setSaveStatus('error') }
-      } catch (e) { console.error('[bilan-save] Failed:', e); setSaveStatus('error') }
-    }
-    saveResults()
+    doSave()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
     <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
-      <div className="text-center mb-12">
+      <div className="text-center mb-10">
         <div className="w-12 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent mx-auto mb-8" />
         <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] tracking-tight mb-2">Vos résultats</h2>
         <p className="text-sm text-[#1a1a1a]/40">Bilan gestion du stress</p>
         {saveStatus === 'saving' && <p className="text-xs text-blue-500/60 mt-2 animate-pulse">Sauvegarde en cours...</p>}
         {saveStatus === 'saved' && <p className="text-xs text-emerald-500 mt-2">Résultats sauvegardés</p>}
-        {saveStatus === 'error' && <p className="text-xs text-red-400 mt-2">Sauvegarde échouée</p>}
+        {saveStatus === 'error' && (
+          <div className="mt-2">
+            <p className="text-xs text-red-400">Sauvegarde échouée</p>
+            <button onClick={doSave} className="text-xs text-red-400 underline hover:text-red-500 mt-1">Réessayer</button>
+          </div>
+        )}
       </div>
 
       {/* Global score */}
@@ -426,26 +426,8 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         <span className={`inline-block px-4 py-1 rounded-full text-xs font-semibold tracking-wide ${overall.color} bg-[#1a1a1a]/[0.05]`}>{overall.label}</span>
       </div>
 
-      {/* Interpretation */}
-      {interpretation && (
-        <div className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl p-6 mb-8">
-          <p className="text-sm text-[#1a1a1a]/50 leading-relaxed mb-3">{interpretation.description}</p>
-          <div className="flex items-start gap-2 pt-3 border-t border-[#1a1a1a]/[0.08]">
-            <InfoIcon className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{interpretation.recommendation}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Section gauges */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10">
-        {sectionResults.map(({ section, score }) => (
-          <ScoreGauge key={section.id} score={score} maxScore={section.maxScore} label={section.title.split(' ')[0]} icon={section.icon} size="sm" />
-        ))}
-      </div>
-
-      {/* Per-section detail */}
-      <div className="space-y-4 mb-10">
+      {/* Segmentation */}
+      <div className="space-y-3 mb-10">
         {sectionResults.map(({ section, score }) => {
           const pct = Math.round((score / section.maxScore) * 100)
           const info = getOverallLabel(pct)
@@ -456,10 +438,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
                   <div className="w-8 h-8 rounded-lg bg-blue-500/8 flex items-center justify-center text-blue-500/70">
                     {renderSectionIcon(section.icon, 'w-4 h-4')}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#1a1a1a]">{section.title}</p>
-                    <p className="text-xs text-[#1a1a1a]/30">{section.subtitle}</p>
-                  </div>
+                  <p className="text-sm font-semibold text-[#1a1a1a]">{section.title}</p>
                 </div>
                 <div className="text-right">
                   <p className={`text-lg font-bold ${info.color}`}>{pct}%</p>
@@ -474,10 +453,45 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         })}
       </div>
 
-      {/* Actions */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
-        <Link href="/onboarding/bilans" className="px-10 py-4 rounded-xl bg-blue-500 text-white text-base font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center inline-block">Retour aux bilans</Link>
-      </div>
+      {!showReport ? (
+        <div className="flex flex-col items-center gap-4">
+          <button
+            onClick={() => setShowReport(true)}
+            className="group inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl px-6 py-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 w-full max-w-sm justify-center"
+          >
+            <p className="font-semibold text-sm">Accéder à mon compte rendu</p>
+            <ChevronRight className="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+          </button>
+          <Link href="/onboarding/bilans" className="text-sm text-[#1a1a1a]/30 hover:text-[#1a1a1a]/50 transition-colors">
+            Retour aux bilans
+          </Link>
+        </div>
+      ) : (
+        <div className="animate-fade-in">
+          {/* Interpretation */}
+          {interpretation && (
+            <div className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl p-6 mb-8">
+              <p className="text-sm text-[#1a1a1a]/50 leading-relaxed mb-3">{interpretation.description}</p>
+              <div className="flex items-start gap-2 pt-3 border-t border-[#1a1a1a]/[0.08]">
+                <InfoIcon className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{interpretation.recommendation}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Section gauges */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10">
+            {sectionResults.map(({ section, score }) => (
+              <ScoreGauge key={section.id} score={score} maxScore={section.maxScore} label={section.title.split(' ')[0]} icon={section.icon} size="sm" />
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
+            <Link href="/onboarding/bilans" className="px-8 py-3 rounded-xl bg-blue-500 text-white font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center inline-block">Retour aux bilans</Link>
+          </div>
+        </div>
+      )}
       <div className="w-12 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent mx-auto mt-12" />
     </div>
   )

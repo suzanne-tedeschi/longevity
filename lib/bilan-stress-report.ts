@@ -143,10 +143,22 @@ const fatigueReport: SectionReport = {
 // ══════════════════════════════════════════════════════
 // Global key insights
 // ══════════════════════════════════════════════════════
-export const globalKeyInsights = [
-  'Le stress chronique est l\'un des principaux facteurs de vieillissement accéléré. Il raccourcit les télomères, augmente l\'inflammation et affaiblit le système immunitaire.',
-  'La résilience est une compétence qui se développe. Les programmes MBSR (Mindfulness-Based Stress Reduction) ont montré des effets mesurables sur le cortisol, la pression artérielle et la structure cérébrale en 8 semaines.',
-  'L\'activité physique régulière est l\'intervention la plus efficace pour améliorer simultanément le stress perçu, la fatigue et la résilience mentale.',
+export const globalKeyInsights: { title: string; description: string; reference: string }[] = [
+  {
+    title: 'Le stress chronique accélère le vieillissement',
+    description: 'Le stress chronique raccourcit les télomères, augmente l\'inflammation systémique et affaiblit le système immunitaire. C\'est l\'un des principaux facteurs de vieillissement accéléré.',
+    reference: 'Epel et al., 2004, PNAS',
+  },
+  {
+    title: 'La résilience se développe',
+    description: 'Les programmes MBSR (Mindfulness-Based Stress Reduction) ont montré des effets mesurables sur le cortisol, la pression artérielle et la structure cérébrale en seulement 8 semaines.',
+    reference: 'Hölzel et al., 2011, Psychiatry Research',
+  },
+  {
+    title: 'L\'activité physique : le meilleur anti-stress',
+    description: 'L\'activité physique régulière est l\'intervention la plus efficace pour améliorer simultanément le stress perçu, la fatigue et la résilience mentale.',
+    reference: 'Schuch et al., 2018, Neuroscience & Biobehavioral Reviews',
+  },
 ]
 
 // ══════════════════════════════════════════════════════
@@ -171,4 +183,62 @@ export function getTriggeredInsights(report: SectionReport, scores: Record<strin
     const score = scores[ins.questionId]
     return score !== undefined && score <= ins.threshold
   })
+}
+
+// ══════════════════════════════════════════════════════
+// Full Report Generator
+// ══════════════════════════════════════════════════════
+
+export interface StrengthItem { sectionId: string; title: string; pct: number; praise: string; science: string; reference: string }
+export interface WeaknessItem { sectionId: string; title: string; pct: number; level: string; concern: string; science: string; reference: string; triggeredInsights: { questionId: string; insight: string; recommendation: string }[] }
+export interface ActionPhase { phase: number; phaseTitle: string; timeframe: string; actions: { action: string; why: string; sectionId: string }[] }
+
+export function generateFullReport(
+  sectionResults: { sectionId: string; pct: number; score: number; maxScore: number; title: string }[],
+  scores: Record<string, number>,
+) {
+  const strengths: StrengthItem[] = []
+  const weaknesses: WeaknessItem[] = []
+  const sectionReports = sectionResults.map(r => {
+    const report = getSectionReport(r.sectionId)
+    if (!report) return null
+    const rec = getSectionRecommendation(report, r.pct)
+    const triggered = getTriggeredInsights(report, scores)
+    return { sectionId: r.sectionId, title: r.title, pct: r.pct, score: r.score, maxScore: r.maxScore, level: rec.level, recommendationTitle: rec.title, recommendationText: rec.text, context: report.context, triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation })), references: report.references }
+  }).filter(Boolean)
+
+  for (const r of sectionResults) {
+    const report = getSectionReport(r.sectionId)
+    if (!report) continue
+    const rec = getSectionRecommendation(report, r.pct)
+    const triggered = getTriggeredInsights(report, scores)
+    const ref0 = report.references[0] ? `${report.references[0].authors.split(',')[0]} et al., ${report.references[0].year}` : ''
+    if (r.pct >= 60) {
+      strengths.push({ sectionId: r.sectionId, title: r.title, pct: r.pct, praise: rec.text, science: report.context.split('.').slice(0, 2).join('.') + '.', reference: ref0 })
+    } else {
+      weaknesses.push({ sectionId: r.sectionId, title: r.title, pct: r.pct, level: rec.level, concern: rec.text, science: report.context, reference: ref0, triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation })) })
+    }
+  }
+  weaknesses.sort((a, b) => a.pct - b.pct)
+
+  const phase1: { action: string; why: string; sectionId: string }[] = []
+  const phase2: { action: string; why: string; sectionId: string }[] = []
+  const phase3: { action: string; why: string; sectionId: string }[] = []
+  for (const w of weaknesses) {
+    for (const ti of w.triggeredInsights) {
+      const short = ti.recommendation.split('.').slice(0, 2).join('.') + '.'
+      if (w.pct < 30) phase1.push({ action: short, why: ti.insight, sectionId: w.sectionId })
+      else phase2.push({ action: short, why: ti.insight, sectionId: w.sectionId })
+    }
+    if (w.triggeredInsights.length === 0) {
+      phase1.push({ action: w.concern.split('.').slice(0, 2).join('.') + '.', why: `Score ${w.title} : ${w.pct}%`, sectionId: w.sectionId })
+    }
+  }
+  const actionPlan: ActionPhase[] = []
+  if (phase1.length > 0) actionPlan.push({ phase: 1, phaseTitle: 'Actions immédiates', timeframe: 'Semaines 1-2', actions: phase1.slice(0, 5) })
+  if (phase2.length > 0) actionPlan.push({ phase: 2, phaseTitle: 'Consolidation', timeframe: 'Semaines 3-6', actions: phase2.slice(0, 5) })
+  if (phase3.length > 0) actionPlan.push({ phase: 3, phaseTitle: 'Suivi médical', timeframe: 'À planifier', actions: phase3.slice(0, 3) })
+  if (actionPlan.length === 0) actionPlan.push({ phase: 1, phaseTitle: 'Maintien des acquis', timeframe: 'En continu', actions: [{ action: 'Maintenez vos bonnes pratiques de gestion du stress.', why: 'Vos scores sont bons — continuez sur cette lancée.', sectionId: '' }] })
+
+  return { strengths, weaknesses, actionPlan, globalInsights: globalKeyInsights, sectionReports }
 }

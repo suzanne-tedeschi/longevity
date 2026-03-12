@@ -12,6 +12,9 @@ import {
 } from '@/lib/bilan-mobilite-data'
 import { supabase } from '@/lib/supabase'
 import { saveProgress, loadProgress, clearProgress } from '@/lib/bilan-progress'
+import {
+  getSectionReport, getSectionRecommendation, getTriggeredInsights, globalKeyInsights, generateFullReport,
+} from '@/lib/bilan-mobilite-report'
 
 /* ═══════════════════════════════════════════════════════
    SVG ICON COMPONENTS — Premium line icons
@@ -976,6 +979,7 @@ function WelcomeScreen({ onStart, hasProgress }: { onStart: () => void; hasProgr
    ═══════════════════════════════════════════════════════ */
 function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [showReport, setShowReport] = useState(false)
   const hasSaved = useRef(false)
 
   const sectionResults = allSections.map((section) => {
@@ -988,42 +992,60 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   const overall = getOverallLabel(totalPct)
   const standard = checkStandard2026(scores)
 
-  // ── Auto-save to Supabase ──
+  const allResults = sectionResults.map(({ section, score }) => ({
+    sectionId: section.id,
+    pct: Math.round((score / section.maxScore) * 100),
+    score,
+    maxScore: section.maxScore,
+    title: section.title,
+  }))
+
+  // ── Save logic (callable for retry) ──
+  async function doSave() {
+    try {
+      const session = await supabase?.auth.getSession()
+      const token = session?.data?.session?.access_token
+      if (!token) { console.warn('[bilan-save] No auth session'); setSaveStatus('error'); return }
+      setSaveStatus('saving')
+
+      const fullReport = generateFullReport(allResults, scores)
+
+      const payload = {
+        bilanType: 'mobilite',
+        scores,
+        globalScore: totalPct,
+        globalPoints: totalScore,
+        maxPoints: totalMaxScore,
+        subScores: Object.fromEntries(sectionResults.map(r => [r.section.id, { score: r.score, max: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) }])),
+        sectionResults: sectionResults.map(r => ({ sectionId: r.section.id, title: r.section.title, score: r.score, maxScore: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) })),
+        report: fullReport,
+      }
+      const res = await fetch('/api/bilan/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      })
+      if (res.ok) { setSaveStatus('saved'); clearProgress('mobilite') }
+      else {
+        const err = await res.json().catch(() => ({}))
+        console.error('[bilan-save] API error:', err)
+        setSaveStatus('error')
+      }
+    } catch (e) { console.error('[bilan-save] Failed:', e); setSaveStatus('error') }
+  }
+
+  // ── Auto-save on mount ──
   useEffect(() => {
     if (hasSaved.current) return
     hasSaved.current = true
-    async function saveResults() {
-      try {
-        const session = await supabase?.auth.getSession()
-        const token = session?.data?.session?.access_token
-        if (!token) { console.warn('[bilan-save] No auth session'); return }
-        setSaveStatus('saving')
-        const payload = {
-          bilanType: 'mobilite',
-          scores,
-          globalScore: totalPct,
-          globalPoints: totalScore,
-          maxPoints: totalMaxScore,
-          subScores: Object.fromEntries(sectionResults.map(r => [r.section.id, { score: r.score, max: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) }])),
-          sectionResults: sectionResults.map(r => ({ sectionId: r.section.id, title: r.section.title, score: r.score, maxScore: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) })),
-        }
-        const res = await fetch('/api/bilan/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(payload),
-        })
-        if (res.ok) { setSaveStatus('saved'); clearProgress('mobilite') }
-        else { setSaveStatus('error') }
-      } catch (e) { console.error('[bilan-save] Failed:', e); setSaveStatus('error') }
-    }
-    saveResults()
+    doSave()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
     <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-10">
         <div className="w-12 h-px bg-gradient-to-r from-transparent via-[#2D6A4F] to-transparent mx-auto mb-8" />
         <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] tracking-tight mb-2">
           Vos résultats
@@ -1031,7 +1053,12 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         <p className="text-sm text-[#1a1a1a]/40">Bilan de mobilité et condition physique</p>
         {saveStatus === 'saving' && <p className="text-xs text-[#3ECF8E]/60 mt-2 animate-pulse">Sauvegarde en cours...</p>}
         {saveStatus === 'saved' && <p className="text-xs text-emerald-500 mt-2">Résultats sauvegardés</p>}
-        {saveStatus === 'error' && <p className="text-xs text-red-400 mt-2">Sauvegarde échouée</p>}
+        {saveStatus === 'error' && (
+          <div className="mt-2">
+            <p className="text-xs text-red-400">Sauvegarde échouée</p>
+            <button onClick={doSave} className="text-xs text-red-400 underline hover:text-red-500 mt-1">Réessayer</button>
+          </div>
+        )}
       </div>
 
       {/* Global score */}
@@ -1051,22 +1078,8 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         </span>
       </div>
 
-      {/* Section gauges */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 mb-10">
-        {sectionResults.map(({ section, score }) => (
-          <ScoreGauge
-            key={section.id}
-            score={score}
-            maxScore={section.maxScore}
-            label={section.title.split(' ').slice(-1)[0]}
-            icon={section.icon}
-            size="sm"
-          />
-        ))}
-      </div>
-
-      {/* Per-section detail */}
-      <div className="space-y-4 mb-10">
+      {/* Segmentation */}
+      <div className="space-y-3 mb-10">
         {sectionResults.map(({ section, score }) => {
           const pct = Math.round((score / section.maxScore) * 100)
           const info = getOverallLabel(pct)
@@ -1080,10 +1093,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
                   <div className="w-8 h-8 rounded-lg bg-[#2D6A4F]/10 flex items-center justify-center text-[#2D6A4F]/70">
                     {renderSectionIcon(section.icon, 'w-4 h-4')}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#1a1a1a]">{section.title}</p>
-                    <p className="text-xs text-[#1a1a1a]/30">{section.subtitle}</p>
-                  </div>
+                  <p className="text-sm font-semibold text-[#1a1a1a]">{section.title}</p>
                 </div>
                 <div className="text-right">
                   <p className={`text-lg font-bold ${info.color}`}>{pct}%</p>
@@ -1101,69 +1111,100 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         })}
       </div>
 
-      {/* STANDARD 2026 */}
-      <div className="bg-white backdrop-blur-sm border border-[#1a1a1a]/[0.08] rounded-2xl p-6 mb-10">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2D6A4F]/20 to-[#1B4332]/10 border border-[#2D6A4F]/20 flex items-center justify-center text-[#2D6A4F]">
-            <TrophyIcon className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-[#1a1a1a]">STANDARD 2026</h3>
-            <p className="text-xs text-[#1a1a1a]/30">Critères d&apos;éligibilité</p>
-          </div>
-          <span
-            className={`ml-auto px-3 py-1 rounded-full text-xs font-semibold ${
-              standard.passed
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                : 'bg-amber-50 text-amber-700 border border-amber-200'
-            }`}
+      {!showReport ? (
+        <div className="flex flex-col items-center gap-4">
+          <button
+            onClick={() => setShowReport(true)}
+            className="group inline-flex items-center gap-3 bg-gradient-to-r from-[#1B4332] to-[#2D6A4F] text-white rounded-2xl px-6 py-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 w-full max-w-sm justify-center"
           >
-            {standard.passed ? 'Validé' : 'En cours'}
-          </span>
+            <p className="font-semibold text-sm">Accéder à mon compte rendu</p>
+            <ChevronRight className="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+          </button>
+          <Link href="/onboarding/bilans" className="text-sm text-[#1a1a1a]/30 hover:text-[#1a1a1a]/50 transition-colors">
+            Retour aux bilans
+          </Link>
         </div>
+      ) : (
+        <div className="animate-fade-in">
+          {/* Section gauges */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 mb-10">
+            {sectionResults.map(({ section, score }) => (
+              <ScoreGauge
+                key={section.id}
+                score={score}
+                maxScore={section.maxScore}
+                label={section.title.split(' ').slice(-1)[0]}
+                icon={section.icon}
+                size="sm"
+              />
+            ))}
+          </div>
 
-        <div className="space-y-2">
-          {standard.checks.map((check, i) => (
-            <div
-              key={i}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs ${
-                check.met ? 'bg-emerald-50/50' : 'bg-red-50/50'
-              }`}
-            >
-              <div
-                className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  check.met
-                    ? 'bg-emerald-100 text-emerald-600'
-                    : 'bg-red-100 text-red-500'
+          {/* STANDARD 2026 */}
+          <div className="bg-white backdrop-blur-sm border border-[#1a1a1a]/[0.08] rounded-2xl p-6 mb-10">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2D6A4F]/20 to-[#1B4332]/10 border border-[#2D6A4F]/20 flex items-center justify-center text-[#2D6A4F]">
+                <TrophyIcon className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#1a1a1a]">STANDARD 2026</h3>
+                <p className="text-xs text-[#1a1a1a]/30">Critères d&apos;éligibilité</p>
+              </div>
+              <span
+                className={`ml-auto px-3 py-1 rounded-full text-xs font-semibold ${
+                  standard.passed
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200'
                 }`}
               >
-                {check.met ? (
-                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                ) : (
-                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                )}
-              </div>
-              <span className={`${check.met ? 'text-[#1a1a1a]/50' : 'text-[#1a1a1a]/70 font-medium'}`}>
-                {check.label}
+                {standard.passed ? 'Validé' : 'En cours'}
               </span>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Actions */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
-        <Link
-          href="/"
-          className="btn-primary text-center inline-block px-10 py-4 text-base"
-        >
-          Retour à l&apos;accueil
-        </Link>
-      </div>
+            <div className="space-y-2">
+              {standard.checks.map((check, i) => (
+                <div
+                  key={i}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs ${
+                    check.met ? 'bg-emerald-50/50' : 'bg-red-50/50'
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      check.met
+                        ? 'bg-emerald-100 text-emerald-600'
+                        : 'bg-red-100 text-red-500'
+                    }`}
+                  >
+                    {check.met ? (
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className={`${check.met ? 'text-[#1a1a1a]/50' : 'text-[#1a1a1a]/70 font-medium'}`}>
+                    {check.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
+            <Link
+              href="/onboarding/bilans"
+              className="btn-primary text-center inline-block"
+            >
+              Retour aux bilans
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="w-12 h-px bg-gradient-to-r from-transparent via-[#2D6A4F] to-transparent mx-auto mt-12" />
     </div>

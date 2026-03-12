@@ -367,6 +367,63 @@ export const globalKeyInsights: GlobalInsight[] = [
   },
 ]
 
+// ══════════════════════════════════════════════════════
+// Full Report Generator
+// ══════════════════════════════════════════════════════
+
+export interface StrengthItem { sectionId: string; title: string; pct: number; praise: string; science: string; reference: string }
+export interface WeaknessItem { sectionId: string; title: string; pct: number; level: string; concern: string; science: string; reference: string; triggeredInsights: { questionId: string; insight: string; recommendation: string }[] }
+export interface ActionPhase { phase: number; phaseTitle: string; timeframe: string; actions: { action: string; why: string; sectionId: string }[] }
+
+export function generateFullReport(
+  sectionResults: { sectionId: string; pct: number; score: number; maxScore: number; title: string }[],
+  scores: Record<string, number>,
+) {
+  const strengths: StrengthItem[] = []
+  const weaknesses: WeaknessItem[] = []
+  const sectionReports = sectionResults.map(r => {
+    const report = getSectionReport(r.sectionId)
+    if (!report) return null
+    const rec = getSectionRecommendation(report, r.pct)
+    const triggered = getTriggeredInsights(report, scores)
+    return { sectionId: r.sectionId, title: r.title, pct: r.pct, score: r.score, maxScore: r.maxScore, level: rec.level, recommendationTitle: rec.title, recommendationText: rec.text, context: report.context, triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation })), references: report.references }
+  }).filter(Boolean)
+
+  for (const r of sectionResults) {
+    const report = getSectionReport(r.sectionId)
+    if (!report) continue
+    const rec = getSectionRecommendation(report, r.pct)
+    const triggered = getTriggeredInsights(report, scores)
+    const ref0 = report.references[0] ? `${report.references[0].authors.split(',')[0]} et al., ${report.references[0].year}` : ''
+    // Nutrition uses maxPct: low pct = good (fewer symptoms / better habits)
+    if (rec.level === 'excellent' || rec.level === 'bon') {
+      strengths.push({ sectionId: r.sectionId, title: r.title, pct: r.pct, praise: rec.text, science: report.context.split('.').slice(0, 2).join('.') + '.', reference: ref0 })
+    } else {
+      weaknesses.push({ sectionId: r.sectionId, title: r.title, pct: r.pct, level: rec.level, concern: rec.text, science: report.context, reference: ref0, triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation })) })
+    }
+  }
+  weaknesses.sort((a, b) => b.pct - a.pct)
+
+  const phase1: { action: string; why: string; sectionId: string }[] = []
+  const phase2: { action: string; why: string; sectionId: string }[] = []
+  for (const w of weaknesses) {
+    for (const ti of w.triggeredInsights) {
+      const short = ti.recommendation.split('.').slice(0, 2).join('.') + '.'
+      if (w.level === 'alerte') phase1.push({ action: short, why: ti.insight, sectionId: w.sectionId })
+      else phase2.push({ action: short, why: ti.insight, sectionId: w.sectionId })
+    }
+    if (w.triggeredInsights.length === 0) {
+      phase1.push({ action: w.concern.split('.').slice(0, 2).join('.') + '.', why: `Score ${w.title} : ${w.pct}%`, sectionId: w.sectionId })
+    }
+  }
+  const actionPlan: ActionPhase[] = []
+  if (phase1.length > 0) actionPlan.push({ phase: 1, phaseTitle: 'Actions immédiates', timeframe: 'Semaines 1-2', actions: phase1.slice(0, 5) })
+  if (phase2.length > 0) actionPlan.push({ phase: 2, phaseTitle: 'Consolidation', timeframe: 'Semaines 3-8', actions: phase2.slice(0, 5) })
+  if (actionPlan.length === 0) actionPlan.push({ phase: 1, phaseTitle: 'Maintien des acquis', timeframe: 'En continu', actions: [{ action: 'Maintenez vos bonnes pratiques nutritionnelles et digestives.', why: 'Vos scores nutrition sont bons — continuez ainsi.', sectionId: '' }] })
+
+  return { strengths, weaknesses, actionPlan, globalInsights: globalKeyInsights, sectionReports }
+}
+
 /**
  * Generates a prioritized action plan (top 3 actions) based on lowest scoring sections
  */

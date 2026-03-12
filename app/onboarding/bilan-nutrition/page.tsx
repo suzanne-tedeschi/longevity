@@ -24,6 +24,7 @@ import {
   getTriggeredInsights,
   generateTopActions,
   globalKeyInsights,
+  generateFullReport,
 } from '@/lib/bilan-nutrition-report'
 
 /* ═══════════════════════════════════════════════════════
@@ -664,108 +665,87 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
     scores
   ), [allResults, scores])
 
-  // ── Auto-save results to Supabase ──
+  // ── Save logic (callable for retry) ──
+  async function doSave() {
+    try {
+      // Get session token
+      const session = await supabase?.auth.getSession()
+      const token = session?.data?.session?.access_token
+      if (!token) {
+        console.warn('[bilan-save] No auth session, skipping save')
+        setSaveStatus('error')
+        return
+      }
+      setSaveStatus('saving')
+
+      const fullReport = generateFullReport(allResults, scores)
+
+      const payload = {
+        bilanType: 'nutrition',
+        scores,
+        globalScore: globalPct,
+        globalPoints: globalTotal,
+        maxPoints: totalMaxScore,
+        subScores: {
+          digestif: { score: digestifTotal, max: digestifMaxScore, pct: digestifPct },
+          alimentaire: { score: alimentaireTotal, max: alimentaireMaxScore, pct: alimentairePct },
+        },
+        sectionResults: allResults.map(r => ({
+          sectionId: r.sectionId,
+          title: r.title,
+          score: r.score,
+          maxScore: r.maxScore,
+          pct: r.pct,
+          isDigestif: r.isDigestif,
+        })),
+        report: fullReport,
+      }
+
+      const res = await fetch('/api/bilan/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (res.ok) {
+        setSaveStatus('saved')
+        clearProgress('nutrition')
+      } else {
+        const err = await res.json().catch(() => ({}))
+        console.error('[bilan-save] API error:', err)
+        setSaveStatus('error')
+      }
+    } catch (e) {
+      console.error('[bilan-save] Failed:', e)
+      setSaveStatus('error')
+    }
+  }
+
+  // ── Auto-save on mount ──
   useEffect(() => {
     if (hasSaved.current) return
     hasSaved.current = true
-
-    async function saveResults() {
-      try {
-        // Get session token
-        const session = await supabase?.auth.getSession()
-        const token = session?.data?.session?.access_token
-        if (!token) {
-          console.warn('[bilan-save] No auth session, skipping save')
-          return
-        }
-        setSaveStatus('saving')
-
-        // Build section reports for persistence
-        const sectionReports = allResults.map(r => {
-          const report = getSectionReport(r.sectionId)
-          if (!report) return null
-          const rec = getSectionRecommendation(report, r.pct)
-          const triggered = getTriggeredInsights(report, scores)
-          return {
-            sectionId: r.sectionId,
-            title: r.title,
-            pct: r.pct,
-            score: r.score,
-            maxScore: r.maxScore,
-            level: rec.level,
-            recommendationTitle: rec.title,
-            recommendationText: rec.text,
-            context: report.context,
-            triggeredInsights: triggered.map(t => ({
-              questionId: t.questionId,
-              insight: t.insight,
-              recommendation: t.recommendation,
-            })),
-            references: report.references,
-          }
-        }).filter(Boolean)
-
-        const payload = {
-          bilanType: 'nutrition',
-          scores,
-          globalScore: globalPct,
-          globalPoints: globalTotal,
-          maxPoints: totalMaxScore,
-          subScores: {
-            digestif: { score: digestifTotal, max: digestifMaxScore, pct: digestifPct },
-            alimentaire: { score: alimentaireTotal, max: alimentaireMaxScore, pct: alimentairePct },
-          },
-          sectionResults: allResults.map(r => ({
-            sectionId: r.sectionId,
-            title: r.title,
-            score: r.score,
-            maxScore: r.maxScore,
-            pct: r.pct,
-            isDigestif: r.isDigestif,
-          })),
-          report: {
-            topActions,
-            sectionReports,
-            globalInsights: globalKeyInsights,
-          },
-        }
-
-        const res = await fetch('/api/bilan/save', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        })
-
-        if (res.ok) {
-          setSaveStatus('saved')
-          clearProgress('nutrition')
-        } else {
-          const err = await res.json()
-          console.error('[bilan-save] API error:', err)
-          setSaveStatus('error')
-        }
-      } catch (e) {
-        console.error('[bilan-save] Failed:', e)
-        setSaveStatus('error')
-      }
-    }
-
-    saveResults()
+    doSave()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
     <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
-      <div className="text-center mb-12">
+      <div className="text-center mb-10">
         <div className="w-12 h-px bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mb-8" />
         <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] tracking-tight mb-2">Vos résultats</h2>
         <p className="text-sm text-[#1a1a1a]/50">Bilan Nutrition — Troubles digestifs & habitudes alimentaires</p>
         {saveStatus === 'saving' && <p className="text-xs text-[#2D6A4F]/60 mt-2 animate-pulse">Sauvegarde en cours...</p>}
         {saveStatus === 'saved' && <p className="text-xs text-emerald-500 mt-2">Résultats sauvegardés</p>}
-        {saveStatus === 'error' && <p className="text-xs text-red-400 mt-2">Sauvegarde échouée — vos résultats sont affichés ci-dessous</p>}
+        {saveStatus === 'error' && (
+          <div className="mt-2">
+            <p className="text-xs text-red-400">Sauvegarde échouée</p>
+            <button onClick={doSave} className="text-xs text-red-400 underline hover:text-red-500 mt-1">Réessayer</button>
+          </div>
+        )}
       </div>
 
       {/* Global score */}
@@ -781,86 +761,77 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         </span>
       </div>
 
-      {/* Interpretation */}
-      {globalInterpretation && (
-        <div className="bg-white border border-[#1a1a1a]/[0.1] rounded-2xl p-6 mb-8">
-          <p className="text-sm text-[#1a1a1a]/70 leading-relaxed mb-3">{globalInterpretation.description}</p>
-          <div className="flex items-start gap-2 pt-3 border-t border-[#1a1a1a]/[0.1]">
-            <InfoIcon className="w-4 h-4 text-[#2D6A4F] flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-[#1a1a1a]/60 leading-relaxed">{globalInterpretation.recommendation}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Two sub-scores side by side */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      {/* Segmentation: two sub-scores + per-section bars */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white border border-[#1a1a1a]/[0.1] rounded-2xl p-5 text-center">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2D6A4F]/10 to-[#1B4332]/10 flex items-center justify-center text-[#2D6A4F] mx-auto mb-3">
-            <NutritionIcon className="w-5 h-5" />
-          </div>
           <p className="text-xs font-medium tracking-widest uppercase text-[#1a1a1a]/40 mb-1">Digestif</p>
           <p className={`text-3xl font-bold ${digestifInfo.color}`}>{digestifPct}%</p>
           <p className="text-xs text-[#1a1a1a]/40 mt-1">{digestifTotal}/{digestifMaxScore} pts</p>
-          <span className={`inline-block mt-2 px-3 py-0.5 rounded-full text-[10px] font-semibold ${digestifInfo.color} bg-[#1a1a1a]/[0.04]`}>
-            {digestifInfo.label}
-          </span>
         </div>
         <div className="bg-white border border-[#1a1a1a]/[0.1] rounded-2xl p-5 text-center">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#c9a96e]/10 to-[#c9a96e]/20 flex items-center justify-center text-[#c9a96e] mx-auto mb-3">
-            <UtensilsIcon className="w-5 h-5" />
-          </div>
           <p className="text-xs font-medium tracking-widest uppercase text-[#1a1a1a]/40 mb-1">Alimentaire</p>
           <p className={`text-3xl font-bold ${alimentaireInfo.color}`}>{alimentairePct}%</p>
           <p className="text-xs text-[#1a1a1a]/40 mt-1">{alimentaireTotal}/{alimentaireMaxScore} pts</p>
-          <span className={`inline-block mt-2 px-3 py-0.5 rounded-full text-[10px] font-semibold ${alimentaireInfo.color} bg-[#1a1a1a]/[0.04]`}>
-            {alimentaireInfo.label}
-          </span>
         </div>
       </div>
 
-      {/* Digestif section gauges */}
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-[#1a1a1a]/60 tracking-widest uppercase mb-4 flex items-center gap-2">
-          <NutritionIcon className="w-4 h-4 text-[#2D6A4F]" /> Troubles digestifs
-        </h3>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 mb-6">
-          {digestifResults.map(({ section, score }) => (
-            <ScoreGauge key={section.id} score={score} maxScore={section.maxScore} label={section.title} icon={section.icon} size="sm" />
-          ))}
-        </div>
+      <div className="space-y-3 mb-10">
+        {allResults.map((r) => {
+          const info = getOverallLabel(r.pct)
+          return (
+            <div key={r.sectionId} className="bg-white border border-[#1a1a1a]/[0.1] rounded-xl px-5 py-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${r.isDigestif ? 'bg-[#2D6A4F]/10 text-[#2D6A4F]/70' : 'bg-[#c9a96e]/10 text-[#c9a96e]/70'}`}>
+                    {renderSectionIcon(r.icon, 'w-4 h-4')}
+                  </div>
+                  <p className="text-sm font-semibold text-[#1a1a1a]">{r.title}</p>
+                </div>
+                <div className="text-right">
+                  <p className={`text-lg font-bold ${info.color}`}>{r.pct}%</p>
+                  <p className="text-xs text-[#1a1a1a]/40">{r.score}/{r.maxScore}</p>
+                </div>
+              </div>
+              <div className="h-1.5 bg-[#1a1a1a]/[0.04] rounded-full overflow-hidden">
+                <div className={`h-full rounded-full ${info.bar} transition-all duration-700`} style={{ width: `${r.pct}%` }} />
+              </div>
+            </div>
+          )
+        })}
       </div>
 
-      {/* Alimentaire section gauges */}
-      <div className="mb-8">
-        <h3 className="text-sm font-semibold text-[#1a1a1a]/60 tracking-widest uppercase mb-4 flex items-center gap-2">
-          <UtensilsIcon className="w-4 h-4 text-[#c9a96e]" /> Habitudes alimentaires
-        </h3>
-        <div className="grid grid-cols-3 sm:grid-cols-3 gap-4 mb-6">
-          {alimentaireResults.map(({ section, score }) => (
-            <ScoreGauge key={section.id} score={score} maxScore={section.maxScore} label={section.title} icon={section.icon} size="sm" />
-          ))}
-        </div>
-      </div>
-
-      {/* ═══════════ SCIENTIFIC REPORT TOGGLE ═══════════ */}
       {!showReport ? (
-        <div className="text-center mb-10">
+        <div className="flex flex-col items-center gap-4">
           <button
             onClick={() => setShowReport(true)}
-            className="group inline-flex items-center gap-3 bg-gradient-to-r from-[#1B4332] to-[#2D6A4F] text-white rounded-2xl px-6 py-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+            className="group inline-flex items-center gap-3 bg-gradient-to-r from-[#1B4332] to-[#2D6A4F] text-white rounded-2xl px-6 py-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 w-full max-w-sm justify-center"
           >
             <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
               <BookIcon className="w-5 h-5" />
             </div>
             <div className="text-left">
-              <p className="font-semibold text-sm">Voir le compte-rendu scientifique</p>
-              <p className="text-xs text-white/60">Recommandations personnalisées & références PubMed</p>
+              <p className="font-semibold text-sm">Accéder à mon compte rendu</p>
+              <p className="text-xs text-white/60">Recommandations personnalisées & références</p>
             </div>
             <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
           </button>
+          <Link href="/onboarding/bilans" className="text-sm text-[#1a1a1a]/30 hover:text-[#1a1a1a]/50 transition-colors">
+            Retour aux bilans
+          </Link>
         </div>
       ) : (
         <div className="animate-fade-in">
+          {/* Interpretation */}
+          {globalInterpretation && (
+            <div className="bg-white border border-[#1a1a1a]/[0.1] rounded-2xl p-6 mb-8">
+              <p className="text-sm text-[#1a1a1a]/70 leading-relaxed mb-3">{globalInterpretation.description}</p>
+              <div className="flex items-start gap-2 pt-3 border-t border-[#1a1a1a]/[0.1]">
+                <InfoIcon className="w-4 h-4 text-[#2D6A4F] flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-[#1a1a1a]/60 leading-relaxed">{globalInterpretation.recommendation}</p>
+              </div>
+            </div>
+          )}
+
           {/* ═══════════ TOP PRIORITY ACTIONS ═══════════ */}
           {topActions.length > 0 && (
             <div className="mb-10">

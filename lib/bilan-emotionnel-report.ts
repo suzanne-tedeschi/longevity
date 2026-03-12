@@ -118,10 +118,22 @@ const teiqReport: SectionReport = {
 // ══════════════════════════════════════════════════════
 // Global insights — Key cross-section findings
 // ══════════════════════════════════════════════════════
-export const globalKeyInsights = [
-  'L\'équilibre émotionnel est un pilier fondamental de la longévité. Les études montrent qu\'un ratio PA/NA positif est associé à une réduction de 20% du risque cardiovasculaire.',
-  'La satisfaction de vie et l\'intelligence émotionnelle sont des facteurs protecteurs indépendants contre la dépression, l\'anxiété et le burn-out.',
-  'Les compétences émotionnelles se développent tout au long de la vie. Des interventions ciblées (pleine conscience, TCC, coaching) ont montré des améliorations significatives en 8 à 12 semaines.',
+export const globalKeyInsights: { title: string; description: string; reference: string }[] = [
+  {
+    title: 'Équilibre émotionnel et longévité',
+    description: 'Un ratio émotions positives/négatives élevé est associé à une réduction de 20 % du risque cardiovasculaire. L\'équilibre émotionnel est un pilier fondamental de la longévité.',
+    reference: 'Fredrickson & Losada, 2005, American Psychologist',
+  },
+  {
+    title: 'Protection contre l\'épuisement',
+    description: 'La satisfaction de vie et l\'intelligence émotionnelle sont des facteurs protecteurs indépendants contre la dépression, l\'anxiété et le burn-out.',
+    reference: 'Diener & Chan, 2011, Applied Psychology: Health and Well-Being',
+  },
+  {
+    title: 'Des compétences qui se développent',
+    description: 'Les compétences émotionnelles se développent tout au long de la vie. Des interventions ciblées (pleine conscience, TCC, coaching) ont montré des améliorations significatives en 8 à 12 semaines.',
+    reference: 'Hodzic et al., 2018, Emotion Review',
+  },
 ]
 
 // ══════════════════════════════════════════════════════
@@ -146,4 +158,60 @@ export function getTriggeredInsights(report: SectionReport, scores: Record<strin
     const score = scores[ins.questionId]
     return score !== undefined && score <= ins.threshold
   })
+}
+
+// ══════════════════════════════════════════════════════
+// Full Report Generator
+// ══════════════════════════════════════════════════════
+
+export interface StrengthItem { sectionId: string; title: string; pct: number; praise: string; science: string; reference: string }
+export interface WeaknessItem { sectionId: string; title: string; pct: number; level: string; concern: string; science: string; reference: string; triggeredInsights: { questionId: string; insight: string; recommendation: string }[] }
+export interface ActionPhase { phase: number; phaseTitle: string; timeframe: string; actions: { action: string; why: string; sectionId: string }[] }
+
+export function generateFullReport(
+  sectionResults: { sectionId: string; pct: number; score: number; maxScore: number; title: string }[],
+  scores: Record<string, number>,
+) {
+  const strengths: StrengthItem[] = []
+  const weaknesses: WeaknessItem[] = []
+  const sectionReports = sectionResults.map(r => {
+    const report = getSectionReport(r.sectionId)
+    if (!report) return null
+    const rec = getSectionRecommendation(report, r.pct)
+    const triggered = getTriggeredInsights(report, scores)
+    return { sectionId: r.sectionId, title: r.title, pct: r.pct, score: r.score, maxScore: r.maxScore, level: rec.level, recommendationTitle: rec.title, recommendationText: rec.text, context: report.context, triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation })), references: report.references }
+  }).filter(Boolean)
+
+  for (const r of sectionResults) {
+    const report = getSectionReport(r.sectionId)
+    if (!report) continue
+    const rec = getSectionRecommendation(report, r.pct)
+    const triggered = getTriggeredInsights(report, scores)
+    const ref0 = report.references[0] ? `${report.references[0].authors.split(',')[0]} et al., ${report.references[0].year}` : ''
+    if (r.pct >= 60) {
+      strengths.push({ sectionId: r.sectionId, title: r.title, pct: r.pct, praise: rec.text, science: report.context.split('.').slice(0, 2).join('.') + '.', reference: ref0 })
+    } else {
+      weaknesses.push({ sectionId: r.sectionId, title: r.title, pct: r.pct, level: rec.level, concern: rec.text, science: report.context, reference: ref0, triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation })) })
+    }
+  }
+  weaknesses.sort((a, b) => a.pct - b.pct)
+
+  const phase1: { action: string; why: string; sectionId: string }[] = []
+  const phase2: { action: string; why: string; sectionId: string }[] = []
+  for (const w of weaknesses) {
+    for (const ti of w.triggeredInsights) {
+      const short = ti.recommendation.split('.').slice(0, 2).join('.') + '.'
+      if (w.pct < 30) phase1.push({ action: short, why: ti.insight, sectionId: w.sectionId })
+      else phase2.push({ action: short, why: ti.insight, sectionId: w.sectionId })
+    }
+    if (w.triggeredInsights.length === 0) {
+      phase1.push({ action: w.concern.split('.').slice(0, 2).join('.') + '.', why: `Score ${w.title} : ${w.pct}%`, sectionId: w.sectionId })
+    }
+  }
+  const actionPlan: ActionPhase[] = []
+  if (phase1.length > 0) actionPlan.push({ phase: 1, phaseTitle: 'Actions immédiates', timeframe: 'Semaines 1-2', actions: phase1.slice(0, 5) })
+  if (phase2.length > 0) actionPlan.push({ phase: 2, phaseTitle: 'Consolidation', timeframe: 'Semaines 3-6', actions: phase2.slice(0, 5) })
+  if (actionPlan.length === 0) actionPlan.push({ phase: 1, phaseTitle: 'Maintien des acquis', timeframe: 'En continu', actions: [{ action: 'Continuez à cultiver votre équilibre émotionnel.', why: 'Vos scores sont bons — maintenez vos pratiques actuelles.', sectionId: '' }] })
+
+  return { strengths, weaknesses, actionPlan, globalInsights: globalKeyInsights, sectionReports }
 }

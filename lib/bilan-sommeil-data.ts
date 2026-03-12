@@ -66,8 +66,8 @@ const profileScoring: ScoreOption[] = [
 // ══════════════════════════════════════════════════════
 const troublesSommeil: TestSection = {
   id: 'troubles-sommeil',
-  title: 'Troubles du sommeil',
-  subtitle: 'Fréquence des perturbations nocturnes',
+  title: 'Vos nuits',
+  subtitle: 'À quelle fréquence votre sommeil est-il perturbé ?',
   icon: 'troubles',
   description:
     'Ces questions évaluent la fréquence de vos difficultés de sommeil au cours du dernier mois. Répondez le plus honnêtement possible.',
@@ -148,8 +148,8 @@ const troublesSommeil: TestSection = {
 // ══════════════════════════════════════════════════════
 const qualiteImpact: TestSection = {
   id: 'qualite-impact',
-  title: 'Qualité & Impact',
-  subtitle: 'Perception et conséquences diurnes',
+  title: 'Comment vous dormez',
+  subtitle: 'Votre ressenti au réveil et dans la journée',
   icon: 'quality',
   description:
     'Ces questions évaluent votre perception globale de la qualité de votre sommeil et son impact sur vos activités quotidiennes.',
@@ -203,8 +203,8 @@ const qualiteImpact: TestSection = {
 // ══════════════════════════════════════════════════════
 const hygieneSommeil: TestSection = {
   id: 'hygiene-sommeil',
-  title: 'Hygiène du sommeil',
-  subtitle: 'Habitudes et comportements',
+  title: 'Vos habitudes avant de dormir',
+  subtitle: 'Écrans, caféine, routine du soir…',
   icon: 'hygiene',
   description:
     'Ces questions évaluent vos habitudes et comportements qui peuvent affecter la qualité de votre sommeil. Répondez en pensant à un mois typique.',
@@ -295,8 +295,8 @@ const hygieneSommeil: TestSection = {
 // ══════════════════════════════════════════════════════
 const profilComplementaire: TestSection = {
   id: 'profil-complementaire',
-  title: 'Profil complémentaire',
-  subtitle: 'Signaux d\'alerte et terrain physiologique',
+  title: 'Signaux à surveiller',
+  subtitle: 'Ronflements, apnées, jambes sans repos…',
   icon: 'profile',
   description:
     'Ces questions permettent de détecter des troubles spécifiques (hyperéveil, apnées, jambes sans repos) et d\'affiner votre profil sommeil.',

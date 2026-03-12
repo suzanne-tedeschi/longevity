@@ -21,7 +21,7 @@ import {
   Activity, Moon, Apple, Brain, Dumbbell, Heart, RefreshCw, Plus, X,
   Timer, Zap, Shield, Leaf, Microscope, Lightbulb, ArrowRight, GripVertical,
   Dna, Clock, Wind, Recycle, Bug, Radio, Sprout, Ban, LayoutGrid, Columns3, CalendarDays,
-  MessageCircle,
+  MessageCircle, CheckCircle, AlertTriangle,
 } from "lucide-react"
 import css from "./bilans.module.css"
 
@@ -85,12 +85,55 @@ interface BilanResult {
       references: { authors: string; title: string; journal: string; year: number; doi?: string; pmid?: string }[]
     }[]
     globalInsights?: { title: string; description: string; reference: string }[]
+    // New structured format
+    strengths?: { sectionId: string; title: string; pct: number; praise: string; science: string; reference: string }[]
+    weaknesses?: { sectionId: string; title: string; pct: number; level: string; concern: string; science: string; reference: string; triggeredInsights: { questionId: string; insight: string; recommendation: string }[] }[]
+    actionPlan?: { phase: number; phaseTitle: string; timeframe: string; actions: { action: string; why: string; sectionId: string }[] }[]
   }
   completed_at: string
   /* progression tracking */
   previous_score: number | null
   delta: number | null
   attempt: number
+}
+
+/* ─── section title overrides (so old saved data shows current labels) ─── */
+const SECTION_TITLE_MAP: Record<string, string> = {
+  // Sommeil
+  'troubles-sommeil': 'Vos nuits',
+  'qualite-impact': 'Comment vous dormez',
+  'hygiene-sommeil': 'Vos habitudes avant de dormir',
+  'profil-complementaire': 'Signaux à surveiller',
+  // Stress
+  'ghq-12': 'Bien-être mental',
+  'cd-risc': 'Résilience mentale',
+  'pss': 'Stress perçu',
+  'fatigue': 'Niveau de fatigue',
+  // Émotionnel
+  'b-panas': 'État émotionnel',
+  'satisfaction-vie': 'Satisfaction de vie',
+  // Mobilité
+  'mobilite-statique': 'Mobilité statique',
+  'mobilite-active': 'Mobilité active',
+  'proprioception': 'Proprioception',
+  'gainage': 'Gainage',
+  'prepa-physique': 'Prépa physique',
+  // Digestif
+  'reflux': 'Reflux',
+  'douleurs-abdominales': 'Douleurs abdominales',
+  'indigestion': 'Indigestion',
+  'diarrhee': 'Diarrhée',
+  'constipation': 'Constipation',
+  // Nutrition (alimentaire)
+  'habitudes-generales': 'Habitudes générales',
+  'macronutriments': 'Macronutriments',
+  'micronutriments': 'Micronutriments',
+  'ultra-transformes': 'Ultra-transformés',
+  'inflammatoire': 'Inflammatoire',
+  'bonus-sante': 'Bonus santé',
+}
+function sectionTitle(id: string, fallback: string) {
+  return SECTION_TITLE_MAP[id] ?? fallback
 }
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8) // 8h-20h compact
@@ -590,16 +633,16 @@ export default function BilansPage() {
                     {isOpen && report && (
                       <div className="px-6 pb-6 space-y-6 animate-fade-in border-t border-[#1a1a1a]/[0.06]">
 
-                        {/* 1. Bilan global */}
+                        {/* ═══ SECTION 1 — Scores & KPIs ═══ */}
                         <div className="pt-5">
                           <div className="flex items-center gap-2 mb-4">
                             <div className="w-7 h-7 rounded-lg bg-[#2D6A4F]/10 flex items-center justify-center">
                               <ClipboardList className="w-3.5 h-3.5 text-[#2D6A4F]" />
                             </div>
-                            <h4 className="text-sm font-bold text-[#1a1a1a]">1. Bilan global</h4>
+                            <h4 className="text-sm font-bold text-[#1a1a1a]">1. Vos scores</h4>
                           </div>
 
-                          {/* Sub-score bars */}
+                          {/* Sub-score bars (nutrition dual) */}
                           {subScores?.digestif && subScores?.alimentaire && (
                             <div className="grid grid-cols-2 gap-3 mb-4">
                               <div className="bg-[#2D6A4F]/[0.04] rounded-xl p-4 text-center">
@@ -620,7 +663,7 @@ export default function BilansPage() {
                             <div className="space-y-2">
                               {result.section_results.map(sr => (
                                 <div key={sr.sectionId} className="flex items-center gap-3">
-                                  <span className="text-[11px] text-[#1a1a1a]/50 w-28 truncate">{sr.title}</span>
+                                  <span className="text-[11px] text-[#1a1a1a]/50 w-28 truncate">{sectionTitle(sr.sectionId, sr.title)}</span>
                                   <div className="flex-1 h-2 bg-[#1a1a1a]/[0.04] rounded-full overflow-hidden">
                                     <div
                                       className="h-full rounded-full transition-all duration-700"
@@ -637,145 +680,314 @@ export default function BilansPage() {
                           )}
                         </div>
 
-                        {/* 2. Knowledge scientifique */}
-                        <div>
-                          <div className="flex items-center gap-2 mb-4">
-                            <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center">
-                              <Microscope className="w-3.5 h-3.5 text-purple-600" />
-                            </div>
-                            <h4 className="text-sm font-bold text-[#1a1a1a]">2. Connaissances scientifiques</h4>
-                          </div>
-
-                          {/* Global insights */}
-                          {report.globalInsights && report.globalInsights.length > 0 && (
-                            <div className="space-y-2 mb-4">
-                              {report.globalInsights.map((insight, i) => (
-                                <div key={i} className="bg-gradient-to-br from-[#FAF8F5] to-white border border-[#1a1a1a]/[0.06] rounded-xl p-4">
-                                  <h5 className="text-xs font-bold text-[#1a1a1a] mb-1">{insight.title}</h5>
-                                  <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed mb-1.5">{insight.description}</p>
-                                  <p className="text-[10px] text-[#2D6A4F]/50 italic">{insight.reference}</p>
+                        {/* ═══ NEW FORMAT: Strengths / Weaknesses / Action Plan ═══ */}
+                        {report.strengths && report.weaknesses && report.actionPlan ? (
+                          <>
+                            {/* ═══ SECTION 2 — Ce que vous faites bien ═══ */}
+                            {report.strengths.length > 0 && (
+                              <div>
+                                <div className="flex items-center gap-2 mb-4">
+                                  <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+                                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                                  </div>
+                                  <h4 className="text-sm font-bold text-[#1a1a1a]">2. Ce que vous faites bien</h4>
                                 </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Per-section detailed reports */}
-                          {report.sectionReports && report.sectionReports.length > 0 && (
-                            <div className="space-y-2">
-                              {report.sectionReports.map(sr => {
-                                const lc = levelColor(sr.level)
-                                const isExpSec = expandedSections.has(sr.sectionId)
-                                return (
-                                  <div key={sr.sectionId} className={`rounded-xl border overflow-hidden ${lc.border} ${lc.bg}`}>
-                                    <button
-                                      onClick={() => setExpandedSections(prev => {
-                                        const next = new Set(prev)
-                                        if (next.has(sr.sectionId)) next.delete(sr.sectionId); else next.add(sr.sectionId)
-                                        return next
-                                      })}
-                                      className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-white/30 transition-colors"
-                                    >
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                          <h5 className="text-xs font-semibold text-[#1a1a1a]">{sr.title}</h5>
-                                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${lc.badge}`}>
-                                            {sr.recommendationTitle}
-                                          </span>
-                                          <span className="text-[10px] text-[#1a1a1a]/30 ml-auto tabular-nums">{sr.pct}%</span>
-                                        </div>
+                                <div className="space-y-3">
+                                  {report.strengths.map(s => (
+                                    <div key={s.sectionId} className="bg-gradient-to-br from-emerald-50/60 to-white border border-emerald-200/60 rounded-xl p-4">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <span className="text-xs font-bold text-emerald-700">{sectionTitle(s.sectionId, s.title)}</span>
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">{s.pct}%</span>
                                       </div>
-                                      <div className={`w-4 h-4 flex items-center justify-center transition-transform duration-200 ${isExpSec ? 'rotate-90' : ''}`}>
-                                        <ChevronRight className="w-3 h-3 text-[#1a1a1a]/25" />
+                                      <p className="text-[11px] text-[#1a1a1a]/60 leading-relaxed mb-2">{s.praise}</p>
+                                      <div className="bg-white/80 rounded-lg p-3 border border-emerald-100">
+                                        <p className="text-[10px] font-semibold tracking-widest uppercase text-emerald-600/50 mb-1">Pourquoi c&apos;est important</p>
+                                        <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed">{s.science}</p>
+                                        {s.reference && <p className="text-[9px] text-emerald-600/40 italic mt-1">{s.reference}</p>}
                                       </div>
-                                    </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
 
-                                    {isExpSec && (
-                                      <div className="px-4 pb-4 space-y-3 animate-fade-in">
-                                        {/* Context */}
-                                        <div className="bg-white/60 rounded-lg p-3">
-                                          <p className="text-[10px] font-semibold tracking-widest uppercase text-[#1a1a1a]/25 mb-1">Contexte scientifique</p>
-                                          <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed">{sr.context}</p>
-                                        </div>
-
-                                        {/* Recommendation */}
-                                        <div className="bg-white/80 rounded-lg p-3 border border-[#1a1a1a]/[0.05]">
-                                          <div className="flex items-center gap-1.5 mb-1.5">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${lc.dot}`} />
-                                            <p className="text-[11px] font-bold text-[#1a1a1a]">{sr.recommendationTitle}</p>
+                            {/* ═══ SECTION 3 — Ce qu'il faut améliorer ═══ */}
+                            {report.weaknesses.length > 0 && (
+                              <div>
+                                <div className="flex items-center gap-2 mb-4">
+                                  <div className="w-7 h-7 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center">
+                                    <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
+                                  </div>
+                                  <h4 className="text-sm font-bold text-[#1a1a1a]">{report.strengths.length > 0 ? '3' : '2'}. Points d&apos;amélioration</h4>
+                                </div>
+                                <div className="space-y-3">
+                                  {report.weaknesses.map(w => {
+                                    const isAlert = w.level === 'faible' || w.level === 'alerte'
+                                    const isExpW = expandedSections.has(`w-${w.sectionId}`)
+                                    return (
+                                      <div key={w.sectionId} className={`rounded-xl border overflow-hidden ${isAlert ? 'bg-red-50/50 border-red-200/60' : 'bg-amber-50/50 border-amber-200/60'}`}>
+                                        <button
+                                          onClick={() => setExpandedSections(prev => {
+                                            const next = new Set(prev)
+                                            const key = `w-${w.sectionId}`
+                                            if (next.has(key)) next.delete(key); else next.add(key)
+                                            return next
+                                          })}
+                                          className="w-full text-left px-4 py-3.5 flex items-center gap-3 hover:bg-white/30 transition-colors"
+                                        >
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                              <span className="text-xs font-bold text-[#1a1a1a]">{sectionTitle(w.sectionId, w.title)}</span>
+                                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isAlert ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                {w.pct}%
+                                              </span>
+                                            </div>
+                                            <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed line-clamp-2">{w.concern}</p>
                                           </div>
-                                          <p className="text-[11px] text-[#1a1a1a]/60 leading-relaxed">{sr.recommendationText}</p>
-                                        </div>
+                                          <div className={`w-4 h-4 flex items-center justify-center transition-transform duration-200 ${isExpW ? 'rotate-90' : ''}`}>
+                                            <ChevronRight className="w-3 h-3 text-[#1a1a1a]/25" />
+                                          </div>
+                                        </button>
 
-                                        {/* Triggered insights */}
-                                        {sr.triggeredInsights && sr.triggeredInsights.length > 0 && (
-                                          <div className="space-y-1.5">
-                                            <p className="text-[9px] font-semibold tracking-widest uppercase text-[#1a1a1a]/25">Points d&apos;attention</p>
-                                            {sr.triggeredInsights.map(ti => (
-                                              <div key={ti.questionId} className="bg-white rounded-lg p-3 border border-[#1a1a1a]/[0.06]">
-                                                <p className="text-[11px] font-semibold text-[#1a1a1a] mb-1 flex items-center gap-1.5">
-                                                  <span className="w-1 h-1 rounded-full bg-amber-400 flex-shrink-0" /> {ti.insight}
-                                                </p>
-                                                <p className="text-[10px] text-[#1a1a1a]/50 leading-relaxed pl-2.5">{ti.recommendation}</p>
+                                        {isExpW && (
+                                          <div className="px-4 pb-4 space-y-3 animate-fade-in">
+                                            {/* Science behind it */}
+                                            <div className="bg-white/70 rounded-lg p-3 border border-[#1a1a1a]/[0.05]">
+                                              <p className="text-[10px] font-semibold tracking-widest uppercase text-[#1a1a1a]/25 mb-1">La science derrière</p>
+                                              <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed">{w.science}</p>
+                                              {w.reference && <p className="text-[9px] text-[#2D6A4F]/40 italic mt-1.5">{w.reference}</p>}
+                                            </div>
+
+                                            {/* Triggered insights — specific problems detected */}
+                                            {w.triggeredInsights && w.triggeredInsights.length > 0 && (
+                                              <div className="space-y-1.5">
+                                                <p className="text-[9px] font-semibold tracking-widest uppercase text-[#1a1a1a]/25">Problèmes détectés</p>
+                                                {w.triggeredInsights.map(ti => (
+                                                  <div key={ti.questionId} className="bg-white rounded-lg p-3 border border-[#1a1a1a]/[0.06]">
+                                                    <p className="text-[11px] font-semibold text-[#1a1a1a] mb-1 flex items-center gap-1.5">
+                                                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isAlert ? 'bg-red-400' : 'bg-amber-400'}`} />
+                                                      {ti.insight}
+                                                    </p>
+                                                    <p className="text-[10px] text-[#1a1a1a]/50 leading-relaxed pl-3">{ti.recommendation}</p>
+                                                  </div>
+                                                ))}
                                               </div>
-                                            ))}
+                                            )}
                                           </div>
                                         )}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            )}
 
-                                        {/* References */}
-                                        {sr.references && sr.references.length > 0 && (
-                                          <div>
-                                            <p className="text-[9px] font-semibold tracking-widest uppercase text-[#1a1a1a]/25 mb-1.5">Références</p>
-                                            <div className="space-y-1">
-                                              {sr.references.map((ref: { authors: string; title: string; journal: string; year: number; pmid?: string }, i: number) => (
-                                                <p key={i} className="text-[9px] text-[#1a1a1a]/30 leading-relaxed">
-                                                  <span className="text-[#2D6A4F]/40 font-mono">[{i + 1}]</span> {ref.authors}. &ldquo;{ref.title}&rdquo; <em>{ref.journal}</em> ({ref.year}).
-                                                  {ref.pmid && <span className="text-[#2D6A4F]/40"> PMID: {ref.pmid}</span>}
-                                                </p>
-                                              ))}
+                            {/* ═══ SECTION 4 — Plan d'action ═══ */}
+                            <div>
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center">
+                                  <Lightbulb className="w-3.5 h-3.5 text-blue-600" />
+                                </div>
+                                <h4 className="text-sm font-bold text-[#1a1a1a]">
+                                  {(report.strengths.length > 0 && report.weaknesses.length > 0) ? '4' : report.strengths.length > 0 || report.weaknesses.length > 0 ? '3' : '2'}. Plan d&apos;action
+                                </h4>
+                              </div>
+
+                              <div className="space-y-4">
+                                {report.actionPlan.map(phase => (
+                                  <div key={phase.phase}>
+                                    <div className="flex items-center gap-2 mb-2.5">
+                                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                                        phase.phase === 1 ? 'bg-blue-100 text-blue-700'
+                                          : phase.phase === 2 ? 'bg-purple-100 text-purple-700'
+                                          : 'bg-amber-100 text-amber-700'
+                                      }`}>
+                                        {phase.phase}
+                                      </div>
+                                      <div>
+                                        <p className="text-xs font-bold text-[#1a1a1a]">{phase.phaseTitle}</p>
+                                        <p className="text-[10px] text-[#1a1a1a]/30">{phase.timeframe}</p>
+                                      </div>
+                                    </div>
+                                    <div className="space-y-2 ml-3 pl-5 border-l-2 border-[#1a1a1a]/[0.06]">
+                                      {phase.actions.map((action, i) => (
+                                        <div key={i} className="bg-white border border-[#1a1a1a]/[0.06] rounded-xl p-3.5">
+                                          <p className="text-[11px] text-[#1a1a1a]/70 leading-relaxed font-medium">{action.action}</p>
+                                          <p className="text-[10px] text-[#1a1a1a]/35 mt-1 italic">{action.why}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Global insights */}
+                            {report.globalInsights && report.globalInsights.length > 0 && (
+                              <div>
+                                <div className="flex items-center gap-2 mb-4">
+                                  <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center">
+                                    <Microscope className="w-3.5 h-3.5 text-purple-600" />
+                                  </div>
+                                  <h4 className="text-sm font-bold text-[#1a1a1a]">Le saviez-vous ?</h4>
+                                </div>
+                                <div className="space-y-2">
+                                  {report.globalInsights.map((insight, i) => (
+                                    <div key={i} className="bg-gradient-to-br from-[#FAF8F5] to-white border border-[#1a1a1a]/[0.06] rounded-xl p-4">
+                                      <h5 className="text-xs font-bold text-[#1a1a1a] mb-1">{insight.title}</h5>
+                                      <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed mb-1.5">{insight.description}</p>
+                                      <p className="text-[10px] text-[#2D6A4F]/50 italic">{insight.reference}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {/* ═══ LEGACY FORMAT — fallback for bilans not yet migrated ═══ */}
+
+                            {/* 2. Knowledge scientifique */}
+                            <div>
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center">
+                                  <Microscope className="w-3.5 h-3.5 text-purple-600" />
+                                </div>
+                                <h4 className="text-sm font-bold text-[#1a1a1a]">2. Connaissances scientifiques</h4>
+                              </div>
+
+                              {/* Global insights */}
+                              {report.globalInsights && report.globalInsights.length > 0 && (
+                                <div className="space-y-2 mb-4">
+                                  {report.globalInsights.map((insight, i) => (
+                                    <div key={i} className="bg-gradient-to-br from-[#FAF8F5] to-white border border-[#1a1a1a]/[0.06] rounded-xl p-4">
+                                      <h5 className="text-xs font-bold text-[#1a1a1a] mb-1">{insight.title}</h5>
+                                      <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed mb-1.5">{insight.description}</p>
+                                      <p className="text-[10px] text-[#2D6A4F]/50 italic">{insight.reference}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Per-section detailed reports */}
+                              {report.sectionReports && report.sectionReports.length > 0 && (
+                                <div className="space-y-2">
+                                  {report.sectionReports.map(sr => {
+                                    const lc = levelColor(sr.level)
+                                    const isExpSec = expandedSections.has(sr.sectionId)
+                                    return (
+                                      <div key={sr.sectionId} className={`rounded-xl border overflow-hidden ${lc.border} ${lc.bg}`}>
+                                        <button
+                                          onClick={() => setExpandedSections(prev => {
+                                            const next = new Set(prev)
+                                            if (next.has(sr.sectionId)) next.delete(sr.sectionId); else next.add(sr.sectionId)
+                                            return next
+                                          })}
+                                          className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-white/30 transition-colors"
+                                        >
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                              <h5 className="text-xs font-semibold text-[#1a1a1a]">{sectionTitle(sr.sectionId, sr.title)}</h5>
+                                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${lc.badge}`}>
+                                                {sr.recommendationTitle}
+                                              </span>
+                                              <span className="text-[10px] text-[#1a1a1a]/30 ml-auto tabular-nums">{sr.pct}%</span>
                                             </div>
                                           </div>
+                                          <div className={`w-4 h-4 flex items-center justify-center transition-transform duration-200 ${isExpSec ? 'rotate-90' : ''}`}>
+                                            <ChevronRight className="w-3 h-3 text-[#1a1a1a]/25" />
+                                          </div>
+                                        </button>
+
+                                        {isExpSec && (
+                                          <div className="px-4 pb-4 space-y-3 animate-fade-in">
+                                            {/* Context */}
+                                            <div className="bg-white/60 rounded-lg p-3">
+                                              <p className="text-[10px] font-semibold tracking-widest uppercase text-[#1a1a1a]/25 mb-1">Contexte scientifique</p>
+                                              <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed">{sr.context}</p>
+                                            </div>
+
+                                            {/* Recommendation */}
+                                            <div className="bg-white/80 rounded-lg p-3 border border-[#1a1a1a]/[0.05]">
+                                              <div className="flex items-center gap-1.5 mb-1.5">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${lc.dot}`} />
+                                                <p className="text-[11px] font-bold text-[#1a1a1a]">{sr.recommendationTitle}</p>
+                                              </div>
+                                              <p className="text-[11px] text-[#1a1a1a]/60 leading-relaxed">{sr.recommendationText}</p>
+                                            </div>
+
+                                            {/* Triggered insights */}
+                                            {sr.triggeredInsights && sr.triggeredInsights.length > 0 && (
+                                              <div className="space-y-1.5">
+                                                <p className="text-[9px] font-semibold tracking-widest uppercase text-[#1a1a1a]/25">Points d&apos;attention</p>
+                                                {sr.triggeredInsights.map(ti => (
+                                                  <div key={ti.questionId} className="bg-white rounded-lg p-3 border border-[#1a1a1a]/[0.06]">
+                                                    <p className="text-[11px] font-semibold text-[#1a1a1a] mb-1 flex items-center gap-1.5">
+                                                      <span className="w-1 h-1 rounded-full bg-amber-400 flex-shrink-0" /> {ti.insight}
+                                                    </p>
+                                                    <p className="text-[10px] text-[#1a1a1a]/50 leading-relaxed pl-2.5">{ti.recommendation}</p>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            )}
+
+                                            {/* References */}
+                                            {sr.references && sr.references.length > 0 && (
+                                              <div>
+                                                <p className="text-[9px] font-semibold tracking-widest uppercase text-[#1a1a1a]/25 mb-1.5">Références</p>
+                                                <div className="space-y-1">
+                                                  {sr.references.map((ref: { authors: string; title: string; journal: string; year: number; pmid?: string }, i: number) => (
+                                                    <p key={i} className="text-[9px] text-[#1a1a1a]/30 leading-relaxed">
+                                                      <span className="text-[#2D6A4F]/40 font-mono">[{i + 1}]</span> {ref.authors}. &ldquo;{ref.title}&rdquo; <em>{ref.journal}</em> ({ref.year}).
+                                                      {ref.pmid && <span className="text-[#2D6A4F]/40"> PMID: {ref.pmid}</span>}
+                                                    </p>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
                                         )}
                                       </div>
-                                    )}
-                                  </div>
-                                )
-                              })}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* 3. Next steps */}
-                        <div>
-                          <div className="flex items-center gap-2 mb-4">
-                            <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
-                              <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
-                            </div>
-                            <h4 className="text-sm font-bold text-[#1a1a1a]">3. Prochaines etapes</h4>
-                          </div>
-
-                          {report.topActions && report.topActions.length > 0 ? (
-                            <div className="space-y-2">
-                              {report.topActions.map(action => (
-                                <div key={action.priority} className={`flex items-start gap-3 p-3.5 rounded-xl border ${
-                                  action.level === 'alerte'
-                                    ? 'bg-red-50/50 border-red-200'
-                                    : 'bg-amber-50/50 border-amber-200'
-                                }`}>
-                                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold ${
-                                    action.level === 'alerte'
-                                      ? 'bg-red-100 text-red-600'
-                                      : 'bg-amber-100 text-amber-700'
-                                  }`}>
-                                    {action.priority}
-                                  </div>
-                                  <p className="text-[11px] text-[#1a1a1a]/70 leading-relaxed flex-1">{action.action}</p>
+                                    )
+                                  })}
                                 </div>
-                              ))}
+                              )}
                             </div>
-                          ) : (
-                            <p className="text-xs text-emerald-600 font-medium">Excellent ! Pas d&apos;action prioritaire — maintenez vos bonnes habitudes.</p>
-                          )}
-                        </div>
+
+                            {/* 3. Next steps (legacy) */}
+                            <div>
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
+                                  <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
+                                </div>
+                                <h4 className="text-sm font-bold text-[#1a1a1a]">3. Prochaines étapes</h4>
+                              </div>
+
+                              {report.topActions && report.topActions.length > 0 ? (
+                                <div className="space-y-2">
+                                  {report.topActions.map(action => (
+                                    <div key={action.priority} className={`flex items-start gap-3 p-3.5 rounded-xl border ${
+                                      action.level === 'alerte'
+                                        ? 'bg-red-50/50 border-red-200'
+                                        : 'bg-amber-50/50 border-amber-200'
+                                    }`}>
+                                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold ${
+                                        action.level === 'alerte'
+                                          ? 'bg-red-100 text-red-600'
+                                          : 'bg-amber-100 text-amber-700'
+                                      }`}>
+                                        {action.priority}
+                                      </div>
+                                      <p className="text-[11px] text-[#1a1a1a]/70 leading-relaxed flex-1">{action.action}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-emerald-600 font-medium">Excellent ! Pas d&apos;action prioritaire — maintenez vos bonnes habitudes.</p>
+                              )}
+                            </div>
+                          </>
+                        )}
 
                         {/* Disclaimer */}
                         <div className="bg-[#1a1a1a]/[0.02] border border-[#1a1a1a]/[0.06] rounded-lg p-3 mt-2">
