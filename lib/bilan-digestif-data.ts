@@ -40,12 +40,13 @@ export interface ScoreInterpretation {
 
 // ── Standard scoring grid (GSRS adapted) ──
 // Original: 0=aucun inconfort ... 100=très sévère
-// Reversed to: 3=aucun inconfort (best) ... 0=sévère (worst)
+// 0=aucun inconfort (best) ... 100=sévère (worst)
 const gsrsScoring: ScoreOption[] = [
-  { value: 0, label: 'Inconfort sévère', description: 'Gêne importante, fréquente, limitant vos activités' },
-  { value: 1, label: 'Inconfort modéré', description: 'Gêne régulière, commence à perturber le quotidien' },
-  { value: 2, label: 'Gêne légère', description: 'Gêne occasionnelle, sans impact majeur' },
-  { value: 3, label: 'Aucun inconfort', description: 'Pas de gêne du tout au cours de la semaine' },
+  { value: 0, label: 'Aucun inconfort du tout', description: '' },
+  { value: 25, label: 'Inconfort occasionnel, sans impact sur votre quotidien', description: '' },
+  { value: 50, label: 'Inconfort perceptible mais supportable', description: '' },
+  { value: 75, label: 'Inconfort fréquent, limitant vos activités', description: '' },
+  { value: 100, label: 'Inconfort constant ou très difficile à supporter', description: '' },
 ]
 
 // ══════════════════════════════════════════════════════
@@ -58,7 +59,7 @@ const reflux: TestSection = {
   icon: 'reflux',
   description:
     'Ces questions évaluent la présence et la sévérité de symptômes de reflux acide au cours de la dernière semaine.',
-  maxScore: 6,
+  maxScore: 200,
   tests: [
     {
       id: 'ref-1',
@@ -88,7 +89,7 @@ const douleursAbdominales: TestSection = {
   icon: 'pain',
   description:
     'Ces questions portent sur les douleurs ou gênes ressenties au niveau de l\'abdomen au cours de la dernière semaine.',
-  maxScore: 9,
+  maxScore: 300,
   tests: [
     {
       id: 'doul-1',
@@ -125,7 +126,7 @@ const indigestion: TestSection = {
   icon: 'indigestion',
   description:
     'Ces questions évaluent les symptômes liés à la digestion : ballonnements, gargouillements et flatulences au cours de la dernière semaine.',
-  maxScore: 12,
+  maxScore: 400,
   tests: [
     {
       id: 'ind-1',
@@ -169,7 +170,7 @@ const diarrhee: TestSection = {
   icon: 'transit',
   description:
     'Ces questions évaluent les symptômes liés à un transit accéléré au cours de la dernière semaine.',
-  maxScore: 9,
+  maxScore: 300,
   tests: [
     {
       id: 'dia-1',
@@ -206,7 +207,7 @@ const constipation: TestSection = {
   icon: 'constipation',
   description:
     'Ces questions évaluent les symptômes liés à un transit ralenti au cours de la dernière semaine.',
-  maxScore: 9,
+  maxScore: 300,
   tests: [
     {
       id: 'con-1',

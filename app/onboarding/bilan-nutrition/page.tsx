@@ -272,11 +272,17 @@ function ScoreButton({ value, label, description, selected, onSelect, maxOptionV
       }`}
     >
       <div className="flex items-center gap-3">
-        <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-          selected ? `${colors.bg} ${colors.text} ${colors.border} border` : 'bg-[#1a1a1a]/[0.04] text-[#1a1a1a]/40 border border-[#1a1a1a]/[0.1]'
-        }`}>
-          {maxOptionValue <= 1 ? (label === 'Oui' ? '✓' : '✗') : value}
-        </div>
+        {maxOptionValue <= 1 ? (
+          <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+            selected ? `${colors.bg} ${colors.text} ${colors.border} border` : 'bg-[#1a1a1a]/[0.04] text-[#1a1a1a]/40 border border-[#1a1a1a]/[0.1]'
+          }`}>
+            {label === 'Oui' ? '✓' : '✗'}
+          </div>
+        ) : (
+          <div className={`flex-shrink-0 w-3 h-3 rounded-full transition-all duration-300 ${
+            selected ? `${colors.bg} border-2 ${colors.border}` : 'bg-[#1a1a1a]/[0.1] border-2 border-transparent'
+          }`} />
+        )}
         <div className="flex-1 min-w-0">
           <p className={`font-semibold text-sm transition-colors duration-300 ${selected ? colors.text : 'text-[#1a1a1a]'}`}>{label}</p>
         </div>
@@ -617,7 +623,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
     return { section, score }
   })
   const digestifTotal = digestifResults.reduce((sum, r) => sum + r.score, 0)
-  const digestifPct = Math.round((digestifTotal / digestifMaxScore) * 100)
+  const digestifPct = Math.round(((digestifMaxScore - digestifTotal) / digestifMaxScore) * 100)
   const digestifInfo = getDigestifLabel(digestifPct)
 
   // Alimentaire sub-score
@@ -629,8 +635,8 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   const alimentairePct = Math.round((alimentaireTotal / alimentaireMaxScore) * 100)
   const alimentaireInfo = getOverallLabel(alimentairePct)
 
-  // Global score
-  const globalTotal = digestifTotal + alimentaireTotal
+  // Global score — digestif is inverted (0=best), so convert to positive before summing
+  const globalTotal = (digestifMaxScore - digestifTotal) + alimentaireTotal
   const globalPct = Math.round((globalTotal / totalMaxScore) * 100)
   const globalInfo = getOverallLabel(globalPct)
 
@@ -645,16 +651,13 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   const globalInterpretation = findInterpretation(globalPct, nutritionInterpretations)
 
   // All section results for report
-  const allResults = [...digestifResults, ...alimentaireResults].map(({ section, score }) => ({
-    sectionId: section.id,
-    pct: Math.round((score / section.maxScore) * 100),
-    score,
-    maxScore: section.maxScore,
-    title: section.title,
-    subtitle: section.subtitle,
-    icon: section.icon,
-    isDigestif: digestifSections.some(s => s.id === section.id),
-  }))
+  const allResults = [...digestifResults, ...alimentaireResults].map(({ section, score }) => {
+    const isDigestif = digestifSections.some(s => s.id === section.id)
+    const pct = isDigestif
+      ? Math.round(((section.maxScore - score) / section.maxScore) * 100)
+      : Math.round((score / section.maxScore) * 100)
+    return { sectionId: section.id, pct, score, maxScore: section.maxScore, title: section.title, subtitle: section.subtitle, icon: section.icon, isDigestif }
+  })
 
   const topActions = useMemo(() => generateTopActions(
     allResults.map(r => ({ sectionId: r.sectionId, pct: r.pct, score: r.score, maxScore: r.maxScore })),
@@ -1178,7 +1181,7 @@ export default function BilanNutritionPage() {
 
   const digestifPctValue = useMemo(() => {
     const total = digestifSections.reduce((sum, s) => sum + s.tests.reduce((a, t) => a + (scores[t.id] ?? 0), 0), 0)
-    return digestifMaxScore > 0 ? Math.round((total / digestifMaxScore) * 100) : 0
+    return digestifMaxScore > 0 ? Math.round(((digestifMaxScore - total) / digestifMaxScore) * 100) : 0
   }, [scores])
 
   const partLabel = activePart === 'alimentaire' ? 'Alimentaire' : 'Digestif'

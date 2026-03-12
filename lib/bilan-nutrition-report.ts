@@ -28,8 +28,10 @@ export interface SectionReport {
   /** Recommandations spécifiques par question (si score problématique) */
   questionInsights: {
     questionId: string
-    /** Score ≤ seuil → insight s'active */
-    triggerMaxScore: number
+    /** Score ≤ seuil → insight s'active (for positive-scored questions: lower = worse) */
+    triggerMaxScore?: number
+    /** Score ≥ seuil → insight s'active (for inverted-scored questions: higher = worse, e.g. digestif 0=best) */
+    triggerMinScore?: number
     insight: string
     recommendation: string
   }[]
@@ -52,8 +54,8 @@ const refluxReport: SectionReport = {
     { maxPct: 100, level: 'excellent', title: 'Pas de reflux', text: 'Aucun signe de reflux gastro-œsophagien. Excellent indicateur de santé digestive haute.' },
   ],
   questionInsights: [
-    { questionId: 'ref-1', triggerMaxScore: 1, insight: 'Vos brûlures d\'estomac sont fréquentes.', recommendation: 'Évitez les aliments triggers : tomate, agrumes, café, menthe, chocolat, alcool. Les IPP ne doivent être pris que sous supervision médicale. Des alternatives naturelles (réglisse déglycyrrhizinée, gel d\'aloe vera) montrent une efficacité dans les formes légères.' },
-    { questionId: 'ref-2', triggerMaxScore: 1, insight: 'Vous présentez des régurgitations acides fréquentes.', recommendation: 'La surélévation de la tête de lit (15 cm) réduit le reflux nocturne de 67 % (Khan et al., 2012). Évitez de manger dans les 3 heures précédant le coucher.' },
+    { questionId: 'ref-1', triggerMinScore: 75, insight: 'Vos brûlures d\'estomac sont fréquentes.', recommendation: 'Évitez les aliments triggers : tomate, agrumes, café, menthe, chocolat, alcool. Les IPP ne doivent être pris que sous supervision médicale. Des alternatives naturelles (réglisse déglycyrrhizinée, gel d\'aloe vera) montrent une efficacité dans les formes légères.' },
+    { questionId: 'ref-2', triggerMinScore: 75, insight: 'Vous présentez des régurgitations acides fréquentes.', recommendation: 'La surélévation de la tête de lit (15 cm) réduit le reflux nocturne de 67 % (Khan et al., 2012). Évitez de manger dans les 3 heures précédant le coucher.' },
   ],
   references: [
     { authors: 'Kaltenbach T, Crockett S, Gerson LB', title: 'Are lifestyle measures effective in patients with gastroesophageal reflux disease?', journal: 'Arch Intern Med', year: 2006, doi: '10.1001/archinte.166.9.965', pmid: '16682569' },
@@ -73,9 +75,9 @@ const douleursReport: SectionReport = {
     { maxPct: 100, level: 'excellent', title: 'Pas de douleur', text: 'Absence de douleur abdominale. Bon indicateur de santé digestive.' },
   ],
   questionInsights: [
-    { questionId: 'doul-1', triggerMaxScore: 1, insight: 'Douleurs fréquentes au niveau de l\'estomac.', recommendation: 'Une douleur épigastrique récurrente peut évoquer une gastrite, un ulcère ou une dyspepsie fonctionnelle. Consultez un gastro-entérologue si les symptômes persistent > 4 semaines. En première intention : fractionnez vos repas et évitez les AINS.' },
-    { questionId: 'doul-2', triggerMaxScore: 1, insight: 'Douleurs de faim fréquentes.', recommendation: 'Les douleurs de faim récurrentes évoquent une instabilité glycémique ou une gastrite à H. pylori. Assurez-vous de consommer des protéines + fibres à chaque repas pour stabiliser la glycémie. Un test respiratoire H. pylori peut être indiqué.' },
-    { questionId: 'doul-3', triggerMaxScore: 1, insight: 'Nausées fréquentes.', recommendation: 'Les nausées chroniques peuvent être liées au stress, à un retard de vidange gastrique, ou à une intolérance alimentaire. Le gingembre (1 g/jour) a montré une efficacité anti-nauséeuse dans plusieurs essais (Viljoen et al., 2014).' },
+    { questionId: 'doul-1', triggerMinScore: 75, insight: 'Douleurs fréquentes au niveau de l\'estomac.', recommendation: 'Une douleur épigastrique récurrente peut évoquer une gastrite, un ulcère ou une dyspepsie fonctionnelle. Consultez un gastro-entérologue si les symptômes persistent > 4 semaines. En première intention : fractionnez vos repas et évitez les AINS.' },
+    { questionId: 'doul-2', triggerMinScore: 75, insight: 'Douleurs de faim fréquentes.', recommendation: 'Les douleurs de faim récurrentes évoquent une instabilité glycémique ou une gastrite à H. pylori. Assurez-vous de consommer des protéines + fibres à chaque repas pour stabiliser la glycémie. Un test respiratoire H. pylori peut être indiqué.' },
+    { questionId: 'doul-3', triggerMinScore: 75, insight: 'Nausées fréquentes.', recommendation: 'Les nausées chroniques peuvent être liées au stress, à un retard de vidange gastrique, ou à une intolérance alimentaire. Le gingembre (1 g/jour) a montré une efficacité anti-nauséeuse dans plusieurs essais (Viljoen et al., 2014).' },
   ],
   references: [
     { authors: 'Mayer EA, Tillisch K, Gupta A', title: 'Gut/brain axis and the microbiota', journal: 'J Clin Invest', year: 2015, doi: '10.1172/JCI76304', pmid: '25664848' },
@@ -95,8 +97,8 @@ const indigestionReport: SectionReport = {
     { maxPct: 100, level: 'excellent', title: 'Digestion excellente', text: 'Aucun trouble d\'indigestion. Votre microbiote semble en bonne santé.' },
   ],
   questionInsights: [
-    { questionId: 'ind-2', triggerMaxScore: 1, insight: 'Ballonnements fréquents.', recommendation: 'Les ballonnements chroniques sont le symptôme n°1 de dysbiose. Intégrez des prébiotiques (FOS, inuline en petite dose croissante) et des probiotiques. Si les ballonnements surviennent < 30 min après le repas → cause gastrique probable ; si > 2h → fermentation colique.' },
-    { questionId: 'ind-4', triggerMaxScore: 1, insight: 'Flatulences excessives.', recommendation: 'Des flatulences fréquentes indiquent une fermentation intestinale excessive. Limitez les FODMAPs (oignon, ail, blé, produits laitiers) et trempez les légumineuses 12h avant cuisson. Le charbon actif (2 g/jour) peut soulager en phase aiguë.' },
+    { questionId: 'ind-2', triggerMinScore: 75, insight: 'Ballonnements fréquents.', recommendation: 'Les ballonnements chroniques sont le symptôme n°1 de dysbiose. Intégrez des prébiotiques (FOS, inuline en petite dose croissante) et des probiotiques. Si les ballonnements surviennent < 30 min après le repas → cause gastrique probable ; si > 2h → fermentation colique.' },
+    { questionId: 'ind-4', triggerMinScore: 75, insight: 'Flatulences excessives.', recommendation: 'Des flatulences fréquentes indiquent une fermentation intestinale excessive. Limitez les FODMAPs (oignon, ail, blé, produits laitiers) et trempez les légumineuses 12h avant cuisson. Le charbon actif (2 g/jour) peut soulager en phase aiguë.' },
   ],
   references: [
     { authors: 'Qin J et al.', title: 'A human gut microbial gene catalogue established by metagenomic sequencing', journal: 'Nature', year: 2010, doi: '10.1038/nature08821', pmid: '20203603' },
@@ -116,7 +118,7 @@ const diarrheeReport: SectionReport = {
     { maxPct: 100, level: 'excellent', title: 'Transit optimal', text: 'Aucun signe de transit accéléré. Signe d\'un bon équilibre intestinal.' },
   ],
   questionInsights: [
-    { questionId: 'dia-3', triggerMaxScore: 1, insight: 'Urgences intestinales fréquentes.', recommendation: 'L\'urgence défécatoire peut indiquer une inflammation rectale ou un SII-D. Le L-glutamine (5 g/jour) a montré une réduction de 80 % des urgences dans le SII-D post-infectieux (Zhou et al., 2019). Consultez si les symptômes persistent.' },
+    { questionId: 'dia-3', triggerMinScore: 75, insight: 'Urgences intestinales fréquentes.', recommendation: 'L\'urgence défécatoire peut indiquer une inflammation rectale ou un SII-D. Le L-glutamine (5 g/jour) a montré une réduction de 80 % des urgences dans le SII-D post-infectieux (Zhou et al., 2019). Consultez si les symptômes persistent.' },
   ],
   references: [
     { authors: 'Vandeputte D, Falony G, Vieira-Silva S et al.', title: 'Stool consistency is strongly associated with gut microbiota richness and composition, enterotypes and bacterial growth rates', journal: 'Gut', year: 2016, doi: '10.1136/gutjnl-2015-309618', pmid: '26100928' },
@@ -136,7 +138,7 @@ const constipationReport: SectionReport = {
     { maxPct: 100, level: 'excellent', title: 'Transit optimal', text: 'Aucun signe de constipation. Signe d\'un bon fonctionnement colique.' },
   ],
   questionInsights: [
-    { questionId: 'con-3', triggerMaxScore: 1, insight: 'Sensation de vidange incomplète fréquente.', recommendation: 'La sensation de vidange incomplète peut indiquer un dyssynergisme du plancher pelvien. La rééducation périnéale par biofeedback est efficace dans 70 % des cas (Rao et al., 2007). En première intention, adoptez la position squatting (tabouret sous les pieds aux toilettes) qui augmente l\'angle anorectal de 15°.' },
+    { questionId: 'con-3', triggerMinScore: 75, insight: 'Sensation de vidange incomplète fréquente.', recommendation: 'La sensation de vidange incomplète peut indiquer un dyssynergisme du plancher pelvien. La rééducation périnéale par biofeedback est efficace dans 70 % des cas (Rao et al., 2007). En première intention, adoptez la position squatting (tabouret sous les pieds aux toilettes) qui augmente l\'angle anorectal de 15°.' },
   ],
   references: [
     { authors: 'Sumida K, Molnar MZ, Potukuchi PK et al.', title: 'Constipation and risk of death and cardiovascular events', journal: 'Atherosclerosis', year: 2019, doi: '10.1016/j.atherosclerosis.2018.10.022', pmid: '30445337' },
@@ -329,9 +331,12 @@ export function getTriggeredInsights(
   report: SectionReport,
   scores: Record<string, number>
 ) {
-  return report.questionInsights.filter(
-    (qi) => (scores[qi.questionId] ?? Infinity) <= qi.triggerMaxScore
-  )
+  return report.questionInsights.filter((qi) => {
+    const s = scores[qi.questionId]
+    if (s === undefined) return false
+    if (qi.triggerMinScore !== undefined) return s >= qi.triggerMinScore
+    return s <= (qi.triggerMaxScore ?? Infinity)
+  })
 }
 
 // ══════════════════════════════════════════════════════

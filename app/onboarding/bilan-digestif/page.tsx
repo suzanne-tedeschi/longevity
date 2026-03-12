@@ -126,9 +126,10 @@ function renderSectionIcon(icon: SectionIcon, className = 'w-6 h-6') {
 const selectedColor = { bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-700', ring: 'ring-sky-300' }
 const scoreColors: Record<number, { bg: string; border: string; text: string; ring: string }> = {
   0: selectedColor,
-  1: selectedColor,
-  2: selectedColor,
-  3: selectedColor,
+  25: selectedColor,
+  50: selectedColor,
+  75: selectedColor,
+  100: selectedColor,
 }
 
 function getOverallLabel(pct: number) {
@@ -174,11 +175,9 @@ function ScoreButton({ value, label, description, selected, onSelect }: {
       }`}
     >
       <div className="flex items-center gap-3">
-        <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-          selected ? `${colors.bg} ${colors.text} ${colors.border} border` : 'bg-[#1a1a1a]/[0.04] text-[#1a1a1a]/40 border border-[#1a1a1a]/[0.1]'
-        }`}>
-          {value}
-        </div>
+        <div className={`flex-shrink-0 w-3 h-3 rounded-full transition-all duration-300 ${
+          selected ? `${colors.bg} border-2 ${colors.border}` : 'bg-[#1a1a1a]/[0.1] border-2 border-transparent'
+        }`} />
         <div className="flex-1 min-w-0">
           <p className={`font-semibold text-sm transition-colors duration-300 ${selected ? colors.text : 'text-[#1a1a1a]'}`}>{label}</p>
         </div>
@@ -288,7 +287,7 @@ function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, sele
 function ScoreGauge({ score, maxScore, label, icon, size = 'md' }: {
   score: number; maxScore: number; label: string; icon: SectionIcon; size?: 'sm' | 'md'
 }) {
-  const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
+  const pct = maxScore > 0 ? Math.round(((maxScore - score) / maxScore) * 100) : 0
   const { color } = getOverallLabel(pct)
   const dims = size === 'sm' ? { box: 'w-28 h-28', r: 44, stroke: 5 } : { box: 'w-36 h-36', r: 56, stroke: 6 }
   const circ = 2 * Math.PI * dims.r
@@ -315,7 +314,7 @@ function ScoreGauge({ score, maxScore, label, icon, size = 'md' }: {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className={`text-2xl font-bold ${color}`}>{pct}%</span>
-          <span className="text-[10px] text-[#1a1a1a]/40 mt-0.5">{score}/{maxScore}</span>
+          <span className="text-[10px] text-[#1a1a1a]/40 mt-0.5">{maxScore - score}/{maxScore}</span>
         </div>
       </div>
       <div className="mt-3 flex items-center gap-1.5 text-[#1a1a1a]">
@@ -370,7 +369,7 @@ function SectionResultsScreen({ section, sectionIndex, scores, onContinue }: {
   section: TestSection; sectionIndex: number; scores: Record<string, number>; onContinue: () => void
 }) {
   const sectionScore = section.tests.reduce((sum, t) => sum + (scores[t.id] ?? 0), 0)
-  const pct = Math.round((sectionScore / section.maxScore) * 100)
+  const pct = Math.round(((section.maxScore - sectionScore) / section.maxScore) * 100)
   const info = getOverallLabel(pct)
   const feedback = getSectionFeedback(section.id, pct)
   const isLast = sectionIndex === allSections.length - 1
@@ -462,7 +461,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
     return { section, score }
   })
   const totalScore = sectionResults.reduce((sum, r) => sum + r.score, 0)
-  const totalPct = Math.round((totalScore / totalMaxScore) * 100)
+  const totalPct = Math.round(((totalMaxScore - totalScore) / totalMaxScore) * 100)
   const overall = getOverallLabel(totalPct)
 
   // ── Auto-save to Supabase ──
@@ -481,8 +480,8 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
           globalScore: totalPct,
           globalPoints: totalScore,
           maxPoints: totalMaxScore,
-          subScores: Object.fromEntries(sectionResults.map(r => [r.section.id, { score: r.score, max: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) }])),
-          sectionResults: sectionResults.map(r => ({ sectionId: r.section.id, title: r.section.title, score: r.score, maxScore: r.section.maxScore, pct: Math.round((r.score / r.section.maxScore) * 100) })),
+          subScores: Object.fromEntries(sectionResults.map(r => [r.section.id, { score: r.score, max: r.section.maxScore, pct: Math.round(((r.section.maxScore - r.score) / r.section.maxScore) * 100) }])),
+          sectionResults: sectionResults.map(r => ({ sectionId: r.section.id, title: r.section.title, score: r.score, maxScore: r.section.maxScore, pct: Math.round(((r.section.maxScore - r.score) / r.section.maxScore) * 100) })),
         }
         const res = await fetch('/api/bilan/save', {
           method: 'POST',
@@ -524,7 +523,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
           <span className={`text-6xl font-bold ${overall.color}`}>{totalPct}</span>
           <span className="text-2xl text-[#1a1a1a]/30 font-light">%</span>
         </div>
-        <p className="text-sm text-[#1a1a1a]/50 mb-3">{totalScore} / {totalMaxScore} points</p>
+        <p className="text-sm text-[#1a1a1a]/50 mb-3">{totalMaxScore - totalScore} / {totalMaxScore} points</p>
         <span className={`inline-block px-4 py-1 rounded-full text-xs font-semibold tracking-wide ${overall.color} bg-[#1a1a1a]/[0.04]`}>
           {overall.label}
         </span>

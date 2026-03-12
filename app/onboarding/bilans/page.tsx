@@ -141,6 +141,9 @@ export default function BilansPage() {
   const [syncingEvents, setSyncingEvents] = useState(false)
   const [calFilters, setCalFilters] = useState({ evo: true, sport: true, google: true })
   const [userName, setUserName] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   /* ── drag & drop ── */
   const dragId = useRef<string | null>(null)
@@ -447,8 +450,9 @@ export default function BilansPage() {
             {bilanOptions.map(bilan => {
               const completed = bilan.score !== null
               // Compute progress % from localStorage for in-progress bilans
+              // Only read localStorage after mount to avoid hydration mismatch
               let pct = completed ? 100 : 0
-              if (!completed && bilan.available) {
+              if (mounted && !completed && bilan.available) {
                 if (bilan.bilanType === 'mental') {
                   const emoQ = BILAN_TOTAL_QUESTIONS['emotionnel'] ?? 55
                   const strQ = BILAN_TOTAL_QUESTIONS['stress'] ?? 40
