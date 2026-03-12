@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
 type FormState = 'idle' | 'submitting' | 'success' | 'error'
 
 export default function Home() {
+  const router = useRouter()
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -45,7 +47,11 @@ export default function Home() {
       const {
         data: { session },
       } = await supabase!.auth.getSession()
-      setIsLoggedIn(Boolean(session?.user))
+      if (session?.user) {
+        router.replace('/onboarding/bilans')
+        return
+      }
+      setIsLoggedIn(false)
     }
 
     loadSession()
@@ -53,7 +59,11 @@ export default function Home() {
     const {
       data: { subscription },
     } = supabase!.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(Boolean(session?.user))
+      if (session?.user) {
+        router.replace('/onboarding/bilans')
+      } else {
+        setIsLoggedIn(false)
+      }
     })
 
     return () => subscription.unsubscribe()
