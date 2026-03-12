@@ -143,11 +143,12 @@ function renderSectionIcon(icon: SectionIcon, className = 'w-6 h-6') {
 /* ═══════════════════════════════════════════════════════
    SCORE COLOR HELPERS
    ═══════════════════════════════════════════════════════ */
+const selectedColor = { bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-700', ring: 'ring-sky-300' }
 const scoreColors: Record<number, { bg: string; border: string; text: string; ring: string }> = {
-  0: { bg: 'bg-red-50',    border: 'border-red-200',    text: 'text-red-700',    ring: 'ring-red-300' },
-  1: { bg: 'bg-amber-50',  border: 'border-amber-200',  text: 'text-amber-700',  ring: 'ring-amber-300' },
-  2: { bg: 'bg-sky-50',    border: 'border-sky-200',    text: 'text-sky-700',    ring: 'ring-sky-300' },
-  3: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', ring: 'ring-emerald-300' },
+  0: selectedColor,
+  1: selectedColor,
+  2: selectedColor,
+  3: selectedColor,
 }
 
 function getOverallLabel(pct: number) {
@@ -219,7 +220,7 @@ function ScoreButton({
         }
       `}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-3">
         {/* Score indicator */}
         <div
           className={`
@@ -241,7 +242,7 @@ function ScoreButton({
           >
             {label}
           </p>
-          <p className="text-xs text-[#1a1a1a]/40 mt-0.5 leading-relaxed">{description}</p>
+          <p className="text-xs text-[#1a1a1a]/40 mt-0.5 leading-relaxed"></p>
         </div>
         {selected && (
           <CheckCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${colors.text}`} />
@@ -497,12 +498,6 @@ function TestCard({
                   <p className="text-sm text-white/80 leading-relaxed">
                     {test.criteria}
                   </p>
-                  {test.tip && (
-                    <p className="text-xs text-[#3ECF8E]/90 mt-1.5 flex items-start gap-1.5">
-                      <InfoIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                      {test.tip}
-                    </p>
-                  )}
                 </div>
                 {/* Timer — top right of instruction */}
                 {test.timerDuration && (
@@ -653,18 +648,11 @@ function TestCard({
         <h3 className="text-2xl font-bold text-[#1a1a1a] tracking-tight mb-1">
           {test.name}
         </h3>
-        <p className="text-sm text-[#2D6A4F] font-medium">{test.description}</p>
       </div>
 
       {/* Criteria */}
       <div className="bg-[#1a1a1a]/[0.02] border border-[#1a1a1a]/[0.08] rounded-xl p-4 mb-6">
-        <p className="text-sm text-[#1a1a1a]/50 leading-relaxed">{test.criteria}</p>
-        {test.tip && (
-          <div className="flex items-start gap-2 mt-3 pt-3 border-t border-[#1a1a1a]/[0.08]">
-            <InfoIcon className="w-4 h-4 text-[#2D6A4F] flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-[#1a1a1a]/40 leading-relaxed">{test.tip}</p>
-          </div>
-        )}
+        <p className="text-base font-semibold text-[#1a1a1a]/80 leading-relaxed">{test.criteria}</p>
       </div>
 
       {/* Score options */}
@@ -681,30 +669,32 @@ function TestCard({
         ))}
       </div>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={onPrev}
-          className="flex items-center gap-1 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Précédent
-        </button>
-        <button
-          onClick={onNext}
-          disabled={!canGoNext}
-          className={`
-            flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold
-            transition-all duration-300
-            ${canGoNext
-              ? 'bg-[#2D6A4F] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-              : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/20 cursor-not-allowed'
-            }
-          `}
-        >
-          Suivant
-          <ChevronRight className="w-4 h-4" />
-        </button>
+      <div className="h-20" />
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur border-t border-[#1a1a1a]/[0.08] px-4 py-3 z-50">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <button
+            onClick={onPrev}
+            className="flex items-center gap-1 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Précédent
+          </button>
+          <button
+            onClick={onNext}
+            disabled={!canGoNext}
+            className={`
+              flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold
+              transition-all duration-300
+              ${canGoNext
+                ? 'bg-[#2D6A4F] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
+                : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/20 cursor-not-allowed'
+              }
+            `}
+          >
+            Suivant
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -1169,7 +1159,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
       <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
         <Link
           href="/"
-          className="btn-primary text-center inline-block"
+          className="btn-primary text-center inline-block px-10 py-4 text-base"
         >
           Retour à l&apos;accueil
         </Link>

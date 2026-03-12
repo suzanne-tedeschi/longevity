@@ -193,7 +193,7 @@ export default function BilanMentalPage() {
 
         {/* Back button */}
         <div className="mt-10 text-center">
-          <Link href="/onboarding/bilans" className="text-sm text-[#1a1a1a]/30 hover:text-[#1a1a1a] transition-colors">
+          <Link href="/onboarding/bilans" className="inline-block px-10 py-4 rounded-xl bg-[#1a1a1a]/10 text-[#1a1a1a]/70 text-base font-semibold hover:bg-[#1a1a1a]/15 transition-all duration-300 text-center">
             ← Retour aux bilans
           </Link>
         </div>
