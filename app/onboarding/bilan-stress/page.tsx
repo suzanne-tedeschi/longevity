@@ -53,12 +53,8 @@ function renderSectionIcon(icon: SectionIcon, className = 'w-6 h-6') {
 /* ═══════════════════════════════════════════════════════
    SCORE COLOR HELPERS
    ═══════════════════════════════════════════════════════ */
-function getScoreColor(value: number, maxValue: number) {
-  const ratio = maxValue > 0 ? value / maxValue : 0
-  if (ratio >= 0.75) return { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', ring: 'ring-emerald-300' }
-  if (ratio >= 0.5)  return { bg: 'bg-sky-50',     border: 'border-sky-200',     text: 'text-sky-700',     ring: 'ring-sky-300' }
-  if (ratio >= 0.25) return { bg: 'bg-amber-50',   border: 'border-amber-200',   text: 'text-amber-700',   ring: 'ring-amber-300' }
-  return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', ring: 'ring-red-300' }
+function getScoreColor(_value: number, _maxValue: number) {
+  return { bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-700', ring: 'ring-sky-300' }
 }
 
 function getOverallLabel(pct: number) {
@@ -105,10 +101,9 @@ function LikertButton({ option, selected, onSelect, maxValue }: {
       <div className="flex items-center gap-3">
         <div className={`flex-shrink-0 w-3 h-3 rounded-full transition-all duration-300 ${
           selected ? `border-2 ${colors.border}` : 'bg-[#1a1a1a]/[0.08] border border-[#1a1a1a]/[0.08]'
-        }`} style={selected ? { backgroundColor: option.value / maxValue >= 0.75 ? '#10b981' : option.value / maxValue >= 0.5 ? '#0ea5e9' : option.value / maxValue >= 0.25 ? '#f59e0b' : '#ef4444' } : {}} />
+        }`} style={selected ? { backgroundColor: '#bae6fd' } : {}} />
         <div className="flex-1 min-w-0">
           <p className={`font-semibold text-sm transition-colors duration-300 ${selected ? colors.text : 'text-[#1a1a1a]'}`}>{option.label}</p>
-          <p className="text-xs text-[#1a1a1a]/40 mt-0.5 leading-relaxed">{option.description}</p>
         </div>
         {selected && <CheckCircle className={`w-5 h-5 flex-shrink-0 ${colors.text}`} />}
       </div>
@@ -166,33 +161,29 @@ function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, sele
           <span className="text-xs font-medium tracking-widest uppercase text-[#1a1a1a]/30">Question {testIndex + 1}</span>
         </div>
         <h3 className="text-2xl font-bold text-[#1a1a1a] tracking-tight mb-1">{test.name}</h3>
-        <p className="text-sm text-blue-500 font-medium">{test.description}</p>
       </div>
       <div className="bg-[#1a1a1a]/[0.02] border border-[#1a1a1a]/[0.08] rounded-xl p-4 mb-6">
-        <p className="text-sm text-[#1a1a1a]/50 leading-relaxed">{test.criteria}</p>
-        {test.tip && (
-          <div className="flex items-start gap-2 mt-3 pt-3 border-t border-[#1a1a1a]/[0.08]">
-            <InfoIcon className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-[#1a1a1a]/40 leading-relaxed">{test.tip}</p>
-          </div>
-        )}
+        <p className="text-base font-semibold text-[#1a1a1a]/80 leading-relaxed">{test.criteria}</p>
       </div>
       <div className="space-y-2 mb-8">
         {test.scoring.map((option, idx) => (
           <LikertButton key={idx} option={option} selected={selectedScore === option.value} onSelect={() => onScore(option.value)} maxValue={maxValue} />
         ))}
       </div>
-      <div className="flex items-center justify-between">
-        <button onClick={onPrev} className="flex items-center gap-1 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors">
-          <ChevronLeft className="w-4 h-4" /> Précédent
-        </button>
-        <button onClick={onNext} disabled={!canGoNext}
-          className={`flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-            canGoNext ? 'bg-blue-500 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5' : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/20 cursor-not-allowed'
-          }`}
-        >
-          Suivant <ChevronRight className="w-4 h-4" />
-        </button>
+      <div className="h-20" />
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur border-t border-[#1a1a1a]/[0.08] px-4 py-3 z-50">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <button onClick={onPrev} className="flex items-center gap-1 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors">
+            <ChevronLeft className="w-4 h-4" /> Précédent
+          </button>
+          <button onClick={onNext} disabled={!canGoNext}
+            className={`flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+              canGoNext ? 'bg-blue-500 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5' : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/20 cursor-not-allowed'
+            }`}
+          >
+            Suivant <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -485,7 +476,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
-        <Link href="/onboarding/bilans" className="px-8 py-3 rounded-xl bg-blue-500 text-white font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center inline-block">Retour aux bilans</Link>
+        <Link href="/onboarding/bilans" className="px-10 py-4 rounded-xl bg-blue-500 text-white text-base font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center inline-block">Retour aux bilans</Link>
       </div>
       <div className="w-12 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent mx-auto mt-12" />
     </div>
