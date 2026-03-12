@@ -422,7 +422,7 @@ export default function BilansPage() {
                 <ScoreRing value={globalScore} size={40} />
                 <button
                   onClick={async () => { await supabase?.auth.signOut(); router.replace('/') }}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.08] transition-all"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/[0.08] transition-all"
                   title="Se déconnecter"
                 >
                   <LogOut className="w-4 h-4" />
