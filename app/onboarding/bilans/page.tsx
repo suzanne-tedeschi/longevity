@@ -21,7 +21,7 @@ import {
   Activity, Moon, Apple, Brain, Dumbbell, Heart, RefreshCw, Plus, X,
   Timer, Zap, Shield, Leaf, Microscope, Lightbulb, ArrowRight, GripVertical,
   Dna, Clock, Wind, Recycle, Bug, Radio, Sprout, Ban, LayoutGrid, Columns3, CalendarDays,
-  MessageCircle, CheckCircle, AlertTriangle,
+  MessageCircle, CheckCircle, AlertTriangle, LogOut,
 } from "lucide-react"
 import css from "./bilans.module.css"
 
@@ -418,7 +418,16 @@ export default function BilansPage() {
                   </a>
                 ))}
               </div>
-              <ScoreRing value={globalScore} size={40} />
+              <div className="flex items-center gap-2">
+                <ScoreRing value={globalScore} size={40} />
+                <button
+                  onClick={async () => { await supabase?.auth.signOut(); router.replace('/') }}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.08] transition-all"
+                  title="Se déconnecter"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </nav>
           <div className="max-w-5xl mx-auto px-6 pt-10 pb-14">
