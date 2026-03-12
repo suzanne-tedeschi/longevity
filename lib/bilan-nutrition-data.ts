@@ -460,7 +460,7 @@ const micronutriments: TestSection = {
       id: 'mic-8',
       name: 'Vitamine C',
       description: 'Fruits et légumes riches en vit. C',
-      criteria: 'Consommez-vous des fruits et légumes riches en vitamine C chaque jour ?',
+      criteria: 'Consommez-vous des fruits et légumes riches en vitamine C chaque jour ? (poivron, kiwi, agrumes, fraise, brocoli, chou, épinard…)',
       scoring: ouiPositifScoring(1),
     },
     {
@@ -562,7 +562,7 @@ const inflammatoire: TestSection = {
       id: 'inf-3',
       name: 'Excès d\'oméga-6',
       description: 'Huile de tournesol, plats industriels…',
-      criteria: 'Votre consommation d\'oméga-6 (huile de tournesol, plats industriels) est-elle élevée ?',
+      criteria: 'Votre consommation d\'oméga-6 est-elle élevée ? (huile de tournesol, soja, maïs, pépins de raisin, margarines, plats industriels, fast-food…)',
       scoring: ouiNegatifScoring(2),
       tip: 'Un excès d\'oméga-6 par rapport aux oméga-3 favorise l\'inflammation chronique.',
     },
