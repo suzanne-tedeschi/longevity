@@ -11,18 +11,10 @@ import {
   digestifMaxScore,
   alimentaireMaxScore,
   totalMaxScore,
-  nutritionInterpretations,
-  digestifInterpretations,
-  alimentaireInterpretations,
-  type TestSection,
   type NutritionTest,
   type SectionIcon,
 } from '@/lib/bilan-nutrition-data'
 import {
-  getSectionReport,
-  getSectionRecommendation,
-  getTriggeredInsights,
-  generateTopActions,
   globalKeyInsights,
   generateFullReport,
 } from '@/lib/bilan-nutrition-report'
@@ -273,17 +265,9 @@ function ScoreButton({ value, label, description, selected, onSelect, maxOptionV
       }`}
     >
       <div className="flex items-center gap-3">
-        {maxOptionValue <= 1 ? (
-          <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-            selected ? `${colors.bg} ${colors.text} ${colors.border} border` : 'bg-[#1a1a1a]/[0.04] text-[#1a1a1a]/40 border border-[#1a1a1a]/[0.1]'
-          }`}>
-            {label === 'Oui' ? '✓' : '✗'}
-          </div>
-        ) : (
-          <div className={`flex-shrink-0 w-3 h-3 rounded-full transition-all duration-300 ${
-            selected ? `${colors.bg} border-2 ${colors.border}` : 'bg-[#1a1a1a]/[0.1] border-2 border-transparent'
-          }`} />
-        )}
+        <div className={`flex-shrink-0 w-3 h-3 rounded-full transition-all duration-300 ${
+          selected ? `${colors.bg} border-2 ${colors.border}` : 'bg-[#1a1a1a]/[0.1] border-2 border-transparent'
+        }`} />
         <div className="flex-1 min-w-0">
           <p className={`font-semibold text-sm transition-colors duration-300 ${selected ? colors.text : 'text-[#1a1a1a]'}`}>{label}</p>
         </div>
@@ -296,9 +280,9 @@ function ScoreButton({ value, label, description, selected, onSelect, maxOptionV
 /* ═══════════════════════════════════════════════════════
    TEST CARD
    ═══════════════════════════════════════════════════════ */
-function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, selectedScore, onScore, onPrev, onNext, canGoNext }: {
+function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, selectedScore, onScore, onPrev }: {
   test: NutritionTest; testIndex: number; totalTests: number; sectionTitle: string; sectionIcon: SectionIcon
-  selectedScore: number | undefined; onScore: (v: number) => void; onPrev: () => void; onNext: () => void; canGoNext: boolean
+  selectedScore: number | undefined; onScore: (v: number) => void; onPrev: () => void
 }) {
   const maxOptionValue = Math.max(...test.scoring.map(o => o.value))
   return (
@@ -335,20 +319,9 @@ function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, sele
 
       <div className="h-20" />
       <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur border-t border-[#1a1a1a]/[0.08] px-4 py-3 z-50">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+        <div className="max-w-lg mx-auto flex items-center">
           <button onClick={onPrev} className="flex items-center gap-1 text-sm text-[#1a1a1a]/50 hover:text-[#1a1a1a] transition-colors">
             <ChevronLeft className="w-4 h-4" /> Précédent
-          </button>
-          <button
-            onClick={onNext}
-            disabled={!canGoNext}
-            className={`flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-              canGoNext
-                ? 'bg-[#2D6A4F] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-                : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/20 cursor-not-allowed'
-            }`}
-          >
-            Suivant <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -604,19 +577,17 @@ function WelcomeScreen({ onStartAlimentaire, onStartDigestif, alimentaireDone, d
 /* ═══════════════════════════════════════════════════════
    RESULTS SCREEN
    ═══════════════════════════════════════════════════════ */
+function getPersonalizedHeadline(pct: number) {
+  if (pct >= 85) return { title: 'Votre santé nutritionnelle est excellente', subtitle: 'Vos habitudes alimentaires et votre confort digestif sont remarquables. Continuez sur cette voie.', heroGradient: 'from-emerald-50 to-teal-50', scoreBg: 'bg-emerald-400' }
+  if (pct >= 70) return { title: 'De bonnes bases nutritionnelles', subtitle: 'Votre alimentation est globalement saine, avec quelques points à affiner pour optimiser votre santé.', heroGradient: 'from-sky-50 to-emerald-50', scoreBg: 'bg-sky-400' }
+  if (pct >= 55) return { title: 'Des axes d\'amélioration identifiés', subtitle: 'Votre bilan révèle des habitudes à revoir. Des ajustements ciblés peuvent transformer votre santé digestive et alimentaire.', heroGradient: 'from-amber-50 to-yellow-50', scoreBg: 'bg-amber-400' }
+  if (pct >= 40) return { title: 'Votre nutrition mérite attention', subtitle: 'Des déséquilibres alimentaires et/ou digestifs sont présents. Agir maintenant protège votre santé à long terme.', heroGradient: 'from-orange-50 to-amber-50', scoreBg: 'bg-orange-400' }
+  return { title: 'Votre santé nutritionnelle nécessite une prise en charge', subtitle: 'Des problèmes significatifs ont été identifiés. Un accompagnement professionnel est recommandé.', heroGradient: 'from-red-50 to-orange-50', scoreBg: 'bg-red-400' }
+}
+
 function ResultsScreen({ scores }: { scores: Record<string, number> }) {
-  const [showReport, setShowReport] = useState(false)
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const hasSaved = useRef(false)
-
-  const toggleSection = useCallback((id: string) => {
-    setExpandedSections(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id); else next.add(id)
-      return next
-    })
-  }, [])
 
   // Digestif sub-score
   const digestifResults = digestifSections.map((section) => {
@@ -639,18 +610,6 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   // Global score — digestif is inverted (0=best), so convert to positive before summing
   const globalTotal = (digestifMaxScore - digestifTotal) + alimentaireTotal
   const globalPct = Math.round((globalTotal / totalMaxScore) * 100)
-  const globalInfo = getOverallLabel(globalPct)
-
-  const findInterpretation = (pct: number, interps: typeof nutritionInterpretations) => {
-    if (pct >= 85) return interps[0]
-    if (pct >= 70) return interps[1]
-    if (pct >= 55) return interps[2]
-    if (pct >= 40) return interps[3]
-    return interps[4]
-  }
-
-  const globalInterpretation = findInterpretation(globalPct, nutritionInterpretations)
-
   // All section results for report
   const allResults = [...digestifResults, ...alimentaireResults].map(({ section, score }) => {
     const isDigestif = digestifSections.some(s => s.id === section.id)
@@ -660,10 +619,12 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
     return { sectionId: section.id, pct, score, maxScore: section.maxScore, title: section.title, subtitle: section.subtitle, icon: section.icon, isDigestif }
   })
 
-  const topActions = useMemo(() => generateTopActions(
-    allResults.map(r => ({ sectionId: r.sectionId, pct: r.pct, score: r.score, maxScore: r.maxScore })),
+  const report = useMemo(() => generateFullReport(
+    allResults.map(r => ({ sectionId: r.sectionId, pct: r.pct, score: r.score, maxScore: r.maxScore, title: r.title })),
     scores
   ), [allResults, scores])
+
+  const hero = getPersonalizedHeadline(globalPct)
 
   // ── Save logic (callable for retry) ──
   async function doSave() {
@@ -732,283 +693,259 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const r = 52
+  const circ = 2 * Math.PI * r
+  const dashOffset = circ - (globalPct / 100) * circ
+  const scoreColor = globalPct >= 85 ? '#10b981' : globalPct >= 70 ? '#0ea5e9' : globalPct >= 55 ? '#f59e0b' : globalPct >= 40 ? '#f97316' : '#ef4444'
+
   return (
     <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
-      <div className="text-center mb-10">
-        <div className="w-12 h-px bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mb-8" />
-        <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] tracking-tight mb-2">Vos résultats</h2>
-        <p className="text-sm text-[#1a1a1a]/50">Bilan Nutrition — Troubles digestifs & habitudes alimentaires</p>
-        {saveStatus === 'saving' && <p className="text-xs text-[#2D6A4F]/60 mt-2 animate-pulse">Sauvegarde en cours...</p>}
-        {saveStatus === 'saved' && <p className="text-xs text-emerald-500 mt-2">Résultats sauvegardés</p>}
-        {saveStatus === 'error' && (
-          <div className="mt-2">
-            <p className="text-xs text-red-400">Sauvegarde échouée</p>
-            <button onClick={doSave} className="text-xs text-red-400 underline hover:text-red-500 mt-1">Réessayer</button>
+
+      {/* ── Hero card ── */}
+      <div className={`relative bg-gradient-to-br ${hero.heroGradient} border border-[#1a1a1a]/[0.07] rounded-3xl px-6 py-8 mb-8 overflow-hidden`}>
+        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/40 blur-3xl pointer-events-none" />
+        <div className="relative flex items-center gap-6">
+          {/* Circular score */}
+          <div className="flex-shrink-0 relative w-28 h-28">
+            <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r={r} fill="none" stroke="#e5e0d8" strokeWidth="8" />
+              <circle cx="60" cy="60" r={r} fill="none" stroke={scoreColor} strokeWidth="8"
+                strokeDasharray={circ} strokeDashoffset={dashOffset} strokeLinecap="round"
+                className="transition-all duration-1000 ease-out" />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-3xl font-bold leading-none" style={{ color: scoreColor }}>{globalPct}</span>
+              <span className="text-[10px] text-[#1a1a1a]/30 mt-0.5">/ 100</span>
+            </div>
           </div>
-        )}
-      </div>
-
-      {/* Global score */}
-      <div className="bg-white backdrop-blur-sm border border-[#1a1a1a]/[0.08] rounded-2xl p-8 mb-8 text-center">
-        <p className="text-xs font-medium tracking-widest uppercase text-[#1a1a1a]/40 mb-4">Score global Nutrition</p>
-        <div className="flex items-center justify-center gap-1 mb-2">
-          <span className={`text-6xl font-bold ${globalInfo.color}`}>{globalPct}</span>
-          <span className="text-2xl text-[#1a1a1a]/30 font-light">%</span>
-        </div>
-        <p className="text-sm text-[#1a1a1a]/50 mb-3">{globalTotal} / {totalMaxScore} points</p>
-        <span className={`inline-block px-4 py-1 rounded-full text-xs font-semibold tracking-wide ${globalInfo.color} bg-[#1a1a1a]/[0.04]`}>
-          {globalInfo.label}
-        </span>
-      </div>
-
-      {/* Segmentation: two sub-scores + per-section bars */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-white border border-[#1a1a1a]/[0.1] rounded-2xl p-5 text-center">
-          <p className="text-xs font-medium tracking-widest uppercase text-[#1a1a1a]/40 mb-1">Digestif</p>
-          <p className={`text-3xl font-bold ${digestifInfo.color}`}>{digestifPct}%</p>
-          <p className="text-xs text-[#1a1a1a]/40 mt-1">{digestifTotal}/{digestifMaxScore} pts</p>
-        </div>
-        <div className="bg-white border border-[#1a1a1a]/[0.1] rounded-2xl p-5 text-center">
-          <p className="text-xs font-medium tracking-widest uppercase text-[#1a1a1a]/40 mb-1">Alimentaire</p>
-          <p className={`text-3xl font-bold ${alimentaireInfo.color}`}>{alimentairePct}%</p>
-          <p className="text-xs text-[#1a1a1a]/40 mt-1">{alimentaireTotal}/{alimentaireMaxScore} pts</p>
-        </div>
-      </div>
-
-      <div className="space-y-3 mb-10">
-        {allResults.map((r) => {
-          const info = getOverallLabel(r.pct)
-          return (
-            <div key={r.sectionId} className="bg-white border border-[#1a1a1a]/[0.1] rounded-xl px-5 py-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${r.isDigestif ? 'bg-[#2D6A4F]/10 text-[#2D6A4F]/70' : 'bg-[#c9a96e]/10 text-[#c9a96e]/70'}`}>
-                    {renderSectionIcon(r.icon, 'w-4 h-4')}
-                  </div>
-                  <p className="text-sm font-semibold text-[#1a1a1a]">{r.title}</p>
-                </div>
-                <div className="text-right">
-                  <p className={`text-lg font-bold ${info.color}`}>{r.pct}%</p>
-                  <p className="text-xs text-[#1a1a1a]/40">{r.score}/{r.maxScore}</p>
-                </div>
-              </div>
-              <div className="h-1.5 bg-[#1a1a1a]/[0.04] rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${info.bar} transition-all duration-700`} style={{ width: `${r.pct}%` }} />
-              </div>
+          {/* Text */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className={`inline-block w-2 h-2 rounded-full ${hero.scoreBg}`} />
+              <span className="text-xs font-semibold tracking-widest uppercase text-[#1a1a1a]/40">Bilan Nutrition</span>
             </div>
-          )
-        })}
-      </div>
-
-      {!showReport ? (
-        <div className="flex flex-col items-center gap-4">
-          <button
-            onClick={() => setShowReport(true)}
-            className="group inline-flex items-center gap-3 bg-gradient-to-r from-[#1B4332] to-[#2D6A4F] text-white rounded-2xl px-6 py-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 w-full max-w-sm justify-center"
-          >
-            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
-              <BookIcon className="w-5 h-5" />
-            </div>
-            <div className="text-left">
-              <p className="font-semibold text-sm">Accéder à mon compte rendu</p>
-              <p className="text-xs text-white/60">Recommandations personnalisées & références</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
-          </button>
-          <Link href="/onboarding/bilans" className="text-sm text-[#1a1a1a]/30 hover:text-[#1a1a1a]/50 transition-colors">
-            Retour aux bilans
-          </Link>
+            <h2 className="text-xl font-bold text-[#1a1a1a] leading-snug mb-2">{hero.title}</h2>
+            <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{hero.subtitle}</p>
+          </div>
         </div>
-      ) : (
-        <div className="animate-fade-in">
-          {/* Interpretation */}
-          {globalInterpretation && (
-            <div className="bg-white border border-[#1a1a1a]/[0.1] rounded-2xl p-6 mb-8">
-              <p className="text-sm text-[#1a1a1a]/70 leading-relaxed mb-3">{globalInterpretation.description}</p>
-              <div className="flex items-start gap-2 pt-3 border-t border-[#1a1a1a]/[0.1]">
-                <InfoIcon className="w-4 h-4 text-[#2D6A4F] flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-[#1a1a1a]/60 leading-relaxed">{globalInterpretation.recommendation}</p>
-              </div>
+        {/* Save status */}
+        <div className="relative mt-4 flex items-center justify-end gap-2 min-h-[16px]">
+          {saveStatus === 'saving' && <p className="text-[10px] text-[#1a1a1a]/30 animate-pulse">Sauvegarde en cours...</p>}
+          {saveStatus === 'saved' && (
+            <div className="flex items-center gap-1">
+              <CheckCircle className="w-3 h-3 text-emerald-500" />
+              <p className="text-[10px] text-emerald-600">Résultats sauvegardés</p>
             </div>
           )}
+          {saveStatus === 'error' && (
+            <button onClick={doSave} className="text-[10px] text-red-400 underline">Sauvegarde échouée — réessayer</button>
+          )}
+        </div>
+      </div>
 
-          {/* ═══════════ TOP PRIORITY ACTIONS ═══════════ */}
-          {topActions.length > 0 && (
-            <div className="mb-10">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
-                  <BoltIcon className="w-4 h-4 text-amber-600" />
+      {/* ── Two sub-scores ── */}
+      <div className="grid grid-cols-2 gap-3 mb-8">
+        <div className="bg-white border border-[#1a1a1a]/[0.07] rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-6 h-6 rounded-lg bg-[#2D6A4F]/10 flex items-center justify-center text-[#2D6A4F]/70 flex-shrink-0">
+              <StomachIcon className="w-3.5 h-3.5" />
+            </div>
+            <p className="text-xs font-semibold text-[#1a1a1a]">Digestif</p>
+          </div>
+          <p className={`text-2xl font-bold ${digestifInfo.color}`}>{digestifPct}%</p>
+          <div className="h-1 bg-[#1a1a1a]/[0.05] rounded-full mt-1.5 overflow-hidden">
+            <div className={`h-full rounded-full ${digestifInfo.bar} transition-all duration-700`} style={{ width: `${digestifPct}%` }} />
+          </div>
+        </div>
+        <div className="bg-white border border-[#1a1a1a]/[0.07] rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-6 h-6 rounded-lg bg-[#c9a96e]/10 flex items-center justify-center text-[#c9a96e]/70 flex-shrink-0">
+              <UtensilsIcon className="w-3.5 h-3.5" />
+            </div>
+            <p className="text-xs font-semibold text-[#1a1a1a]">Alimentaire</p>
+          </div>
+          <p className={`text-2xl font-bold ${alimentaireInfo.color}`}>{alimentairePct}%</p>
+          <div className="h-1 bg-[#1a1a1a]/[0.05] rounded-full mt-1.5 overflow-hidden">
+            <div className={`h-full rounded-full ${alimentaireInfo.bar} transition-all duration-700`} style={{ width: `${alimentairePct}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Section overview ── */}
+      <div className="mb-10">
+        <p className="text-xs font-semibold tracking-widest uppercase text-[#1a1a1a]/30 mb-3">Vue d&apos;ensemble</p>
+        <div className="space-y-2">
+          {allResults.map((r) => {
+            const info = getOverallLabel(r.pct)
+            return (
+              <div key={r.sectionId} className="bg-white border border-[#1a1a1a]/[0.07] rounded-xl px-4 py-3">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${r.isDigestif ? 'bg-[#2D6A4F]/8 text-[#2D6A4F]/70' : 'bg-[#c9a96e]/10 text-[#c9a96e]/70'}`}>
+                    {renderSectionIcon(r.icon, 'w-3.5 h-3.5')}
+                  </div>
+                  <p className="text-xs font-semibold text-[#1a1a1a] flex-1">{r.title}</p>
+                  <span className={`text-sm font-bold tabular-nums ${info.color}`}>{r.pct}%</span>
                 </div>
-                <h3 className="text-lg font-bold text-[#1a1a1a]">Plan d&apos;action prioritaire</h3>
+                <div className="h-1.5 bg-[#1a1a1a]/[0.05] rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full ${info.bar} transition-all duration-700`} style={{ width: `${r.pct}%` }} />
+                </div>
               </div>
-              <div className="space-y-3">
-                {topActions.map((action) => (
-                  <div key={action.priority} className={`flex items-start gap-4 p-4 rounded-xl border-2 ${
-                    action.level === 'alerte'
-                      ? 'bg-red-50/50 border-red-200'
-                      : 'bg-amber-50/50 border-amber-200'
-                  }`}>
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${
-                      action.level === 'alerte'
-                        ? 'bg-red-100 text-red-600'
-                        : 'bg-amber-100 text-amber-700'
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ── Strengths ── */}
+      {report.strengths.length > 0 && (
+        <div className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <svg className="w-3 h-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+            </div>
+            <h3 className="text-sm font-bold text-[#1a1a1a]">Ce qui va bien</h3>
+          </div>
+          <div className="space-y-3">
+            {report.strengths.map((s) => (
+              <div key={s.sectionId} className="relative pl-4 border-l-2 border-emerald-300">
+                <div className="flex items-center justify-between mb-0.5">
+                  <p className="text-sm font-semibold text-[#1a1a1a]">{s.title}</p>
+                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{s.pct}%</span>
+                </div>
+                <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{s.praise}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Weaknesses ── */}
+      {report.weaknesses.length > 0 && (
+        <div className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <InfoIcon className="w-3 h-3 text-amber-600" />
+            </div>
+            <h3 className="text-sm font-bold text-[#1a1a1a]">Ce qu&apos;on peut améliorer</h3>
+          </div>
+          <div className="space-y-5">
+            {report.weaknesses.map((w) => {
+              const wInfo = getOverallLabel(w.pct)
+              const isDigestif = digestifSections.some(s => s.id === w.sectionId)
+              const result = allResults.find(r => r.sectionId === w.sectionId)
+              return (
+                <div key={w.sectionId} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
+                  <div className="px-5 py-4 border-b border-[#1a1a1a]/[0.06] flex items-start gap-3">
+                    <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${
+                      w.pct < 40 ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-500'
                     }`}>
-                      {action.priority}
+                      {result ? renderSectionIcon(result.icon, 'w-4 h-4') : (isDigestif ? <StomachIcon className="w-4 h-4" /> : <UtensilsIcon className="w-4 h-4" />)}
                     </div>
-                    <p className="text-sm text-[#1a1a1a]/80 leading-relaxed flex-1">{action.action}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <p className="text-sm font-bold text-[#1a1a1a]">{w.title}</p>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${wInfo.color} bg-[#1a1a1a]/[0.04]`}>{w.pct}%</span>
+                      </div>
+                      <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{w.concern}</p>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ═══════════ KEY INSIGHTS ═══════════ */}
-          <div className="mb-10">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center">
-                <SparklesIcon className="w-4 h-4 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-bold text-[#1a1a1a]">Ce que dit la science</h3>
-            </div>
-            <div className="space-y-3">
-              {globalKeyInsights.map((insight, i) => (
-                <div key={i} className="bg-gradient-to-br from-[#FAF8F5] to-white border border-[#1a1a1a]/[0.08] rounded-xl p-5">
-                  <h4 className="text-sm font-bold text-[#1a1a1a] mb-1.5">{insight.title}</h4>
-                  <p className="text-xs text-[#1a1a1a]/60 leading-relaxed mb-2">{insight.description}</p>
-                  <p className="text-[10px] text-[#2D6A4F]/60 italic">{insight.reference}</p>
+                  {w.triggeredInsights.length > 0 && (
+                    <div className="divide-y divide-[#1a1a1a]/[0.05]">
+                      {w.triggeredInsights.map((ins, i) => (
+                        <div key={i} className="px-5 py-4">
+                          <div className="flex items-start gap-2.5 mb-3">
+                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-[10px] font-bold text-amber-600 mt-0.5">{i + 1}</span>
+                            <p className="text-xs text-[#1a1a1a]/60 leading-relaxed italic">{ins.insight}</p>
+                          </div>
+                          <div className="ml-7 bg-[#2D6A4F]/[0.05] border border-[#2D6A4F]/[0.15] rounded-xl px-4 py-3">
+                            <p className="text-[10px] font-semibold text-[#2D6A4F] uppercase tracking-wider mb-1">Recommandation</p>
+                            <p className="text-xs text-[#1a1a1a]/70 leading-relaxed">{ins.recommendation}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              )
+            })}
           </div>
+        </div>
+      )}
 
-          {/* ═══════════ SECTION-BY-SECTION REPORT ═══════════ */}
-          <div className="mb-10">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="w-8 h-8 rounded-lg bg-[#2D6A4F]/10 border border-[#2D6A4F]/20 flex items-center justify-center">
-                <BookIcon className="w-4 h-4 text-[#2D6A4F]" />
-              </div>
-              <h3 className="text-lg font-bold text-[#1a1a1a]">Analyse détaillée par section</h3>
+      {/* ── Action plan ── */}
+      {report.actionPlan.length > 0 && (
+        <div className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-5 h-5 rounded-full bg-[#2D6A4F]/15 flex items-center justify-center flex-shrink-0">
+              <ChevronRight className="w-3 h-3 text-[#2D6A4F]" />
             </div>
-
-            <div className="space-y-4">
-              {allResults.map((result) => {
-                const report = getSectionReport(result.sectionId)
-                if (!report) return null
-                const recommendation = getSectionRecommendation(report, result.pct)
-                const triggeredInsights = getTriggeredInsights(report, scores)
-                const isExpanded = expandedSections.has(result.sectionId)
-                const levelColors = {
-                  alerte: { bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-700', dot: 'bg-red-400' },
-                  vigilance: { bg: 'bg-amber-50', border: 'border-amber-200', badge: 'bg-amber-100 text-amber-700', dot: 'bg-amber-400' },
-                  bon: { bg: 'bg-emerald-50', border: 'border-emerald-200', badge: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-400' },
-                  excellent: { bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-700', dot: 'bg-blue-400' },
-                }
-                const lc = levelColors[recommendation.level]
-
+            <h3 className="text-sm font-bold text-[#1a1a1a]">Votre plan d&apos;action</h3>
+          </div>
+          <div className="relative pl-6">
+            <div className="absolute left-2.5 top-3 bottom-3 w-px bg-[#1a1a1a]/[0.08]" />
+            <div className="space-y-6">
+              {report.actionPlan.map((phase) => {
+                const phaseColors = [
+                  { dot: 'bg-[#2D6A4F]', badge: 'bg-[#2D6A4F]/10 text-[#2D6A4F] border-[#2D6A4F]/20' },
+                  { dot: 'bg-sky-500', badge: 'bg-sky-50 text-sky-600 border-sky-200' },
+                  { dot: 'bg-amber-500', badge: 'bg-amber-50 text-amber-600 border-amber-200' },
+                ]
+                const c = phaseColors[(phase.phase - 1) % phaseColors.length]
                 return (
-                  <div key={result.sectionId} className={`rounded-2xl border-2 overflow-hidden transition-all duration-300 ${lc.border} ${lc.bg}`}>
-                    {/* Header — always visible */}
-                    <button
-                      onClick={() => toggleSection(result.sectionId)}
-                      className="w-full text-left px-5 py-4 flex items-center gap-4 hover:bg-white/30 transition-colors"
-                    >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        result.isDigestif ? 'bg-[#2D6A4F]/10 text-[#2D6A4F]' : 'bg-[#c9a96e]/15 text-[#c9a96e]'
-                      }`}>
-                        {renderSectionIcon(result.icon, 'w-5 h-5')}
+                  <div key={phase.phase} className="relative">
+                    <div className={`absolute -left-6 top-3 w-4 h-4 rounded-full border-2 border-white ${c.dot} shadow-sm`} />
+                    <div className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
+                      <div className="flex items-center gap-3 px-5 py-3 border-b border-[#1a1a1a]/[0.06]">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${c.badge}`}>Phase {phase.phase}</span>
+                        <p className="text-xs font-bold text-[#1a1a1a] flex-1">{phase.phaseTitle}</p>
+                        <span className="text-[10px] text-[#1a1a1a]/25">{phase.timeframe}</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <h4 className="text-sm font-bold text-[#1a1a1a]">{result.title}</h4>
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${lc.badge}`}>
-                            {recommendation.title}
-                          </span>
-                        </div>
-                        <p className="text-xs text-[#1a1a1a]/40">{result.subtitle} — {result.pct}% ({result.score}/{result.maxScore})</p>
-                      </div>
-                      <div className={`w-6 h-6 flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}>
-                        <ChevronRight className="w-4 h-4 text-[#1a1a1a]/30" />
-                      </div>
-                    </button>
-
-                    {/* Expanded content */}
-                    {isExpanded && (
-                      <div className="px-5 pb-5 space-y-4 animate-fade-in">
-                        {/* Context */}
-                        <div className="bg-white/60 rounded-xl p-4">
-                          <p className="text-[10px] font-semibold tracking-widest uppercase text-[#1a1a1a]/30 mb-2">Contexte scientifique</p>
-                          <p className="text-xs text-[#1a1a1a]/60 leading-relaxed">{report.context}</p>
-                        </div>
-
-                        {/* Section recommendation */}
-                        <div className="bg-white/80 rounded-xl p-4 border border-[#1a1a1a]/[0.06]">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className={`w-2 h-2 rounded-full ${lc.dot}`} />
-                            <p className="text-xs font-bold text-[#1a1a1a]">{recommendation.title}</p>
+                      <div className="divide-y divide-[#1a1a1a]/[0.05]">
+                        {phase.actions.map((action, i) => (
+                          <div key={i} className="flex gap-3 px-5 py-3">
+                            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#1a1a1a]/[0.04] flex items-center justify-center mt-0.5">
+                              <svg className="w-3 h-3 text-[#1a1a1a]/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-[#1a1a1a] leading-snug mb-0.5">{action.action}</p>
+                              <p className="text-[10px] text-[#1a1a1a]/35 leading-relaxed">{action.why}</p>
+                            </div>
                           </div>
-                          <p className="text-xs text-[#1a1a1a]/70 leading-relaxed">{recommendation.text}</p>
-                        </div>
-
-                        {/* Per-question triggered insights */}
-                        {triggeredInsights.length > 0 && (
-                          <div className="space-y-2">
-                            <p className="text-[10px] font-semibold tracking-widest uppercase text-[#1a1a1a]/30">Points d&apos;attention personnalisés</p>
-                            {triggeredInsights.map((qi) => (
-                              <div key={qi.questionId} className="bg-white rounded-xl p-4 border border-[#1a1a1a]/[0.08]">
-                                <div className="flex items-start gap-2 mb-2">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0 mt-1.5" />
-                                  <p className="text-xs font-semibold text-[#1a1a1a]">{qi.insight}</p>
-                                </div>
-                                <p className="text-xs text-[#1a1a1a]/60 leading-relaxed pl-3.5">{qi.recommendation}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* References */}
-                        <div>
-                          <p className="text-[10px] font-semibold tracking-widest uppercase text-[#1a1a1a]/30 mb-2">Références</p>
-                          <div className="space-y-1.5">
-                            {report.references.map((ref, i) => (
-                              <div key={i} className="flex items-start gap-2">
-                                <span className="text-[10px] text-[#2D6A4F]/50 font-mono flex-shrink-0 mt-0.5">[{i + 1}]</span>
-                                <p className="text-[10px] text-[#1a1a1a]/40 leading-relaxed">
-                                  {ref.authors}. &ldquo;{ref.title}&rdquo; <em>{ref.journal}</em> ({ref.year}).
-                                  {ref.pmid && <span className="text-[#2D6A4F]/50"> PMID: {ref.pmid}</span>}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                        ))}
                       </div>
-                    )}
+                    </div>
                   </div>
                 )
               })}
             </div>
           </div>
+        </div>
+      )}
 
-          {/* ═══════════ DISCLAIMER ═══════════ */}
-          <div className="bg-[#1a1a1a]/[0.02] border border-[#1a1a1a]/[0.08] rounded-xl p-4 mb-10">
-            <div className="flex items-start gap-2">
-              <InfoIcon className="w-4 h-4 text-[#1a1a1a]/30 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-[10px] font-semibold text-[#1a1a1a]/40 mb-1">Avertissement</p>
-                <p className="text-[10px] text-[#1a1a1a]/40 leading-relaxed">
-                  Ce compte-rendu est généré à partir de vos réponses et de la littérature scientifique peer-reviewed.
-                  Il ne constitue pas un avis médical. Les recommandations sont des orientations générales s&apos;appuyant
-                  sur des méta-analyses et essais contrôlés randomisés publiés dans des revues à comité de lecture
-                  (Lancet, NEJM, Gastroenterology, BMJ, etc.). Consultez un professionnel de santé pour un avis personnalisé.
-                </p>
-              </div>
+      {/* ── Science cards ── */}
+      {globalKeyInsights.length > 0 && (
+        <div className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-5 h-5 rounded-full bg-[#1a1a1a]/[0.06] flex items-center justify-center flex-shrink-0">
+              <SparklesIcon className="w-2.5 h-2.5 text-[#1a1a1a]/40" />
             </div>
+            <h3 className="text-sm font-bold text-[#1a1a1a]">Ce que dit la science</h3>
+          </div>
+          <div className="grid gap-3">
+            {globalKeyInsights.map((ins, i) => (
+              <div key={i} className="relative bg-[#1a1a1a]/[0.02] border border-[#1a1a1a]/[0.06] rounded-2xl px-5 py-4 overflow-hidden">
+                <div className="absolute top-3 right-4 text-5xl font-serif text-[#1a1a1a]/[0.04] leading-none select-none">&ldquo;</div>
+                <p className="text-xs font-bold text-[#1a1a1a] mb-1.5">{ins.title}</p>
+                <p className="text-xs text-[#1a1a1a]/55 leading-relaxed mb-3">{ins.description}</p>
+                <p className="text-[10px] text-[#1a1a1a]/25 font-medium">{ins.reference}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
-        <Link href="/onboarding/bilans" className="btn-primary text-center inline-block px-10 py-4 text-base">
+      {/* ── CTA ── */}
+      <div className="flex flex-col items-center gap-3 pt-2">
+        <Link href="/onboarding/bilans" className="btn-primary text-center inline-block px-10 py-4 text-base w-full max-w-xs">
           Retour aux bilans
         </Link>
       </div>
@@ -1090,33 +1027,28 @@ export default function BilanNutritionPage() {
   const handleScore = useCallback((value: number) => {
     if (!currentTest) return
     setScores((prev) => ({ ...prev, [currentTest.id]: value }))
-  }, [currentTest])
-
-  const handleNext = useCallback(() => {
-    if (!currentTest) return
-    if (scores[currentTest.id] === undefined) return
-
-    if (testIndex < currentSection.tests.length - 1) {
-      setTestIndex(testIndex + 1)
-    } else if (sectionIndex < activeSections.length - 1) {
-      setSectionIndex(sectionIndex + 1)
-      setTestIndex(0)
-    } else {
-      // Part finished
-      if (activePart === 'alimentaire') {
-        setAlimentaireDone(true)
+    setTimeout(() => {
+      if (testIndex < currentSection.tests.length - 1) {
+        setTestIndex(testIndex + 1)
+      } else if (sectionIndex < activeSections.length - 1) {
+        setSectionIndex(sectionIndex + 1)
+        setTestIndex(0)
       } else {
-        setDigestifDone(true)
+        // Part finished
+        if (activePart === 'alimentaire') {
+          setAlimentaireDone(true)
+        } else {
+          setDigestifDone(true)
+        }
+        const otherDone = activePart === 'alimentaire' ? digestifDone : alimentaireDone
+        if (otherDone) {
+          setPhase('results')
+        } else {
+          setPhase('welcome')
+        }
       }
-      // Check if both are now done
-      const otherDone = activePart === 'alimentaire' ? digestifDone : alimentaireDone
-      if (otherDone) {
-        setPhase('results')
-      } else {
-        setPhase('welcome')
-      }
-    }
-  }, [currentTest, scores, testIndex, currentSection, sectionIndex, activeSections, activePart, alimentaireDone, digestifDone])
+    }, 300)
+  }, [currentTest, testIndex, currentSection, sectionIndex, activeSections, activePart, alimentaireDone, digestifDone])
 
   const handlePrev = useCallback(() => {
     if (testIndex > 0) {
@@ -1203,7 +1135,7 @@ export default function BilanNutritionPage() {
             test={currentTest} testIndex={flatIndex} totalTests={partTotalTests}
             sectionTitle={currentSection.title} sectionIcon={currentSection.icon}
             selectedScore={scores[currentTest.id]} onScore={handleScore}
-            onPrev={handlePrev} onNext={handleNext} canGoNext={scores[currentTest.id] !== undefined}
+            onPrev={handlePrev}
           />
         )}
 
