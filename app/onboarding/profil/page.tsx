@@ -108,24 +108,24 @@ const dietOptions = [
 
 const coachToneCards = [
   {
-    title: 'Posé & rassurant',
+    title: 'Coach rassurant',
     emoji: '🧘',
-    text: 'Ne t\'en fais pas pour aujourd\'hui. L\'essentiel, c\'est ta régularité sur le long terme. Repose-toi bien, on reprendra ensemble, à ton rythme, dès demain.',
+    text: "Je vois que la séance prévue aujourd'hui n'a finalement pas été réalisée. Ce n'est pas grave. Dis-moi, c'est parce qu'elle ne te plaisait pas ou tu as simplement eu un empêchement ? Si besoin, on peut ajuster le contenu et la replacer tranquillement dans ton agenda. 💙",
   },
   {
-    title: 'Structuré & cadré',
-    emoji: '📋',
-    text: 'Je vois que tu n’as pas réalisé ta séance aujourd’hui. Pour maintenir l\'équilibre de ton programme, deux options s\'offrent à toi : Option A reporter cette session à demain, ou Option B passer directement à la suivante pour respecter le calendrier initial.',
-  },
-  {
-    title: 'Motivant & énergique',
+    title: 'Coach dynamique',
     emoji: '⚡',
-    text: 'On a raté le coche aujourd\'hui ? Aucun problème, ça arrive ! On transforme cette petite pause en énergie pour demain. Prêt à tout donner à la prochaine session ?',
+    text: "Je vois que la séance prévue aujourd'hui n'a pas été réalisée. Rebondissons. 💪 J'ai regardé ton agenda : tu as un créneau demain à 18h ou jeudi matin. On la planifie et on repart.",
   },
   {
-    title: 'Direct & factuel',
-    emoji: '🎯',
-    text: 'Tu n’as pas validé ta séance aujourd’hui. Le contenu reste accessible en bibliothèque si tu décides de le rattraper plus tard.',
+    title: 'Coach discret',
+    emoji: '🤝',
+    text: "Séance manquée aujourd'hui. Veux-tu qu'on planifie une séance de remplacement, ou qu'on continue simplement avec la suivante ?",
+  },
+  {
+    title: 'Coach vénère',
+    emoji: '🔥',
+    text: "La séance n'est pas faite. On la rattrape demain. Je te propose 20 minutes à 7h30 ou ce soir à 19h — choisis, mais on la fait. 💥",
   },
 ]
 
@@ -1461,19 +1461,26 @@ export default function ProfilPage() {
 
           {current.id === 'coachTone' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-3">Quel ton préférez-vous pour votre coach evo ?</h2>
-              <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-1">Quel ton préférez-vous pour votre coach evo ?</h2>
+              <p className="text-sm text-[#1a1a1a]/45 mb-4">Voici comment chaque coach vous répondrait si vous ratiez une séance.</p>
+              <div className="space-y-3">
                 {coachToneCards.map((tone) => (
                   <button
                     key={tone.title}
-                    onClick={() => chooseSingleAndNext(setCoachTone, tone.text)}
-                    className={`${cardClass} ${coachTone === tone.text ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
+                    onClick={() => chooseSingleAndNext(setCoachTone, tone.title)}
+                    className={`w-full text-left rounded-2xl border-2 px-4 py-3 transition-all ${
+                      coachTone === tone.title
+                        ? 'border-[#25D366] bg-[#25D366]/8'
+                        : 'border-transparent bg-[#f0f0f0] hover:border-[#25D366]/40'
+                    }`}
                   >
-                    <div className="flex items-start gap-3">
-                      <span className="text-xl leading-none">{tone.emoji}</span>
-                      <div>
-                        <p className="text-sm font-semibold text-[#1a1a1a] mb-1">{tone.title}</p>
-                        <p className="text-xs text-[#1a1a1a]/75 leading-relaxed">{tone.text}</p>
+                    {/* Contact header */}
+                    <p className="text-xs font-semibold text-[#1a1a1a]/55 mb-2">{tone.emoji} {tone.title}</p>
+                    {/* WhatsApp bubble */}
+                    <div className="relative ml-0 max-w-[92%]">
+                      <div className="bg-white rounded-2xl rounded-tl-sm px-3 py-2 shadow-sm">
+                        <p className="text-[13px] text-[#1a1a1a] leading-relaxed">{tone.text}</p>
+                        <p className="text-[10px] text-[#1a1a1a]/35 text-right mt-1">12:34 ✓✓</p>
                       </div>
                     </div>
                   </button>
