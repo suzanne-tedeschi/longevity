@@ -273,17 +273,9 @@ function ScoreButton({ value, label, description, selected, onSelect, maxOptionV
       }`}
     >
       <div className="flex items-center gap-3">
-        {maxOptionValue <= 1 ? (
-          <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-            selected ? `${colors.bg} ${colors.text} ${colors.border} border` : 'bg-[#1a1a1a]/[0.04] text-[#1a1a1a]/40 border border-[#1a1a1a]/[0.1]'
-          }`}>
-            {label === 'Oui' ? '✓' : '✗'}
-          </div>
-        ) : (
-          <div className={`flex-shrink-0 w-3 h-3 rounded-full transition-all duration-300 ${
-            selected ? `${colors.bg} border-2 ${colors.border}` : 'bg-[#1a1a1a]/[0.1] border-2 border-transparent'
-          }`} />
-        )}
+        <div className={`flex-shrink-0 w-3 h-3 rounded-full transition-all duration-300 ${
+          selected ? `${colors.bg} border-2 ${colors.border}` : 'bg-[#1a1a1a]/[0.1] border-2 border-transparent'
+        }`} />
         <div className="flex-1 min-w-0">
           <p className={`font-semibold text-sm transition-colors duration-300 ${selected ? colors.text : 'text-[#1a1a1a]'}`}>{label}</p>
         </div>
@@ -296,9 +288,9 @@ function ScoreButton({ value, label, description, selected, onSelect, maxOptionV
 /* ═══════════════════════════════════════════════════════
    TEST CARD
    ═══════════════════════════════════════════════════════ */
-function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, selectedScore, onScore, onPrev, onNext, canGoNext }: {
+function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, selectedScore, onScore, onPrev }: {
   test: NutritionTest; testIndex: number; totalTests: number; sectionTitle: string; sectionIcon: SectionIcon
-  selectedScore: number | undefined; onScore: (v: number) => void; onPrev: () => void; onNext: () => void; canGoNext: boolean
+  selectedScore: number | undefined; onScore: (v: number) => void; onPrev: () => void
 }) {
   const maxOptionValue = Math.max(...test.scoring.map(o => o.value))
   return (
@@ -335,20 +327,9 @@ function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, sele
 
       <div className="h-20" />
       <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur border-t border-[#1a1a1a]/[0.08] px-4 py-3 z-50">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+        <div className="max-w-lg mx-auto flex items-center">
           <button onClick={onPrev} className="flex items-center gap-1 text-sm text-[#1a1a1a]/50 hover:text-[#1a1a1a] transition-colors">
             <ChevronLeft className="w-4 h-4" /> Précédent
-          </button>
-          <button
-            onClick={onNext}
-            disabled={!canGoNext}
-            className={`flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-              canGoNext
-                ? 'bg-[#2D6A4F] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-                : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/20 cursor-not-allowed'
-            }`}
-          >
-            Suivant <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -1090,33 +1071,27 @@ export default function BilanNutritionPage() {
   const handleScore = useCallback((value: number) => {
     if (!currentTest) return
     setScores((prev) => ({ ...prev, [currentTest.id]: value }))
-  }, [currentTest])
-
-  const handleNext = useCallback(() => {
-    if (!currentTest) return
-    if (scores[currentTest.id] === undefined) return
-
-    if (testIndex < currentSection.tests.length - 1) {
-      setTestIndex(testIndex + 1)
-    } else if (sectionIndex < activeSections.length - 1) {
-      setSectionIndex(sectionIndex + 1)
-      setTestIndex(0)
-    } else {
-      // Part finished
-      if (activePart === 'alimentaire') {
-        setAlimentaireDone(true)
+    setTimeout(() => {
+      if (testIndex < currentSection.tests.length - 1) {
+        setTestIndex(testIndex + 1)
+      } else if (sectionIndex < activeSections.length - 1) {
+        setSectionIndex(sectionIndex + 1)
+        setTestIndex(0)
       } else {
-        setDigestifDone(true)
+        if (activePart === 'alimentaire') {
+          setAlimentaireDone(true)
+        } else {
+          setDigestifDone(true)
+        }
+        const otherDone = activePart === 'alimentaire' ? digestifDone : alimentaireDone
+        if (otherDone) {
+          setPhase('results')
+        } else {
+          setPhase('welcome')
+        }
       }
-      // Check if both are now done
-      const otherDone = activePart === 'alimentaire' ? digestifDone : alimentaireDone
-      if (otherDone) {
-        setPhase('results')
-      } else {
-        setPhase('welcome')
-      }
-    }
-  }, [currentTest, scores, testIndex, currentSection, sectionIndex, activeSections, activePart, alimentaireDone, digestifDone])
+    }, 300)
+  }, [currentTest, testIndex, currentSection, sectionIndex, activeSections, activePart, alimentaireDone, digestifDone])
 
   const handlePrev = useCallback(() => {
     if (testIndex > 0) {
@@ -1203,7 +1178,7 @@ export default function BilanNutritionPage() {
             test={currentTest} testIndex={flatIndex} totalTests={partTotalTests}
             sectionTitle={currentSection.title} sectionIcon={currentSection.icon}
             selectedScore={scores[currentTest.id]} onScore={handleScore}
-            onPrev={handlePrev} onNext={handleNext} canGoNext={scores[currentTest.id] !== undefined}
+            onPrev={handlePrev}
           />
         )}
 

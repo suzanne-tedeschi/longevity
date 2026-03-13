@@ -387,8 +387,6 @@ function TestCard({
   selectedScore,
   onScore,
   onPrev,
-  onNext,
-  canGoNext,
 }: {
   test: MobilityTest
   testIndex: number
@@ -398,8 +396,6 @@ function TestCard({
   selectedScore: number | undefined
   onScore: (value: number) => void
   onPrev: () => void
-  onNext: () => void
-  canGoNext: boolean
 }) {
   const hasVideo = Boolean(test.videoUrl)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -607,21 +603,6 @@ function TestCard({
                 <ChevronLeft className="w-4 h-4" />
                 Précédent
               </button>
-              <button
-                onClick={onNext}
-                disabled={!canGoNext}
-                className={`
-                  flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold
-                  transition-all duration-300
-                  ${canGoNext
-                    ? 'bg-[#3ECF8E] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-                    : 'bg-white/10 text-white/20 cursor-not-allowed'
-                  }
-                `}
-              >
-                Suivant
-                <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
           </div>
         </div>
@@ -681,21 +662,6 @@ function TestCard({
           >
             <ChevronLeft className="w-4 h-4" />
             Précédent
-          </button>
-          <button
-            onClick={onNext}
-            disabled={!canGoNext}
-            className={`
-              flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold
-              transition-all duration-300
-              ${canGoNext
-                ? 'bg-[#2D6A4F] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-                : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/20 cursor-not-allowed'
-              }
-            `}
-          >
-            Suivant
-            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -1262,21 +1228,16 @@ export default function BilanMobilitePage() {
     (value: number) => {
       if (!currentTest) return
       setScores((prev) => ({ ...prev, [currentTest.id]: value }))
+      setTimeout(() => {
+        if (testIndex < currentSection.tests.length - 1) {
+          setTestIndex(testIndex + 1)
+        } else {
+          setPhase('section-results')
+        }
+      }, 300)
     },
-    [currentTest]
+    [currentTest, testIndex, currentSection]
   )
-
-  const handleNext = useCallback(() => {
-    if (!currentTest) return
-    if (scores[currentTest.id] === undefined) return
-
-    if (testIndex < currentSection.tests.length - 1) {
-      setTestIndex(testIndex + 1)
-    } else {
-      // Dernier test de la section → afficher le bilan intermédiaire
-      setPhase('section-results')
-    }
-  }, [currentTest, scores, testIndex, currentSection, sectionIndex])
 
   const handlePrev = useCallback(() => {
     if (testIndex > 0) {
@@ -1366,8 +1327,6 @@ export default function BilanMobilitePage() {
             selectedScore={scores[currentTest.id]}
             onScore={handleScore}
             onPrev={handlePrev}
-            onNext={handleNext}
-            canGoNext={scores[currentTest.id] !== undefined}
           />
         )}
 
