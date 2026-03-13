@@ -24,3 +24,7 @@ alter table if exists profiles
   add column if not exists expectations text default '',
   add column if not exists onboarding_data jsonb default '{}'::jsonb,
   add column if not exists onboarding_completed_at timestamptz;
+
+-- Drop the old JSONB blob if it exists
+alter table if exists profiles
+  drop column if exists onboarding_data;

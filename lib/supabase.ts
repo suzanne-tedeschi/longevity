@@ -38,6 +38,15 @@ type ProfileUpsertPayload = {
 	onboarding_completed_at?: string | null
 }
 
+const ONBOARDING_COLUMNS = [
+	'age', 'height', 'weight',
+	'activity_frequency', 'weekly_activities', 'agenda_activities', 'agenda_mode',
+	'agenda_sessions', 'google_calendar_wanted', 'google_calendar_connected',
+	'limitations', 'joint_pain_where', 'muscle_pain_where', 'other_limitation',
+	'evo_usage', 'priorities', 'diet', 'other_diet', 'coach_tone', 'expectations',
+	'onboarding_completed_at',
+]
+
 /**
  * Upsert profile fields, while tolerating projects where onboarding columns
  * have not yet been added to `profiles`.

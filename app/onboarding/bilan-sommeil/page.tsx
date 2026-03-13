@@ -13,6 +13,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { saveProgress, loadProgress, clearProgress } from '@/lib/bilan-progress'
 import { generateFullReport } from '@/lib/bilan-sommeil-report'
+import { Zap, TrendingUp, Sparkles } from 'lucide-react'
 
 /* ═══════════════════════════════════════════════════════
    SVG ICON COMPONENTS — Sleep-themed line icons
@@ -614,7 +615,6 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
               <div key={s.sectionId} className="relative pl-4 border-l-2 border-emerald-300">
                 <div className="flex items-center justify-between mb-0.5">
                   <p className="text-sm font-semibold text-[#1a1a1a]">{s.title}</p>
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{s.pct}%</span>
                 </div>
                 <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{s.praise}</p>
               </div>
@@ -647,7 +647,6 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <p className="text-sm font-bold text-[#1a1a1a]">{w.title}</p>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${wInfo.color} bg-[#1a1a1a]/[0.04]`}>{w.pct}%</span>
                       </div>
                       <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{w.concern}</p>
                     </div>
@@ -682,56 +681,85 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
       {/* ── Action plan ── */}
       {report.actionPlan.length > 0 && (
         <div className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-5 h-5 rounded-full bg-supagreen/15 flex items-center justify-center flex-shrink-0">
-              <ChevronRight className="w-3 h-3 text-supagreen" />
+          <div className="flex items-center gap-2 mb-6">
+            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+              <ChevronRight className="w-3 h-3 text-white" />
             </div>
-            <h3 className="text-sm font-bold text-[#1a1a1a]">Votre plan d&apos;action</h3>
+            <h3 className="text-base font-bold text-[#1a1a1a]">Votre plan d'action</h3>
           </div>
-
-          <div className="relative pl-6">
-            {/* vertical line */}
-            <div className="absolute left-2.5 top-3 bottom-3 w-px bg-[#1a1a1a]/[0.08]" />
-
-            <div className="space-y-6">
-              {report.actionPlan.map((phase) => {
-                const phaseColors = [
-                  { dot: 'bg-supagreen', badge: 'bg-supagreen/10 text-supagreen border-supagreen/20' },
-                  { dot: 'bg-sky-500', badge: 'bg-sky-50 text-sky-600 border-sky-200' },
-                  { dot: 'bg-amber-500', badge: 'bg-amber-50 text-amber-600 border-amber-200' },
-                ]
-                const c = phaseColors[(phase.phase - 1) % phaseColors.length]
-                return (
-                  <div key={phase.phase} className="relative">
-                    {/* dot */}
-                    <div className={`absolute -left-6 top-3 w-4 h-4 rounded-full border-2 border-white ${c.dot} shadow-sm`} />
-
-                    <div className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
-                      <div className="flex items-center gap-3 px-5 py-3 border-b border-[#1a1a1a]/[0.06]">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${c.badge}`}>
-                          Phase {phase.phase}
-                        </span>
-                        <p className="text-xs font-bold text-[#1a1a1a] flex-1">{phase.phaseTitle}</p>
-                        <span className="text-[10px] text-[#1a1a1a]/25">{phase.timeframe}</span>
+          <div className="space-y-6">
+            {report.actionPlan.map((phase) => {
+              const getPhaseConfig = () => {
+                if (phase.phase === 1) {
+                  return { 
+                    circle: 'bg-gradient-to-br from-blue-500 to-blue-600', 
+                    bg: 'bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent', 
+                    border: 'border-blue-300/40', 
+                    accent: 'bg-blue-500',
+                    Icon: Zap,
+                    badgeBg: 'bg-blue-100',
+                    badgeText: 'text-blue-700'
+                  }
+                } else if (phase.phase === 2) {
+                  return { 
+                    circle: 'bg-gradient-to-br from-purple-500 to-purple-600', 
+                    bg: 'bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent', 
+                    border: 'border-purple-300/40', 
+                    accent: 'bg-purple-500',
+                    Icon: TrendingUp,
+                    badgeBg: 'bg-purple-100',
+                    badgeText: 'text-purple-700'
+                  }
+                } else {
+                  return { 
+                    circle: 'bg-gradient-to-br from-amber-500 to-amber-600', 
+                    bg: 'bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent', 
+                    border: 'border-amber-300/40', 
+                    accent: 'bg-amber-500',
+                    Icon: Sparkles,
+                    badgeBg: 'bg-amber-100',
+                    badgeText: 'text-amber-700'
+                  }
+                }
+              }
+              const cfg = getPhaseConfig()
+              return (
+                <div key={phase.phase} className={`rounded-3xl border-2 overflow-hidden backdrop-blur-md ${cfg.bg} ${cfg.border} transition-all duration-300 hover:shadow-xl`}>
+                  {/* Phase header */}
+                  <div className={`px-6 py-5 border-b border-[#1a1a1a]/[0.08] bg-white/30`}>
+                    <div className="flex items-center gap-4">
+                      <div className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold text-white flex-shrink-0 ${cfg.circle} shadow-lg ring-4 ring-white/50`}>
+                        <cfg.Icon className="w-6 h-6" />
                       </div>
-                      <div className="divide-y divide-[#1a1a1a]/[0.05]">
-                        {phase.actions.map((action, i) => (
-                          <div key={i} className="flex gap-3 px-5 py-3">
-                            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#1a1a1a]/[0.04] flex items-center justify-center mt-0.5">
-                              <svg className="w-3 h-3 text-[#1a1a1a]/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                            </div>
-                            <div>
-                              <p className="text-xs font-semibold text-[#1a1a1a] leading-snug mb-0.5">{action.action}</p>
-                              <p className="text-[10px] text-[#1a1a1a]/35 leading-relaxed">{action.why}</p>
-                            </div>
-                          </div>
-                        ))}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-base font-bold text-[#1a1a1a]">{phase.phaseTitle}</p>
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full ${cfg.badgeBg} ${cfg.badgeText}`}>Étape {phase.phase}</span>
+                        </div>
+                        <p className="text-sm text-[#1a1a1a]/50 font-medium">{phase.timeframe}</p>
                       </div>
                     </div>
                   </div>
-                )
-              })}
-            </div>
+
+                  {/* Actions list */}
+                  <div className="divide-y divide-[#1a1a1a]/[0.05]">
+                    {phase.actions.map((action, actionIdx) => (
+                      <div key={actionIdx} className="px-6 py-5 hover:bg-white/20 transition-colors">
+                        <div className="flex gap-4">
+                          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${cfg.accent} ring-2 ring-white/30`}>
+                            {actionIdx + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-[#1a1a1a] mb-1">{action.action}</p>
+                            <p className="text-xs text-[#1a1a1a]/60 leading-relaxed">{action.why}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
