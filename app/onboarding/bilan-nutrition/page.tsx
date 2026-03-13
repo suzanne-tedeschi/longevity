@@ -1154,7 +1154,7 @@ export default function BilanNutritionPage() {
           />
         )}
 
-        {phase === 'testing' && currentTest && (
+        {phase === 'testing' && currentTest && currentSection && (
           <TestCard
             test={currentTest} testIndex={flatIndex} totalTests={partTotalTests}
             sectionTitle={currentSection.title} sectionIcon={currentSection.icon}
