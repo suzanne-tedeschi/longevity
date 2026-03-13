@@ -48,6 +48,8 @@ type StepId =
   | 'coachTone'
   | 'expectations'
 
+type AgendaMode = 'later' | 'none' | ''
+
 const steps: { id: StepId; label: string }[] = [
   { id: 'firstName', label: 'Prénom' },
   { id: 'age', label: 'Âge' },
@@ -127,7 +129,8 @@ const coachToneCards = [
   },
 ]
 
-const longevityLevers = ['Nutrition', 'Santé mentale', 'Sport', 'Sommeil']
+const longevityLevers = ['Santé mentale', 'Sport', 'Nutrition', 'Sommeil']
+const oldLongevityLevers = ['Nutrition', 'Santé mentale', 'Sport', 'Sommeil']
 
 function reorder(list: string[], from: number, to: number) {
   const next = [...list]
@@ -186,6 +189,7 @@ export default function ProfilPage() {
   const [activityFrequency, setActivityFrequency] = useState('')
   const [weeklyActivities, setWeeklyActivities] = useState<string[]>([])
   const [agendaSessions, setAgendaSessions] = useState<PlanningSession[]>([])
+  const [agendaMode, setAgendaMode] = useState<AgendaMode>('')
   const [googleCalendarWanted, setGoogleCalendarWanted] = useState<boolean | null>(null)
   const [limitations, setLimitations] = useState<string[]>([])
   const [jointPainWhere, setJointPainWhere] = useState('')
@@ -194,6 +198,7 @@ export default function ProfilPage() {
   const [evoUsage, setEvoUsage] = useState('')
   const [priorities, setPriorities] = useState<string[]>(longevityLevers)
   const [diet, setDiet] = useState('')
+  const [otherDiet, setOtherDiet] = useState('')
   const [coachTone, setCoachTone] = useState('')
   const [expectations, setExpectations] = useState('')
   const [saving, setSaving] = useState(false)
@@ -227,21 +232,16 @@ export default function ProfilPage() {
 
   useEffect(() => {
     async function init() {
-      if (!isSupabaseConfigured || !supabase) {
-        setCalendarLoading(false)
-        return
-      }
+      let session: { access_token?: string; user: { user_metadata?: Record<string, unknown> } } | null = null
 
-      const { data: auth } = await supabase.auth.getSession()
-      const session = auth.session
-      if (!session) {
-        router.replace('/onboarding/login')
-        return
+      if (isSupabaseConfigured && supabase) {
+        const { data: auth } = await supabase.auth.getSession()
+        session = auth.session
       }
 
       const existingName =
-        session.user.user_metadata?.first_name ||
-        session.user.user_metadata?.full_name?.split(' ')[0] ||
+        (session?.user.user_metadata?.first_name as string | undefined) ||
+        (session?.user.user_metadata?.full_name as string | undefined)?.split(' ')[0] ||
         localStorage.getItem('evo_user_name') ||
         ''
       if (existingName) setFirstName(existingName)
@@ -279,14 +279,21 @@ export default function ProfilPage() {
                     .filter((session) => !Number.isNaN(session.date.getTime()))
               : []
           )
+              setAgendaMode(data.agendaMode === 'later' || data.agendaMode === 'none' ? data.agendaMode : '')
           setGoogleCalendarWanted(data.googleCalendarWanted ?? null)
           setLimitations(Array.isArray(data.limitations) ? data.limitations : [])
           setJointPainWhere(data.jointPainWhere ?? '')
           setMusclePainWhere(data.musclePainWhere ?? '')
           setOtherLimitation(data.otherLimitation ?? '')
           setEvoUsage(data.evoUsage ?? '')
-          setPriorities(Array.isArray(data.priorities) && data.priorities.length === 4 ? data.priorities : longevityLevers)
+          if (Array.isArray(data.priorities) && data.priorities.length === 4) {
+            const isOldDefault = data.priorities.every((value: string, index: number) => value === oldLongevityLevers[index])
+            setPriorities(isOldDefault ? longevityLevers : data.priorities)
+          } else {
+            setPriorities(longevityLevers)
+          }
           setDiet(data.diet ?? '')
+          setOtherDiet(data.otherDiet ?? '')
           setCoachTone(data.coachTone ?? '')
           setExpectations(data.expectations ?? '')
         } catch {
@@ -306,27 +313,31 @@ export default function ProfilPage() {
         }
       }
 
-      try {
-        const response = await fetch('/api/calendar/google/status', {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        })
-        const body = (await response.json()) as {
-          connected?: boolean
-          email?: string | null
-          lastSyncAt?: string | null
+      if (session?.access_token) {
+        try {
+          const response = await fetch('/api/calendar/google/status', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          })
+          const body = (await response.json()) as {
+            connected?: boolean
+            email?: string | null
+            lastSyncAt?: string | null
+          }
+          if (response.ok) {
+            setCalendarConnected(Boolean(body.connected))
+            setCalendarEmail(body.email ?? null)
+            setCalendarLastSyncAt(body.lastSyncAt ?? null)
+          }
+        } finally {
+          setCalendarLoading(false)
         }
-        if (response.ok) {
-          setCalendarConnected(Boolean(body.connected))
-          setCalendarEmail(body.email ?? null)
-          setCalendarLastSyncAt(body.lastSyncAt ?? null)
-        }
-      } finally {
+      } else {
         setCalendarLoading(false)
       }
     }
 
     init()
-  }, [router])
+  }, [])
 
   useEffect(() => {
     localStorage.setItem(
@@ -339,6 +350,7 @@ export default function ProfilPage() {
         activityFrequency,
         weeklyActivities,
         agendaActivities,
+        agendaMode,
         agendaSessions: agendaSessions.map((session) => ({
           ...session,
           date: session.date.toISOString(),
@@ -351,6 +363,7 @@ export default function ProfilPage() {
         evoUsage,
         priorities,
         diet,
+        otherDiet,
         coachTone,
         expectations,
       })
@@ -363,6 +376,7 @@ export default function ProfilPage() {
     activityFrequency,
     weeklyActivities,
     agendaActivities,
+    agendaMode,
     agendaSessions,
     googleCalendarWanted,
     limitations,
@@ -372,6 +386,7 @@ export default function ProfilPage() {
     evoUsage,
     priorities,
     diet,
+    otherDiet,
     coachTone,
     expectations,
   ])
@@ -539,6 +554,8 @@ export default function ProfilPage() {
       ])
     }
 
+    setAgendaMode('')
+
     setModal({ open: false, date: null })
     setEditingSessionId(null)
     setNewSession({ label: '', duration: 45, notes: '', time: '09:00', dayOfWeek: 1, isWeekly: false })
@@ -621,7 +638,7 @@ export default function ProfilPage() {
       case 'weeklyActivities':
         return weeklyActivities.length > 0
       case 'agendaActivities':
-        return agendaSessions.length > 0
+        return agendaSessions.length > 0 || agendaMode !== ''
       case 'calendar':
         return googleCalendarWanted !== null
       case 'limitations':
@@ -635,6 +652,7 @@ export default function ProfilPage() {
       case 'priorities':
         return priorities.length === 4
       case 'diet':
+        if (diet === 'Autre régime spécifique') return Boolean(diet) && Boolean(otherDiet.trim())
         return Boolean(diet)
       case 'coachTone':
         return Boolean(coachTone)
@@ -725,8 +743,39 @@ export default function ProfilPage() {
   }
 
   const finishOnboarding = async () => {
+    const payload = {
+      firstName: firstName.trim(),
+      age: Number(age),
+      height: Number(height),
+      weight: Number(weight),
+      activityFrequency,
+      weeklyActivities,
+      agendaActivities,
+        agendaMode,
+      agendaSessions: agendaSessions.map((session) => ({
+        ...session,
+        date: session.date.toISOString(),
+      })),
+      googleCalendarWanted,
+      googleCalendarConnected: calendarConnected,
+      limitations,
+      jointPainWhere: jointPainWhere.trim(),
+      musclePainWhere: musclePainWhere.trim(),
+      otherLimitation: otherLimitation.trim(),
+      evoUsage,
+      priorities,
+      diet,
+      otherDiet: otherDiet.trim(),
+      coachTone,
+      expectations: expectations.trim(),
+      completedAt: new Date().toISOString(),
+    }
+
+    localStorage.setItem('evo_onboarding_data', JSON.stringify(payload))
+    localStorage.setItem('evo_user_name', firstName.trim())
+
     if (!isSupabaseConfigured || !supabase) {
-      router.push('/onboarding/bilans')
+      router.push('/onboarding/login')
       return
     }
 
@@ -738,32 +787,6 @@ export default function ProfilPage() {
       if (!session?.user) {
         router.push('/onboarding/login')
         return
-      }
-
-      const payload = {
-        firstName: firstName.trim(),
-        age: Number(age),
-        height: Number(height),
-        weight: Number(weight),
-        activityFrequency,
-        weeklyActivities,
-        agendaActivities,
-        agendaSessions: agendaSessions.map((session) => ({
-          ...session,
-          date: session.date.toISOString(),
-        })),
-        googleCalendarWanted,
-        googleCalendarConnected: calendarConnected,
-        limitations,
-        jointPainWhere: jointPainWhere.trim(),
-        musclePainWhere: musclePainWhere.trim(),
-        otherLimitation: otherLimitation.trim(),
-        evoUsage,
-        priorities,
-        diet,
-        coachTone,
-        expectations: expectations.trim(),
-        completedAt: new Date().toISOString(),
       }
 
       await supabase.auth.updateUser({
@@ -786,7 +809,6 @@ export default function ProfilPage() {
         { onConflict: 'id' }
       )
 
-      localStorage.setItem('evo_user_name', firstName.trim())
       localStorage.setItem('evo_onboarding_completed', 'true')
       localStorage.removeItem('evo_onboarding_data')
 
@@ -807,12 +829,12 @@ export default function ProfilPage() {
 
   const handleBack = () => {
     if (step > 0) setStep(prev => prev - 1)
-    else router.push('/onboarding/login')
+    else router.push('/')
   }
 
   const cardClass =
     'w-full rounded-xl border-2 p-3.5 text-left transition-all duration-200 ' +
-    'border-[#1a1a1a]/[0.1] bg-white hover:border-[#2D6A4F]/30 hover:-translate-y-[1px] hover:shadow-[0_8px_24px_-14px_rgba(27,67,50,0.5)]'
+    'border-[#1a1a1a]/[0.1] bg-white hover:border-[#25D366]/40 hover:-translate-y-[1px] hover:shadow-[0_8px_24px_-14px_rgba(37,211,102,0.45)]'
 
   return (
     <div className="min-h-screen bg-[#FAF8F5]">
@@ -827,7 +849,7 @@ export default function ProfilPage() {
           <div className="flex-1 max-w-sm">
             <div className="w-full h-1 bg-[#1a1a1a]/[0.06] rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#2D6A4F] to-[#1B4332] transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-[#25D366] to-[#1fb85a] transition-all duration-500"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
@@ -835,14 +857,14 @@ export default function ProfilPage() {
               {step + 1}/{steps.length} · {current.label}
             </p>
           </div>
-          <Link href="/onboarding/login" className="text-xs text-[#1a1a1a]/25 hover:text-[#1a1a1a]/45 transition-colors">Quitter</Link>
+          <Link href="/" className="text-xs text-[#1a1a1a]/25 hover:text-[#1a1a1a]/45 transition-colors">Quitter</Link>
         </div>
       </div>
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl p-5 sm:p-7 shadow-[0_30px_80px_-45px_rgba(26,26,26,0.5)]">
-          <div className="mb-4 inline-flex items-center rounded-full border border-[#2D6A4F]/20 bg-[#2D6A4F]/5 px-3 py-1">
-            <span className="text-[11px] font-medium text-[#2D6A4F]">Questionnaire onboarding evo</span>
+      <main className="w-full px-4 sm:px-6 lg:px-10 py-6 min-h-[calc(100vh-72px)] flex items-center justify-center">
+        <div className="w-full max-w-[980px] bg-white border border-[#1a1a1a]/[0.08] rounded-2xl p-5 sm:p-7 md:p-8 shadow-[0_30px_80px_-45px_rgba(26,26,26,0.5)]">
+          <div className="mb-4 inline-flex items-center rounded-full border border-[#25D366]/25 bg-[#25D366]/10 px-3 py-1">
+            <span className="text-[11px] font-medium text-[#25D366]">Questionnaire onboarding evo</span>
           </div>
           {current.id === 'firstName' && (
             <div>
@@ -852,7 +874,7 @@ export default function ProfilPage() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="Ex: Suzanne"
-                className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/20 focus:border-[#2D6A4F]"
+                className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#25D366]/25 focus:border-[#25D366]"
               />
             </div>
           )}
@@ -904,7 +926,7 @@ export default function ProfilPage() {
                   <button
                     key={option}
                     onClick={() => chooseSingleAndNext(setActivityFrequency, option)}
-                    className={`${cardClass} ${activityFrequency === option ? 'border-[#2D6A4F] bg-[#2D6A4F]/10' : ''}`}
+                    className={`${cardClass} ${activityFrequency === option ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                   >
                     <span className="text-sm font-medium text-[#1a1a1a]">{option}</span>
                   </button>
@@ -925,7 +947,7 @@ export default function ProfilPage() {
                     onClick={() => toggleWeeklyActivity(category)}
                     className={`px-4 py-2 rounded-full border text-sm transition-colors ${
                       weeklyActivities.includes(category)
-                        ? 'bg-[#2D6A4F]/10 border-[#2D6A4F]/40 text-[#2D6A4F]'
+                        ? 'bg-[#25D366]/10 border-[#25D366]/40 text-[#25D366]'
                         : 'bg-white border-[#1a1a1a]/[0.12] text-[#1a1a1a]/80 hover:border-[#1a1a1a]/25'
                     }`}
                   >
@@ -940,6 +962,23 @@ export default function ProfilPage() {
             <div>
               <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Placez dans votre agenda les activités régulières</h2>
               <p className="text-sm text-[#1a1a1a]/45 mb-3">Glissez vos séances pour les déplacer, puis ajoutez vos créneaux récurrents.</p>
+
+              <div className="grid sm:grid-cols-2 gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setAgendaMode('later')}
+                  className={`${cardClass} ${agendaMode === 'later' ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
+                >
+                  J&apos;ai des activités régulières mais je veux les configurer plus tard
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAgendaMode('none')}
+                  className={`${cardClass} ${agendaMode === 'none' ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
+                >
+                  Je n&apos;ai pas d&apos;activité à horaires réguliers
+                </button>
+              </div>
 
               <div
                 className="bg-white rounded-xl border border-black/[0.06] overflow-hidden"
@@ -1144,7 +1183,7 @@ export default function ProfilPage() {
               <button
                 type="button"
                 onClick={() => openCreateSessionModal(new Date())}
-                className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold border border-[#1a1a1a]/[0.12] hover:border-[#2D6A4F]/40"
+                className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold border border-[#1a1a1a]/[0.12] hover:border-[#25D366]/40"
               >
                 <Plus className="w-3.5 h-3.5" /> Ajouter une séance
               </button>
@@ -1164,7 +1203,7 @@ export default function ProfilPage() {
                       placeholder="ex. Run 5km"
                       value={newSession.label}
                       onChange={(e) => setNewSession((prev) => ({ ...prev, label: e.target.value }))}
-                      className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40 transition-colors placeholder:text-[#1a1a1a]/20 mb-3"
+                      className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#25D366]/40 transition-colors placeholder:text-[#1a1a1a]/20 mb-3"
                     />
 
                     <div className="grid grid-cols-2 gap-2 mb-3">
@@ -1173,7 +1212,7 @@ export default function ProfilPage() {
                         <select
                           value={newSession.dayOfWeek}
                           onChange={(e) => setNewSession((prev) => ({ ...prev, dayOfWeek: Number(e.target.value) }))}
-                          className="mt-1 w-full px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40"
+                          className="mt-1 w-full px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#25D366]/40"
                         >
                           {DAY_OPTIONS.map((day) => (
                             <option key={day.value} value={day.value}>{day.label}</option>
@@ -1186,7 +1225,7 @@ export default function ProfilPage() {
                           type="time"
                           value={newSession.time}
                           onChange={(e) => setNewSession((prev) => ({ ...prev, time: e.target.value }))}
-                          className="mt-1 w-full px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40"
+                          className="mt-1 w-full px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#25D366]/40"
                         />
                       </div>
                     </div>
@@ -1200,7 +1239,7 @@ export default function ProfilPage() {
                         step={5}
                         value={newSession.duration}
                         onChange={(e) => setNewSession((prev) => ({ ...prev, duration: Number(e.target.value) }))}
-                        className="flex-1 px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40"
+                        className="flex-1 px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#25D366]/40"
                       />
                       <span className="text-[12px] text-[#1a1a1a]/35">min</span>
                     </div>
@@ -1220,7 +1259,7 @@ export default function ProfilPage() {
                       value={newSession.notes}
                       onChange={(e) => setNewSession((prev) => ({ ...prev, notes: e.target.value }))}
                       rows={2}
-                      className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40 resize-none placeholder:text-[#1a1a1a]/20 mb-4"
+                      className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#25D366]/40 resize-none placeholder:text-[#1a1a1a]/20 mb-4"
                     />
 
                     <div className="flex gap-2">
@@ -1256,8 +1295,8 @@ export default function ProfilPage() {
             <div>
               <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Voulez-vous connecter votre Google Agenda ? (optionnel)</h2>
               <div className="grid sm:grid-cols-2 gap-2 mb-4">
-                <button onClick={() => chooseSingleAndNext(setGoogleCalendarWanted, true)} className={`${cardClass} ${googleCalendarWanted === true ? 'border-[#2D6A4F] bg-[#2D6A4F]/10' : ''}`}>Oui, je veux connecter</button>
-                <button onClick={() => chooseSingleAndNext(setGoogleCalendarWanted, false)} className={`${cardClass} ${googleCalendarWanted === false ? 'border-[#2D6A4F] bg-[#2D6A4F]/10' : ''}`}>Non, plus tard</button>
+                <button onClick={() => chooseSingleAndNext(setGoogleCalendarWanted, true)} className={`${cardClass} ${googleCalendarWanted === true ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}>Oui, je veux connecter</button>
+                <button onClick={() => chooseSingleAndNext(setGoogleCalendarWanted, false)} className={`${cardClass} ${googleCalendarWanted === false ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}>Non, plus tard</button>
               </div>
 
               <div className="rounded-xl border border-[#1a1a1a]/[0.08] bg-[#FAF8F5] p-4">
@@ -1276,7 +1315,7 @@ export default function ProfilPage() {
                     type="button"
                     onClick={handleConnectCalendar}
                     disabled={calendarWorking || calendarLoading}
-                    className="px-3 py-2 rounded-lg text-xs font-semibold border border-[#1a1a1a]/[0.12] hover:border-[#2D6A4F]/40"
+                    className="px-3 py-2 rounded-lg text-xs font-semibold border border-[#1a1a1a]/[0.12] hover:border-[#25D366]/40"
                   >
                     {calendarConnected ? 'Reconnecter Google' : 'Connecter Google'}
                   </button>
@@ -1285,7 +1324,7 @@ export default function ProfilPage() {
                       type="button"
                       onClick={handleSyncCalendar}
                       disabled={calendarWorking}
-                      className="px-3 py-2 rounded-lg text-xs font-semibold bg-[#2D6A4F] text-white"
+                      className="px-3 py-2 rounded-lg text-xs font-semibold bg-[#25D366] text-white"
                     >
                       Actualiser
                     </button>
@@ -1303,7 +1342,7 @@ export default function ProfilPage() {
                   <button
                     key={option}
                     onClick={() => toggleLimitation(option)}
-                    className={`${cardClass} ${limitations.includes(option) ? 'border-[#2D6A4F] bg-[#2D6A4F]/10' : ''}`}
+                    className={`${cardClass} ${limitations.includes(option) ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                   >
                     {option}
                   </button>
@@ -1345,7 +1384,7 @@ export default function ProfilPage() {
                   <button
                     key={option}
                     onClick={() => chooseSingleAndNext(setEvoUsage, option)}
-                    className={`${cardClass} ${evoUsage === option ? 'border-[#2D6A4F] bg-[#2D6A4F]/10' : ''}`}
+                    className={`${cardClass} ${evoUsage === option ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                   >
                     {option}
                   </button>
@@ -1362,7 +1401,7 @@ export default function ProfilPage() {
                 {priorities.map((item, idx) => (
                   <div key={item} className="rounded-xl border border-[#1a1a1a]/[0.1] bg-white px-3 py-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#2D6A4F]">#{idx + 1}</span>
+                      <span className="text-xs font-bold text-[#25D366]">#{idx + 1}</span>
                       <span className="text-sm text-[#1a1a1a]">{item}</span>
                     </div>
                     <div className="flex gap-1">
@@ -1394,13 +1433,29 @@ export default function ProfilPage() {
                 {dietOptions.map(option => (
                   <button
                     key={option}
-                    onClick={() => chooseSingleAndNext(setDiet, option)}
-                    className={`${cardClass} ${diet === option ? 'border-[#2D6A4F] bg-[#2D6A4F]/10' : ''}`}
+                    onClick={() => {
+                      if (option === 'Autre régime spécifique') {
+                        setDiet(option)
+                      } else {
+                        setOtherDiet('')
+                        chooseSingleAndNext(setDiet, option)
+                      }
+                    }}
+                    className={`${cardClass} ${diet === option ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                   >
                     {option}
                   </button>
                 ))}
               </div>
+              {diet === 'Autre régime spécifique' && (
+                <input
+                  autoFocus
+                  value={otherDiet}
+                  onChange={(e) => setOtherDiet(e.target.value)}
+                  placeholder="Précisez votre régime"
+                  className="mt-3 w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm"
+                />
+              )}
             </div>
           )}
 
@@ -1412,7 +1467,7 @@ export default function ProfilPage() {
                   <button
                     key={tone.title}
                     onClick={() => chooseSingleAndNext(setCoachTone, tone.text)}
-                    className={`${cardClass} ${coachTone === tone.text ? 'border-[#2D6A4F] bg-[#2D6A4F]/10' : ''}`}
+                    className={`${cardClass} ${coachTone === tone.text ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                   >
                     <div className="flex items-start gap-3">
                       <span className="text-xl leading-none">{tone.emoji}</span>
@@ -1447,7 +1502,7 @@ export default function ProfilPage() {
               disabled={!canContinue() || saving}
               className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                 canContinue() && !saving
-                  ? 'bg-[#2D6A4F] text-white hover:bg-[#24563f]'
+                  ? 'bg-[#c9a96e] text-white hover:bg-[#b8945f]'
                   : 'bg-[#1a1a1a]/[0.07] text-[#1a1a1a]/25 cursor-not-allowed'
               }`}
             >

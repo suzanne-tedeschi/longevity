@@ -17,19 +17,86 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
+  const getPendingOnboarding = () => {
+    try {
+      const raw = localStorage.getItem('evo_onboarding_data')
+      if (!raw) return null
+      return JSON.parse(raw) as {
+        firstName?: string
+        age?: string | number
+        height?: string | number
+        weight?: string | number
+        [key: string]: unknown
+      }
+    } catch {
+      return null
+    }
+  }
+
+  const applyPendingOnboarding = async (user: { id: string; user_metadata?: Record<string, unknown> }) => {
+    if (!supabase) return false
+
+    const pending = getPendingOnboarding()
+    if (!pending) return false
+
+    const payload = {
+      ...pending,
+      completedAt: new Date().toISOString(),
+    }
+
+    const firstNameFromPending = typeof pending.firstName === 'string' ? pending.firstName.trim() : ''
+    const ageNumber = Number(pending.age)
+    const heightNumber = Number(pending.height)
+    const weightNumber = Number(pending.weight)
+
+    await supabase.auth.updateUser({
+      data: {
+        ...user.user_metadata,
+        first_name: firstNameFromPending || (user.user_metadata?.first_name as string) || '',
+        evo_onboarding_completed: true,
+        evo_onboarding: payload,
+      },
+    })
+
+    await supabase.from('profiles').upsert(
+      {
+        id: user.id,
+        first_name: firstNameFromPending || (user.user_metadata?.first_name as string) || '',
+        age: Number.isFinite(ageNumber) ? ageNumber : null,
+        height: Number.isFinite(heightNumber) ? heightNumber : null,
+        weight: Number.isFinite(weightNumber) ? weightNumber : null,
+      },
+      { onConflict: 'id' }
+    )
+
+    if (firstNameFromPending) {
+      localStorage.setItem('evo_user_name', firstNameFromPending)
+    }
+    localStorage.setItem('evo_onboarding_completed', 'true')
+    localStorage.removeItem('evo_onboarding_data')
+
+    return true
+  }
+
   useEffect(() => {
     async function redirectIfAuthenticated() {
+      const pending = getPendingOnboarding()
+      if (pending?.firstName && !firstName) {
+        setFirstName(String(pending.firstName))
+      }
+
       if (!isSupabaseConfigured || !supabase) return
       const {
         data: { session },
       } = await supabase.auth.getSession()
       if (session?.user) {
+        const appliedPending = await applyPendingOnboarding(session.user)
         const completed = Boolean(session.user.user_metadata?.evo_onboarding_completed)
-        router.replace(completed ? '/onboarding/bilans' : '/onboarding/profil')
+        router.replace(appliedPending || completed ? '/onboarding/bilans' : '/onboarding/profil')
       }
     }
     redirectIfAuthenticated()
-  }, [router])
+  }, [router, firstName])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,15 +159,16 @@ export default function LoginPage() {
       const {
         data: { session },
       } = await supabase.auth.getSession()
+      const appliedPending = session?.user ? await applyPendingOnboarding(session.user) : false
       const completed = Boolean(session?.user?.user_metadata?.evo_onboarding_completed)
-      router.push(completed ? '/onboarding/bilans' : '/onboarding/profil')
+      router.push(appliedPending || completed ? '/onboarding/bilans' : '/onboarding/profil')
     } catch {
       setErrorMsg('Une erreur est survenue. Réessayez.')
       setLoading(false)
     }
   }
 
-  const handleSocialLogin = async (provider: 'google' | 'apple') => {
+  const handleSocialLogin = async (provider: 'google') => {
     if (!isSupabaseConfigured || !supabase) {
       setErrorMsg('Service indisponible. Réessayez plus tard.')
       return
@@ -110,7 +178,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/onboarding/login`,
       },
     })
     if (error) {
@@ -187,14 +255,10 @@ export default function LoginPage() {
             </button>
 
             <button
-              onClick={() => handleSocialLogin('apple')}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-[#1a1a1a]/[0.1] bg-white hover:bg-[#1a1a1a]/[0.04] hover:border-[#1a1a1a]/[0.12] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-[#1a1a1a]/[0.08] bg-[#1a1a1a]/[0.02] text-[#1a1a1a]/35 cursor-not-allowed"
             >
-              <svg className="w-5 h-5 text-[#1a1a1a]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-              </svg>
-              <span className="text-sm font-medium text-[#1a1a1a]/60">Continuer avec Apple</span>
+              <span className="text-sm font-medium">Apple bientôt disponible</span>
             </button>
           </div>
 
