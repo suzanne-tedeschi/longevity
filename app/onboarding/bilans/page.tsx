@@ -1024,7 +1024,6 @@ export default function BilansPage() {
                                       }}
                                     />
                                   </div>
-                                  <span className="text-[11px] font-semibold text-[#1a1a1a]/50 w-10 text-right tabular-nums">{sr.pct}%</span>
                                 </div>
                               ))}
                             </div>
@@ -1089,9 +1088,6 @@ export default function BilansPage() {
                                           <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
                                               <span className="text-xs font-bold text-[#1a1a1a]">{sectionTitle(w.sectionId, w.title)}</span>
-                                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isAlert ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                                                {w.pct}%
-                                              </span>
                                             </div>
                                             <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed line-clamp-2">{w.concern}</p>
                                           </div>
@@ -1134,42 +1130,95 @@ export default function BilansPage() {
                             )}
 
                             {/* ═══ SECTION 4 — Plan d'action ═══ */}
-                            <div>
-                              <div className="flex items-center gap-2 mb-4">
-                                <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center">
-                                  <Lightbulb className="w-3.5 h-3.5 text-blue-600" />
+                            <div className="mb-8">
+                              <div className="flex items-center gap-3 mb-6">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                                  <Lightbulb className="w-5 h-5 text-white" />
                                 </div>
-                                <h4 className="text-sm font-bold text-[#1a1a1a]">
-                                  {(report.strengths.length > 0 && report.weaknesses.length > 0) ? '4' : report.strengths.length > 0 || report.weaknesses.length > 0 ? '3' : '2'}. Plan d&apos;action
-                                </h4>
+                                <div>
+                                  <h4 className="text-lg font-bold text-[#1a1a1a]">
+                                    {(report.strengths.length > 0 && report.weaknesses.length > 0) ? '4' : report.strengths.length > 0 || report.weaknesses.length > 0 ? '3' : '2'}. Votre plan d&apos;action
+                                  </h4>
+                                  <p className="text-xs text-[#1a1a1a]/40 mt-0.5">Étapes clés pour progresser rapidement</p>
+                                </div>
                               </div>
 
-                              <div className="space-y-4">
-                                {report.actionPlan.map(phase => (
-                                  <div key={phase.phase}>
-                                    <div className="flex items-center gap-2 mb-2.5">
-                                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                                        phase.phase === 1 ? 'bg-blue-100 text-blue-700'
-                                          : phase.phase === 2 ? 'bg-purple-100 text-purple-700'
-                                          : 'bg-amber-100 text-amber-700'
-                                      }`}>
-                                        {phase.phase}
-                                      </div>
-                                      <div>
-                                        <p className="text-xs font-bold text-[#1a1a1a]">{phase.phaseTitle}</p>
-                                        <p className="text-[10px] text-[#1a1a1a]/30">{phase.timeframe}</p>
-                                      </div>
-                                    </div>
-                                    <div className="space-y-2 ml-3 pl-5 border-l-2 border-[#1a1a1a]/[0.06]">
-                                      {phase.actions.map((action, i) => (
-                                        <div key={i} className="bg-white border border-[#1a1a1a]/[0.06] rounded-xl p-3.5">
-                                          <p className="text-[11px] text-[#1a1a1a]/70 leading-relaxed font-medium">{action.action}</p>
-                                          <p className="text-[10px] text-[#1a1a1a]/35 mt-1 italic">{action.why}</p>
+                              <div className="space-y-6">
+                                {report.actionPlan.map((phase, phaseIdx) => {
+                                  const getPhaseConfig = () => {
+                                    if (phase.phase === 1) {
+                                      return { 
+                                        circle: 'bg-gradient-to-br from-blue-500 to-blue-600', 
+                                        bg: 'bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent', 
+                                        border: 'border-blue-300/40', 
+                                        accent: 'bg-blue-500',
+                                        Icon: Zap,
+                                        badgeBg: 'bg-blue-100',
+                                        badgeText: 'text-blue-700'
+                                      }
+                                    } else if (phase.phase === 2) {
+                                      return { 
+                                        circle: 'bg-gradient-to-br from-purple-500 to-purple-600', 
+                                        bg: 'bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent', 
+                                        border: 'border-purple-300/40', 
+                                        accent: 'bg-purple-500',
+                                        Icon: TrendingUp,
+                                        badgeBg: 'bg-purple-100',
+                                        badgeText: 'text-purple-700'
+                                      }
+                                    } else {
+                                      return { 
+                                        circle: 'bg-gradient-to-br from-amber-500 to-amber-600', 
+                                        bg: 'bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent', 
+                                        border: 'border-amber-300/40', 
+                                        accent: 'bg-amber-500',
+                                        Icon: Sparkles,
+                                        badgeBg: 'bg-amber-100',
+                                        badgeText: 'text-amber-700'
+                                      }
+                                    }
+                                  }
+                                  const cfg = getPhaseConfig()
+                                  return (
+                                    <div key={phase.phase} className={`rounded-3xl border-2 overflow-hidden backdrop-blur-md ${cfg.bg} ${cfg.border} transition-all duration-300 hover:shadow-xl`}>
+                                      {/* Phase header */}
+                                      <div className={`px-6 py-5 border-b border-[#1a1a1a]/[0.08] bg-white/30`}>
+                                        <div className="flex items-center gap-4">
+                                          <div className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold text-white flex-shrink-0 ${cfg.circle} shadow-lg ring-4 ring-white/50`}>
+                                            <cfg.Icon className="w-6 h-6" />
+                                          </div>
+                                          <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                              <p className="text-base font-bold text-[#1a1a1a]">{phase.phaseTitle}</p>
+                                              <span className={`text-xs font-bold px-3 py-1 rounded-full ${cfg.badgeBg} ${cfg.badgeText}`}>Étape {phase.phase}</span>
+                                            </div>
+                                            <p className="text-sm text-[#1a1a1a]/50 font-medium">{phase.timeframe}</p>
+                                          </div>
                                         </div>
-                                      ))}
+                                      </div>
+
+                                      {/* Actions list */}
+                                      <div className="px-6 py-5 space-y-3">
+                                        {phase.actions.map((action, actionIdx) => (
+                                          <div key={actionIdx} className="group">
+                                            <div className="flex items-start gap-4 p-4 bg-white/70 hover:bg-white rounded-2xl border border-[#1a1a1a]/[0.08] transition-all duration-200 hover:shadow-md hover:border-[#1a1a1a]/[0.15]">
+                                              {/* Action number circle */}
+                                              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-white ${cfg.accent} ring-2 ring-white/50 shadow-md`}>
+                                                {actionIdx + 1}
+                                              </div>
+                                              
+                                              {/* Action content */}
+                                              <div className="flex-1 min-w-0 mt-0.5">
+                                                <p className="text-[12px] font-semibold text-[#1a1a1a] leading-relaxed mb-2">{action.action}</p>
+                                                <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed italic border-l-2 border-[#1a1a1a]/[0.1] pl-3">{action.why}</p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  )
+                                })}
                               </div>
                             </div>
 
@@ -1242,7 +1291,6 @@ export default function BilansPage() {
                                               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${lc.badge}`}>
                                                 {sr.recommendationTitle}
                                               </span>
-                                              <span className="text-[10px] text-[#1a1a1a]/30 ml-auto tabular-nums">{sr.pct}%</span>
                                             </div>
                                           </div>
                                           <div className={`w-4 h-4 flex items-center justify-center transition-transform duration-200 ${isExpSec ? 'rotate-90' : ''}`}>
