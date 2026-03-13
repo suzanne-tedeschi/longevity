@@ -5,7 +5,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const oauthCode = request.nextUrl.searchParams.get('code')
 
-  if (oauthCode && pathname !== '/auth/callback') {
+  if (oauthCode && pathname !== '/auth/callback' && !pathname.startsWith('/api/')) {
     const callbackUrl = request.nextUrl.clone()
     callbackUrl.pathname = '/auth/callback'
     callbackUrl.searchParams.set('code', oauthCode)

@@ -21,7 +21,7 @@ import {
   Activity, Moon, Apple, Brain, Dumbbell, Heart, RefreshCw, Plus, X,
   Timer, Zap, Shield, Leaf, Microscope, Lightbulb, ArrowRight, GripVertical,
   Dna, Clock, Wind, Recycle, Bug, Radio, Sprout, Ban, LayoutGrid, Columns3, CalendarDays,
-  MessageCircle, CheckCircle, AlertTriangle, LogOut, Sparkles,
+  MessageCircle, CheckCircle, AlertTriangle, LogOut, Sparkles, Repeat,
 } from "lucide-react"
 import css from "./bilans.module.css"
 
@@ -33,6 +33,7 @@ interface Session {
   label: string
   duration: number
   notes?: string
+  isWeekly?: boolean
 }
 
 interface StoredSession {
@@ -42,6 +43,7 @@ interface StoredSession {
   label: string
   duration: number
   notes?: string
+  isWeekly?: boolean
 }
 type CalView = "week" | "month" | "day"
 
@@ -181,7 +183,7 @@ export default function BilansPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [modal, setModal] = useState<{ open: boolean; date: Date | null }>({ open: false, date: null })
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
-  const [newSession, setNewSession] = useState({ type: "sport" as "evo" | "sport", label: "", duration: 45, notes: "", time: "09:00" })
+  const [newSession, setNewSession] = useState({ type: "sport" as "evo" | "sport", label: "", duration: 45, notes: "", time: "09:00", isWeekly: false })
   const [calendarConnected, setCalendarConnected] = useState(false)
   const [calendarEmail, setCalendarEmail] = useState<string | null>(null)
   const [calendarLoading, setCalendarLoading] = useState(true)
@@ -246,7 +248,7 @@ export default function BilansPage() {
   const resetModalState = useCallback(() => {
     setModal({ open: false, date: null })
     setEditingSessionId(null)
-    setNewSession({ type: "sport", label: "", duration: 45, notes: "", time: "09:00" })
+    setNewSession({ type: "sport", label: "", duration: 45, notes: "", time: "09:00", isWeekly: false })
   }, [])
 
   const openCreateModal = useCallback((date: Date, label = "") => {
@@ -272,6 +274,7 @@ export default function BilansPage() {
       duration: session.duration,
       notes: session.notes || "",
       time: format(session.date, "HH:mm"),
+      isWeekly: session.isWeekly ?? false,
     })
     setModal({ open: true, date: new Date(session.date) })
   }, [])
@@ -330,8 +333,8 @@ export default function BilansPage() {
     const chipLabel = getDraggedChipLabel(e)
     if (chipLabel) {
       const nd = new Date(targetDate); nd.setHours(9, 0, 0, 0)
-      addSessionAtDate(nd, chipLabel, "sport")
       clearDragState()
+      openCreateModal(nd, chipLabel)
       return
     }
     const sid = getDraggedSessionId(e)
@@ -343,7 +346,7 @@ export default function BilansPage() {
       return { ...s, date: nd }
     }))
     clearDragState()
-  }, [addSessionAtDate, clearDragState, getDraggedChipLabel, getDraggedSessionId])
+  }, [openCreateModal, clearDragState, getDraggedChipLabel, getDraggedSessionId])
 
   /* drop with hour calculation from Y position */
   const onDropTime = useCallback((e: React.DragEvent, targetDate: Date) => {
@@ -359,8 +362,8 @@ export default function BilansPage() {
     const chipLabel = getDraggedChipLabel(e)
     if (chipLabel) {
       const nd = new Date(targetDate); nd.setHours(h, m, 0, 0)
-      addSessionAtDate(nd, chipLabel, "sport")
       clearDragState()
+      openCreateModal(nd, chipLabel)
       return
     }
     const sid = getDraggedSessionId(e)
@@ -372,7 +375,7 @@ export default function BilansPage() {
       return { ...s, date: nd }
     }))
     clearDragState()
-  }, [addSessionAtDate, clearDragState, getDraggedChipLabel, getDraggedSessionId])
+  }, [openCreateModal, clearDragState, getDraggedChipLabel, getDraggedSessionId])
 
   /* ── google calendar ── */
   const fetchGoogleEvents = async (d: Date, forceSync = false) => {
@@ -548,11 +551,31 @@ export default function BilansPage() {
     const [hours, minutes] = newSession.time.split(":").map(Number)
     d.setHours(Number.isFinite(hours) ? hours : 9, Number.isFinite(minutes) ? minutes : 0, 0, 0)
     if (editingSessionId) {
-      setSessions(prev => prev.map(session =>
-        session.id === editingSessionId
-          ? { ...session, date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }
-          : session
-      ))
+      const base = { type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }
+      setSessions(prev => {
+        const updated = prev.map(session =>
+          session.id === editingSessionId
+            ? { ...session, ...base, date: d, isWeekly: newSession.isWeekly }
+            : session
+        )
+        if (!newSession.isWeekly) return updated
+        const now = Date.now()
+        const extra = Array.from({ length: 11 }, (_, i) => {
+          const nd = new Date(d); nd.setDate(nd.getDate() + (i + 1) * 7)
+          return { ...base, id: `${now}-${i}`, date: nd, isWeekly: true as const }
+        })
+        return [...updated, ...extra]
+      })
+    } else if (newSession.isWeekly) {
+      const base = { type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes, isWeekly: true as const }
+      const now = Date.now()
+      setSessions(prev => [
+        ...prev,
+        ...Array.from({ length: 12 }, (_, i) => {
+          const nd = new Date(d); nd.setDate(nd.getDate() + i * 7)
+          return { ...base, id: `${now}-${i}`, date: nd }
+        }),
+      ])
     } else {
       setSessions(prev => [...prev, { id: Date.now().toString(), date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }])
     }
@@ -719,7 +742,7 @@ export default function BilansPage() {
               <span className="text-[12px] text-white/40 font-medium">{format(new Date(), "d MMMM yyyy", { locale: fr })}</span>
             </div>
 
-            <div className="flex flex-col gap-5 lg:flex-row lg:gap-10 lg:items-start">
+            <div className="flex flex-col gap-5 lg:flex-row lg:gap-10 lg:items-stretch">
               {/* ── Left: profile block ── */}
               <div className="shrink-0 w-full lg:w-[240px] rounded-2xl border border-white/[0.08] bg-white/[0.04] p-5 sm:p-5 lg:border-0 lg:bg-transparent lg:p-0 flex flex-col items-center lg:items-start">
                 {/* Ages side by side — big & centered on mobile */}
@@ -733,12 +756,12 @@ export default function BilansPage() {
                   </div>
                   <div className="w-px self-stretch bg-white/[0.08] mx-1" />
                   <div className="text-center lg:text-left">
-                    <p className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.18em] text-white/30 mb-2">Âge bio</p>
+                    <p className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.18em] text-white/30 mb-2">Âge biologique</p>
                     <div className="flex items-baseline gap-1 justify-center lg:justify-start">
                       <span className="text-[64px] sm:text-[56px] lg:text-[42px] leading-none font-extrabold text-white/10 blur-[5px] select-none tracking-tight">00</span>
                       <span className="text-[18px] sm:text-[16px] lg:text-base text-white/10 blur-[4px]">ans</span>
                     </div>
-                    <p className="text-[10px] sm:text-[11px] text-white/20 mt-1 text-center lg:text-left">Bientôt</p>
+                    <span className="inline-block mt-2 text-[10px] font-semibold uppercase tracking-wider text-[#c9a96e] bg-[#c9a96e]/10 border border-[#c9a96e]/20 px-2 py-0.5 rounded-md">Bientôt dispo</span>
                   </div>
                 </div>
 
@@ -783,12 +806,12 @@ export default function BilansPage() {
               <div className="flex-1 min-w-0 flex flex-col gap-2 lg:gap-3">
                 {/* Nutrition — carte principale */}
                 <div
-                  className={`${css.kpiCard} relative rounded-2xl p-4 sm:p-5 overflow-hidden border cursor-pointer`}
+                  className={`${css.kpiCard} relative rounded-2xl p-4 sm:p-5 overflow-hidden border cursor-pointer lg:flex-1`}
                   style={{ background: nutritionScore !== null ? 'rgba(201,169,110,0.07)' : 'rgba(255,255,255,0.04)', borderColor: nutritionScore !== null ? 'rgba(201,169,110,0.22)' : 'rgba(255,255,255,0.08)' }}
                   onClick={() => router.push('/onboarding/bilan-nutrition')}
                 >
                   <div className={css.kpiShimmer}><div /></div>
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-4 lg:h-full lg:items-center">
                     <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                       <div className={`${css.kpiIcon} w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0`} style={{ background: 'rgba(201,169,110,0.12)', color: '#c9a96e' }}>
                         <Apple className="w-5 h-5" />
@@ -1417,7 +1440,7 @@ export default function BilansPage() {
                     draggable
                     onDragStart={e => {
                       dragPayload.current = { kind: "chip", value: activity }
-                      e.dataTransfer.effectAllowed = "copy"
+                      e.dataTransfer.effectAllowed = "all"
                       e.dataTransfer.setData("application/evo-drag-kind", "chip")
                       e.dataTransfer.setData("application/evo-chip", activity)
                       e.dataTransfer.setData("text/plain", activity)
@@ -1548,7 +1571,7 @@ export default function BilansPage() {
                                 className={`absolute left-0.5 right-0.5 z-10 rounded px-1 py-px overflow-hidden transition-opacity group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : "cursor-default"} ${cls}`}
                                 style={{ top, height: Math.max(height, 18) }}>
                                 {isDraggable(s) && <GripVertical className="w-2.5 h-2.5 absolute top-0.5 right-0 opacity-0 group-hover/sess:opacity-40 text-current" />}
-                                <p className="text-[8px] font-semibold truncate leading-tight">{s.type === "google" ? "Occupé" : s.label}</p>
+                                <p className="text-[8px] font-semibold truncate leading-tight flex items-center gap-0.5">{s.type === "google" ? "Occupé" : s.label}{s.isWeekly && <Repeat className="w-2 h-2 shrink-0 opacity-50 ml-0.5" />}</p>
                                 {height >= 28 && <p className="text-[7px] opacity-50">{format(s.date, "HH:mm")} · {s.duration}m</p>}
                               </div>
                             )
@@ -1588,7 +1611,7 @@ export default function BilansPage() {
                         className={`absolute left-1 right-4 z-10 rounded-lg px-3 py-1 overflow-hidden group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${cls}`}
                         style={{ top, height: Math.max(height, 24) }}>
                         {isDraggable(s) && <GripVertical className="w-3 h-3 absolute top-1 right-1 opacity-0 group-hover/sess:opacity-40 text-current" />}
-                        <p className="text-[11px] font-semibold truncate">{s.type === "google" ? "Occupé" : s.label}</p>
+                        <p className="text-[11px] font-semibold truncate flex items-center gap-1">{s.type === "google" ? "Occupé" : s.label}{s.isWeekly && <Repeat className="w-2.5 h-2.5 shrink-0 opacity-40" />}</p>
                         <p className="text-[10px] opacity-60">{format(s.date, "HH:mm")} — {s.duration} min</p>
                       </div>
                     )
@@ -1757,6 +1780,19 @@ export default function BilansPage() {
               <div className="flex items-center gap-1.5 text-[11px] text-[#1a1a1a]/30 shrink-0"><Timer className="w-3 h-3" /> min</div>
               <input type="number" min={5} max={180} step={5} value={newSession.duration} onChange={e => setNewSession(s => ({ ...s, duration: Number(e.target.value) }))} className="flex-1 px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40" />
             </div>
+            <label className="flex items-center gap-2.5 px-1 cursor-pointer select-none">
+              <div
+                onClick={() => setNewSession(s => ({ ...s, isWeekly: !s.isWeekly }))}
+                className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${newSession.isWeekly ? "bg-[#3ECF8E] border-[#3ECF8E]" : "border-black/20 bg-white"}`}
+              >
+                {newSession.isWeekly && <svg viewBox="0 0 10 8" className="w-2.5 h-2" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              </div>
+              <span className="text-[12px] text-[#1a1a1a]/60 flex items-center gap-1.5">
+                <Repeat className="w-3 h-3 opacity-50" />
+                Répéter toutes les semaines
+              </span>
+              {newSession.isWeekly && <span className="ml-auto text-[10px] text-[#1a1a1a]/30">{editingSessionId ? "+ 11 sem." : "× 12 sem."}</span>}
+            </label>
             <textarea placeholder="Notes (optionnel)" value={newSession.notes} onChange={e => setNewSession(s => ({ ...s, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40 resize-none placeholder:text-[#1a1a1a]/20" />
             <div className="flex gap-2 pt-1">
               {editingSessionId && (

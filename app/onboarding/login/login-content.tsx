@@ -78,7 +78,7 @@ export default function LoginContent() {
       joint_pain_where: (pending.jointPainWhere as string) || '',
       muscle_pain_where: (pending.musclePainWhere as string) || '',
       other_limitation: (pending.otherLimitation as string) || '',
-      evo_usage: (pending.evoUsage as string) || '',
+      evo_usage: Array.isArray(pending.evoUsage) ? (pending.evoUsage as string[]).join(', ') : (pending.evoUsage as string) || '',
       priorities: Array.isArray(pending.priorities) ? (pending.priorities as string[]) : [],
       diet: (pending.diet as string) || '',
       other_diet: (pending.otherDiet as string) || '',
