@@ -82,24 +82,31 @@ export default function LoginPage() {
   }
 
   useEffect(() => {
-    async function redirectIfAuthenticated() {
+    async function loadPendingAndCheckAuth() {
       const pending = getPendingOnboarding()
       if (pending?.firstName && !firstName) {
         setFirstName(String(pending.firstName))
       }
 
-      if (!isSupabaseConfigured || !supabase) return
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (session?.user) {
-        const appliedPending = await applyPendingOnboarding(session.user)
-        const completed = Boolean(session.user.user_metadata?.evo_onboarding_completed)
-        router.replace(appliedPending || completed ? '/onboarding/bilans' : '/onboarding/profil')
+      // For mode=signup after questionnaire, check if we have a session and prefill first name
+      if (mode === 'signup' && !isSupabaseConfigured) return
+      
+      if (isSupabaseConfigured && supabase && mode === 'signup') {
+        try {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession()
+          // Only use session data as fallback, don't redirect on signup mode
+          if (session?.user && pending?.firstName) {
+            setFirstName(String(pending.firstName))
+          }
+        } catch {
+          // Silently ignore auth errors
+        }
       }
     }
-    redirectIfAuthenticated()
-  }, [router, firstName])
+    loadPendingAndCheckAuth()
+  }, [mode, firstName])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

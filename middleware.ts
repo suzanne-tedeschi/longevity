@@ -44,20 +44,23 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isBilansRoute = pathname.startsWith('/onboarding/bilans')
-  const isProfilRoute = pathname.startsWith('/onboarding/profil')
-  const isOnboardingDone = Boolean(user?.user_metadata?.evo_onboarding_completed)
+  // Only apply onboarding flow restrictions if user is already logged in
+  if (user) {
+    const isBilansRoute = pathname.startsWith('/onboarding/bilans')
+    const isProfilRoute = pathname.startsWith('/onboarding/profil')
+    const isOnboardingDone = Boolean(user.user_metadata?.evo_onboarding_completed)
 
-  if (user && isBilansRoute && !isOnboardingDone) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/onboarding/profil'
-    return NextResponse.redirect(url)
-  }
+    if (isBilansRoute && !isOnboardingDone) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding/profil'
+      return NextResponse.redirect(url)
+    }
 
-  if (user && isProfilRoute && isOnboardingDone) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/onboarding/bilans'
-    return NextResponse.redirect(url)
+    if (isProfilRoute && isOnboardingDone) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding/bilans'
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse
