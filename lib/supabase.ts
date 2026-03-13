@@ -45,60 +45,60 @@ type ProfileUpsertPayload = {
 export async function upsertProfile(payload: ProfileUpsertPayload) {
 	if (!supabase) return null
 
+	console.log('[upsertProfile] Payload received:', {
+		activity_frequency: payload.activity_frequency,
+		weekly_activities: payload.weekly_activities,
+		diet: payload.diet,
+		priorities: payload.priorities,
+		coach_tone: payload.coach_tone,
+		expectations: payload.expectations,
+	})
+
 	const { data, error } = await supabase
 		.from('profiles')
 		.upsert(payload, { onConflict: 'id' })
 		.select()
 		.single()
 
-	if (!error) return data
+	if (!error) {
+		console.log('[upsertProfile] Success! Data saved:', {
+			activity_frequency: data?.activity_frequency,
+			diet: data?.diet,
+		})
+		return data
+	}
 
-	// Full error log for debugging
-	console.error('Profile upsert failed:', error.message, error)
+	// Full error log for debugging - log full details to help diagnose the issue
+	console.error('[upsertProfile failed]', {
+		message: error.message,
+		code: error.code,
+		details: error.details,
+		hint: error.hint,
+		fullError: error,
+	})
 
-	const onboardingFields = [
-		'age', 'height', 'weight', 'activity_frequency', 'weekly_activities', 'agenda_sessions', 'agenda_mode',
-		'google_calendar_wanted', 'google_calendar_connected', 'limitations', 'joint_pain_where', 'muscle_pain_where',
-		'other_limitation', 'evo_usage', 'priorities', 'diet', 'other_diet', 'coach_tone', 'expectations',
-		'onboarding_data', 'onboarding_completed_at'
-	]
-	const missingOnboardingColumns = onboardingFields.some((field) =>
-		error.message.includes(`profiles.${field}`)
-	)
-	if (!missingOnboardingColumns) {
-		console.warn('Profile upsert failed with non-column error:', error.message)
+	// Only use fallback if it's specifically a "column does not exist" error
+	// Check for PostgreSQL error code 42703 (column does not exist) 
+	// or the error message explicitly mentions undefined column
+	const isColumnMissingError =
+		error.code === '42703' ||
+		error.message?.includes('column') && error.message?.includes('does not exist')
+
+	if (!isColumnMissingError) {
+		// This is some other error (RLS, validation, network, etc.) - don't fallback
+		console.error('[upsertProfile prevented fallback] Not a missing column error, aborting.')
 		return null
 	}
 
-	// Fallback: try without onboarding fields but preserve basic profile fields + age/height/weight
-	const {
-		age,
-		height,
-		weight,
-		activity_frequency,
-		weekly_activities,
-		agenda_sessions,
-		agenda_mode,
-		google_calendar_wanted,
-		google_calendar_connected,
-		limitations,
-		joint_pain_where,
-		muscle_pain_where,
-		other_limitation,
-		evo_usage,
-		priorities,
-		diet,
-		other_diet,
-		coach_tone,
-		expectations,
-		onboarding_data,
-		onboarding_completed_at,
-		...basicPayload
-	} = payload
+	console.warn('[upsertProfile fallback] Detected missing onboarding columns, trying basic fields only')
 
-	// Include age, height, weight in fallback (keep what we collected)
+	// Fallback: preserve basic profile fields, age, height, weight (ignore advanced onboarding fields)
 	const fallbackPayload = {
-		...basicPayload,
+		id: payload.id,
+		first_name: payload.first_name,
+		last_name: payload.last_name,
+		email: payload.email,
+		avatar_url: payload.avatar_url,
 		age: payload.age,
 		height: payload.height,
 		weight: payload.weight,
@@ -111,11 +111,11 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 		.single()
 
 	if (fallback.error) {
-		console.warn('Profile fallback upsert failed:', fallback.error.message)
+		console.error('[upsertProfile fallback failed]', fallback.error)
 		return null
 	}
 
-	console.warn('profiles table is missing some onboarding columns; falling back to basic fields + age/height/weight')
+	console.warn('[upsertProfile] Successfully saved basic profile (advanced onboarding columns may not exist)')
 	return fallback.data
 }
 
