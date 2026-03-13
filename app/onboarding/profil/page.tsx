@@ -113,17 +113,17 @@ const coachToneCards = [
     text: "Je vois que la séance prévue aujourd'hui n'a finalement pas été réalisée. Ce n'est pas grave. Dis-moi, c'est parce qu'elle ne te plaisait pas ou tu as simplement eu un empêchement ? Si besoin, on peut ajuster le contenu et la replacer tranquillement dans ton agenda. 💙",
   },
   {
-    title: 'Coach dynamique',
-    emoji: '⚡',
-    text: "Je vois que la séance prévue aujourd'hui n'a pas été réalisée. Rebondissons. 💪 J'ai regardé ton agenda : tu as un créneau demain à 18h ou jeudi matin. On la planifie et on repart.",
-  },
-  {
     title: 'Coach discret',
     emoji: '🤝',
     text: "Séance manquée aujourd'hui. Veux-tu qu'on planifie une séance de remplacement, ou qu'on continue simplement avec la suivante ?",
   },
   {
-    title: 'Coach vénère',
+    title: 'Coach dynamique',
+    emoji: '⚡',
+    text: "Je vois que la séance prévue aujourd'hui n'a pas été réalisée. Rebondissons 💪. J'ai regardé ton agenda : tu as un créneau demain à 18h ou jeudi matin. On la planifie, on rattrape et on repart.",
+  },
+  {
+    title: 'Coach autoritaire',
     emoji: '🔥',
     text: "La séance n'est pas faite. On la rattrape demain. Je te propose 20 minutes à 7h30 ou ce soir à 19h — choisis, mais on la fait. 💥",
   },
