@@ -27,15 +27,27 @@ export default function Home() {
   useEffect(() => {
     setMounted(true)
 
-    if (typeof window !== 'undefined') {
+    async function handleOAuthCodeOnLanding() {
+      if (typeof window === 'undefined') return
       const params = new URLSearchParams(window.location.search)
-      if (params.get('code')) {
-        if (!params.get('next')) {
-          params.set('next', '/onboarding/bilans')
+      const code = params.get('code')
+      if (!code) return
+
+      if (isSupabaseConfigured && supabase) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (!error) {
+          window.location.replace('/onboarding/bilans')
+          return
         }
-        window.location.replace(`/auth/callback?${params.toString()}`)
       }
+
+      if (!params.get('next')) {
+        params.set('next', '/onboarding/bilans')
+      }
+      window.location.replace(`/auth/callback?${params.toString()}`)
     }
+
+    handleOAuthCodeOnLanding()
   }, [])
 
   useEffect(() => {
