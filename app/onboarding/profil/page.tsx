@@ -39,7 +39,6 @@ type StepId =
   | 'activityFrequency'
   | 'weeklyActivities'
   | 'agendaActivities'
-  | 'calendar'
   | 'limitations'
   | 'usage'
   | 'priorities'
@@ -56,7 +55,6 @@ const steps: { id: StepId; label: string }[] = [
   { id: 'activityFrequency', label: 'Fréquence sport' },
   { id: 'weeklyActivities', label: 'Activités' },
   { id: 'agendaActivities', label: 'Agenda' },
-  { id: 'calendar', label: 'Google Agenda' },
   { id: 'limitations', label: 'Limitations' },
   { id: 'usage', label: 'Usage evo' },
   { id: 'priorities', label: 'Priorités' },
@@ -188,7 +186,6 @@ export default function ProfilPage() {
   const [weeklyActivities, setWeeklyActivities] = useState<string[]>([])
   const [agendaSessions, setAgendaSessions] = useState<PlanningSession[]>([])
   const [agendaMode, setAgendaMode] = useState<AgendaMode>('')
-  const [googleCalendarWanted, setGoogleCalendarWanted] = useState<boolean | null>(null)
   const [limitations, setLimitations] = useState<string[]>([])
   const [jointPainWhere, setJointPainWhere] = useState('')
   const [musclePainWhere, setMusclePainWhere] = useState('')
@@ -202,12 +199,6 @@ export default function ProfilPage() {
   const [expectations, setExpectations] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const [calendarConnected, setCalendarConnected] = useState(false)
-  const [calendarEmail, setCalendarEmail] = useState<string | null>(null)
-  const [calendarLastSyncAt, setCalendarLastSyncAt] = useState<string | null>(null)
-  const [calendarLoading, setCalendarLoading] = useState(true)
-  const [calendarWorking, setCalendarWorking] = useState(false)
-  const [calendarError, setCalendarError] = useState<string | null>(null)
 
   const [calView, setCalView] = useState<CalView>('week')
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -284,7 +275,6 @@ export default function ProfilPage() {
               : []
           )
               setAgendaMode(data.agendaMode === 'later' || data.agendaMode === 'none' ? data.agendaMode : '')
-          setGoogleCalendarWanted(data.googleCalendarWanted ?? null)
           setLimitations(Array.isArray(data.limitations) ? data.limitations : [])
           setJointPainWhere(data.jointPainWhere ?? '')
           setMusclePainWhere(data.musclePainWhere ?? '')
@@ -318,43 +308,8 @@ export default function ProfilPage() {
         }
       }
 
-      if (session?.access_token) {
-        try {
-          const response = await fetch('/api/calendar/google/status', {
-            headers: { Authorization: `Bearer ${session.access_token}` },
-          })
-          const body = (await response.json()) as {
-            connected?: boolean
-            email?: string | null
-            lastSyncAt?: string | null
-          }
-          if (response.ok) {
-            setCalendarConnected(Boolean(body.connected))
-            setCalendarEmail(body.email ?? null)
-            setCalendarLastSyncAt(body.lastSyncAt ?? null)
-          }
-        } finally {
-          setCalendarLoading(false)
-        }
-      } else {
-        setCalendarLoading(false)
-      }
-
-      // After Google OAuth redirect, jump back to the calendar step
-      const params = new URLSearchParams(window.location.search)
-      const calendarParam = params.get('calendar')
-      if (calendarParam === 'connected' || calendarParam === 'error') {
-        const calendarStepIndex = steps.findIndex((s) => s.id === 'calendar')
-        if (calendarStepIndex !== -1) {
-          window.history.replaceState({ step: calendarStepIndex }, '', window.location.pathname)
-          setStep(calendarStepIndex)
-        } else {
-          window.history.replaceState({ step: 0 }, '', window.location.pathname)
-        }
-      } else {
-        // Initialize history state for step 0 so browser back works correctly
-        window.history.replaceState({ step: 0 }, '')
-      }
+      // Initialize history state for step 0 so browser back works correctly
+      window.history.replaceState({ step: 0 }, '')
     }
 
     init()
@@ -388,7 +343,6 @@ export default function ProfilPage() {
           ...session,
           date: session.date.toISOString(),
         })),
-        googleCalendarWanted,
         limitations,
         jointPainWhere,
         musclePainWhere,
@@ -412,7 +366,6 @@ export default function ProfilPage() {
     agendaActivities,
     agendaMode,
     agendaSessions,
-    googleCalendarWanted,
     limitations,
     jointPainWhere,
     musclePainWhere,
@@ -700,8 +653,6 @@ export default function ProfilPage() {
         return weeklyActivities.length > 0
       case 'agendaActivities':
         return agendaSessions.length > 0 || agendaMode !== ''
-      case 'calendar':
-        return googleCalendarWanted !== null
       case 'limitations':
         if (limitations.length === 0) return false
         if (limitations.includes('Douleurs articulaires') && !jointPainWhere.trim()) return false
@@ -733,78 +684,6 @@ export default function ProfilPage() {
     }
   }
 
-  const handleConnectCalendar = async () => {
-    try {
-      setCalendarError(null)
-      setCalendarWorking(true)
-      if (!isSupabaseConfigured || !supabase) {
-        setCalendarError('Service indisponible pour connecter Google Agenda.')
-        return
-      }
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (!session?.access_token) {
-        router.push('/onboarding/login?mode=signup')
-        return
-      }
-
-      const response = await fetch('/api/calendar/google/connect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ next: '/onboarding/profil' }),
-      })
-
-      const body = (await response.json()) as { url?: string; error?: string }
-      if (!response.ok || !body.url) {
-        setCalendarError(body.error || 'Connexion Google impossible.')
-        return
-      }
-      window.location.href = body.url
-    } catch {
-      setCalendarError('Connexion Google impossible.')
-    } finally {
-      setCalendarWorking(false)
-    }
-  }
-
-  const handleSyncCalendar = async () => {
-    try {
-      setCalendarError(null)
-      setCalendarWorking(true)
-      if (!isSupabaseConfigured || !supabase) {
-        setCalendarError('Service indisponible pour synchroniser Google Agenda.')
-        return
-      }
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (!session?.access_token) {
-        router.push('/onboarding/login?mode=signup')
-        return
-      }
-
-      const response = await fetch('/api/calendar/google/sync', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      const body = (await response.json()) as { error?: string }
-      if (!response.ok) {
-        setCalendarError(body.error || 'Synchronisation impossible.')
-        return
-      }
-      setCalendarLastSyncAt(new Date().toISOString())
-      setCalendarConnected(true)
-    } catch {
-      setCalendarError('Synchronisation impossible.')
-    } finally {
-      setCalendarWorking(false)
-    }
-  }
-
   const finishOnboarding = async () => {
     const payload = {
       firstName: firstName.trim(),
@@ -820,8 +699,6 @@ export default function ProfilPage() {
         ...session,
         date: session.date.toISOString(),
       })),
-      googleCalendarWanted,
-      googleCalendarConnected: calendarConnected,
       limitations,
       jointPainWhere: jointPainWhere.trim(),
       musclePainWhere: musclePainWhere.trim(),
@@ -877,8 +754,6 @@ export default function ProfilPage() {
           date: session.date.toISOString(),
         })),
         agenda_mode: agendaMode,
-        google_calendar_wanted: googleCalendarWanted,
-        google_calendar_connected: calendarConnected,
         limitations,
         joint_pain_where: jointPainWhere.trim(),
         muscle_pain_where: musclePainWhere.trim(),
@@ -1475,49 +1350,6 @@ export default function ProfilPage() {
                   </div>
                 </div>
               )}
-            </div>
-          )}
-
-          {current.id === 'calendar' && (
-            <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Voulez-vous connecter votre Google Agenda ? (optionnel)</h2>
-              <div className="grid sm:grid-cols-2 gap-2 mb-4">
-                <button onClick={() => chooseSingleAndNext(setGoogleCalendarWanted, true)} className={`${cardClass} ${googleCalendarWanted === true ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}>Oui, je veux connecter</button>
-                <button onClick={() => chooseSingleAndNext(setGoogleCalendarWanted, false)} className={`${cardClass} ${googleCalendarWanted === false ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}>Non, plus tard</button>
-              </div>
-
-              <div className="rounded-xl border border-[#1a1a1a]/[0.08] bg-[#FAF8F5] p-4">
-                <p className="text-sm font-semibold text-[#1a1a1a] mb-1">Statut actuel</p>
-                <p className="text-xs text-[#1a1a1a]/45">
-                  {calendarLoading ? 'Chargement...' : calendarConnected ? 'Google Agenda connecté' : 'Non connecté'}
-                  {calendarEmail ? ` · ${calendarEmail}` : ''}
-                </p>
-                {calendarLastSyncAt && (
-                  <p className="text-xs text-[#1a1a1a]/35 mt-1">Dernière sync : {new Date(calendarLastSyncAt).toLocaleString('fr-FR')}</p>
-                )}
-                {calendarError && <p className="text-xs text-red-500 mt-2">{calendarError}</p>}
-
-                <div className="flex flex-wrap gap-2 mt-3">
-                  <button
-                    type="button"
-                    onClick={handleConnectCalendar}
-                    disabled={calendarWorking || calendarLoading}
-                    className="px-3 py-2 rounded-lg text-xs font-semibold border border-[#1a1a1a]/[0.12] hover:border-[#25D366]/40"
-                  >
-                    {calendarConnected ? 'Reconnecter Google' : 'Connecter Google'}
-                  </button>
-                  {calendarConnected && (
-                    <button
-                      type="button"
-                      onClick={handleSyncCalendar}
-                      disabled={calendarWorking}
-                      className="px-3 py-2 rounded-lg text-xs font-semibold bg-[#25D366] text-white"
-                    >
-                      Actualiser
-                    </button>
-                  )}
-                </div>
-              </div>
             </div>
           )}
 
