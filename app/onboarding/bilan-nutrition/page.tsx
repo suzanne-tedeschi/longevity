@@ -1,3 +1,4 @@
+      
 'use client'
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
@@ -585,7 +586,7 @@ function getPersonalizedHeadline(pct: number) {
   return { title: 'Votre santé nutritionnelle nécessite une prise en charge', subtitle: 'Des problèmes significatifs ont été identifiés. Un accompagnement professionnel est recommandé.', heroGradient: 'from-red-50 to-orange-50', scoreBg: 'bg-red-400' }
 }
 
-function ResultsScreen({ scores }: { scores: Record<string, number> }) {
+function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; onRestart?: () => void }) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const hasSaved = useRef(false)
 
@@ -771,29 +772,7 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         </div>
       </div>
 
-      {/* ── Section overview ── */}
-      <div className="mb-10">
-        <p className="text-xs font-semibold tracking-widest uppercase text-[#1a1a1a]/30 mb-3">Vue d&apos;ensemble</p>
-        <div className="space-y-2">
-          {allResults.map((r) => {
-            const info = getOverallLabel(r.pct)
-            return (
-              <div key={r.sectionId} className="bg-white border border-[#1a1a1a]/[0.07] rounded-xl px-4 py-3">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${r.isDigestif ? 'bg-[#2D6A4F]/8 text-[#2D6A4F]/70' : 'bg-[#c9a96e]/10 text-[#c9a96e]/70'}`}>
-                    {renderSectionIcon(r.icon, 'w-3.5 h-3.5')}
-                  </div>
-                  <p className="text-xs font-semibold text-[#1a1a1a] flex-1">{r.title}</p>
-                  <span className={`text-sm font-bold tabular-nums ${info.color}`}>{r.pct}%</span>
-                </div>
-                <div className="h-1.5 bg-[#1a1a1a]/[0.05] rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${info.bar} transition-all duration-700`} style={{ width: `${r.pct}%` }} />
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      
 
       {/* ── Strengths ── */}
       {report.strengths.length > 0 && (
@@ -943,8 +922,39 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
         </div>
       )}
 
+      {/* ── Medical disclaimer ── */}
+      {digestifSections.some(section => section.tests.some(t => (scores[t.id] ?? 0) >= 50)) && (
+        <div className="mb-8 bg-red-50 border border-red-200 rounded-2xl px-5 py-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center mt-0.5">
+              <InfoIcon className="w-3 h-3 text-red-600" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-red-700 mb-1">Avis médical recommandé</p>
+              <p className="text-xs text-red-600/80 leading-relaxed">
+                Vos réponses indiquent des symptômes digestifs fréquents ou sévères. Ce rapport est un outil d&apos;information, non un diagnostic médical. Consultez un professionnel de santé avant tout changement alimentaire significatif.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── CTA ── */}
       <div className="flex flex-col items-center gap-3 pt-2">
+        <button
+          onClick={() => window.print()}
+          className="w-full max-w-xs px-10 py-4 text-base rounded-full border border-[#1a1a1a]/20 text-[#1a1a1a]/70 font-semibold hover:bg-[#1a1a1a]/[0.04] transition-colors"
+        >
+          Télécharger en PDF
+        </button>
+        {onRestart && (
+          <button
+            onClick={onRestart}
+            className="w-full max-w-xs px-10 py-3 text-sm rounded-full border border-[#1a1a1a]/10 text-[#1a1a1a]/40 hover:text-[#1a1a1a]/60 transition-colors"
+          >
+            Recommencer
+          </button>
+        )}
         <Link href="/onboarding/bilans" className="btn-primary text-center inline-block px-10 py-4 text-base w-full max-w-xs">
           Retour aux bilans
         </Link>
@@ -1010,6 +1020,17 @@ export default function BilanNutritionPage() {
       partsDone: { alimentaire: alimentaireDone, digestif: digestifDone },
     })
   }, [scores, sectionIndex, testIndex, activePart, alimentaireDone, digestifDone, phase])
+
+  const handleRestart = useCallback(() => {
+    clearProgress('nutrition')
+    setScores({})
+    setSectionIndex(0)
+    setTestIndex(0)
+    setActivePart('alimentaire')
+    setAlimentaireDone(false)
+    setDigestifDone(false)
+    setPhase('welcome')
+  }, [])
 
   // Active sections depend on which part is being done
   const activeSections = activePart === 'alimentaire' ? alimentaireSections : digestifSections
@@ -1139,7 +1160,7 @@ export default function BilanNutritionPage() {
           />
         )}
 
-        {phase === 'results' && <ResultsScreen scores={scores} />}
+        {phase === 'results' && <ResultsScreen scores={scores} onRestart={handleRestart} />}
       </main>
     </div>
   )
