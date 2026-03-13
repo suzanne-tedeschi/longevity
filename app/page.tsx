@@ -384,18 +384,18 @@ export default function Home() {
       <section ref={vincentRef} className="py-24 md:py-32 bg-[#f5f3ef] text-[#1a1a1a] overflow-hidden">
         <div className="max-w-5xl mx-auto px-6">
 
-          <div className="flex flex-col md:flex-row gap-12 md:gap-16 items-stretch">
+          <div className="flex flex-row gap-6 md:gap-16 items-stretch">
 
             {/* Photo — editorial, full height */}
             <div
-              className="md:w-[30%] shrink-0"
+              className="w-[38%] md:w-[30%] shrink-0"
               style={{
                 transition: 'opacity 0.9s ease, transform 0.9s ease',
                 opacity: vincentVisible ? 1 : 0,
                 transform: vincentVisible ? 'translateX(0)' : 'translateX(-36px)',
               }}
             >
-              <div className="h-[320px] md:h-[400px] rounded-2xl overflow-hidden relative bg-[#e3dfd8]">
+              <div className="h-full min-h-[220px] md:min-h-[400px] rounded-2xl overflow-hidden relative bg-[#e3dfd8]">
                 <img src="/images/Vincent.png" alt="Vincent" className="w-full h-full object-cover object-top" />
                 <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#c9a96e]/25 to-transparent pointer-events-none" />
               </div>
@@ -405,7 +405,7 @@ export default function Home() {
             <div className="flex-1 flex flex-col justify-center">
 
               <p
-                className="text-[10px] uppercase tracking-[0.35em] font-semibold mb-5"
+                className="text-[9px] md:text-[10px] uppercase tracking-[0.35em] font-semibold mb-3 md:mb-5"
                 style={{
                   color: '#c9a96e',
                   transition: 'opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s',
@@ -417,7 +417,7 @@ export default function Home() {
               </p>
 
               <h2
-                className="text-[2.4rem] md:text-[3rem] font-black leading-[1.08] tracking-tight mb-8"
+                className="text-[1.4rem] md:text-[3rem] font-black leading-[1.08] tracking-tight mb-4 md:mb-8"
                 style={{
                   transition: 'opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s',
                   opacity: vincentVisible ? 1 : 0,
@@ -430,7 +430,7 @@ export default function Home() {
               </h2>
 
               <div
-                className="flex items-center gap-3 mb-8"
+                className="flex items-center gap-3 mb-4 md:mb-8"
                 style={{
                   transition: 'opacity 0.6s ease 0.4s',
                   opacity: vincentVisible ? 1 : 0,
@@ -447,12 +447,12 @@ export default function Home() {
                   transform: vincentVisible ? 'translateY(0)' : 'translateY(14px)',
                 }}
               >
-                <p className="text-[3rem] md:text-[3.5rem] font-black tracking-tight leading-none mb-1">Vincent</p>
-                <p className="text-[0.72rem] text-[#1a1a1a]/35 uppercase tracking-[0.25em] mb-7">Ton coach</p>
+                <p className="text-[1.6rem] md:text-[3.5rem] font-black tracking-tight leading-none mb-0.5 md:mb-1">Vincent</p>
+                <p className="text-[0.6rem] md:text-[0.72rem] text-[#1a1a1a]/35 uppercase tracking-[0.25em] mb-3 md:mb-7">Ton coach</p>
               </div>
 
               <div
-                className="space-y-1.5 mb-8 text-[0.875rem] text-[#1a1a1a]/50 leading-relaxed"
+                className="space-y-1 md:space-y-1.5 mb-4 md:mb-8 text-[0.72rem] md:text-[0.875rem] text-[#1a1a1a]/50 leading-relaxed"
                 style={{
                   transition: 'opacity 0.6s ease 0.55s, transform 0.6s ease 0.55s',
                   opacity: vincentVisible ? 1 : 0,
@@ -465,14 +465,14 @@ export default function Home() {
               </div>
 
               <div
-                className="border-l-[3px] border-[#c9a96e]/35 pl-5"
+                className="border-l-[3px] border-[#c9a96e]/35 pl-3 md:pl-5"
                 style={{
                   transition: 'opacity 0.6s ease 0.65s, transform 0.6s ease 0.65s',
                   opacity: vincentVisible ? 1 : 0,
                   transform: vincentVisible ? 'translateY(0)' : 'translateY(14px)',
                 }}
               >
-                <p className="text-[0.83rem] text-[#1a1a1a]/38 italic leading-relaxed">
+                <p className="text-[0.68rem] md:text-[0.83rem] text-[#1a1a1a]/38 italic leading-relaxed">
                   &ldquo;Pas g&eacute;n&eacute;r&eacute; par une IA, pas copi&eacute;-coll&eacute; d&rsquo;internet. Construit par quelqu&rsquo;un qui comprend comment le corps vieillit &mdash; et comment ralentir ce processus.&rdquo;
                 </p>
               </div>

@@ -104,23 +104,24 @@ export default function LoginContent() {
         setFirstName(String(pending.firstName))
       }
 
-      if (mode === 'signup' && !isSupabaseConfigured) return
-      
-      if (isSupabaseConfigured && supabase && mode === 'signup') {
-        try {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession()
-          if (session?.user && pending?.firstName) {
-            setFirstName(String(pending.firstName))
-          }
-        } catch {
-          // Silently ignore auth errors
+      if (!isSupabaseConfigured || !supabase) return
+
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        // If already authenticated (e.g. just returned from Google OAuth), redirect directly
+        if (session?.user) {
+          await applyPendingOnboarding(session.user)
+          router.push('/onboarding/bilans')
         }
+      } catch {
+        // Silently ignore auth errors
       }
     }
     loadPendingAndCheckAuth()
-  }, [mode, firstName])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

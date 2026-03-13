@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react"
 import {
   Activity, Moon, Apple, Brain, Dna, Microscope, FlaskConical, Shield,
   Recycle, Leaf, Zap, Ban, Sprout, Radio, Bug, Heart, ArrowRight, ArrowLeft,
-  BookOpen, Target, Sparkles, Clock, TrendingUp, ChevronDown,
+  Target, Sparkles, Clock, TrendingUp, ChevronDown,
 } from "lucide-react"
 
 /* ─── data ─── */
@@ -96,18 +96,6 @@ const keyInsights = [
   { icon: <TrendingUp className="w-5 h-5" />, title: "+7 ans d'esperance de vie", desc: "En combinant exercice, sommeil, nutrition et gestion du stress : gain moyen de 7 ans supplementaires.", color: "#c9a96e" },
   { icon: <Clock className="w-5 h-5" />, title: "Il n'est jamais trop tard", desc: "Commencer l'exercice a 50 ans reduit encore la mortalite de 35%. Chaque jour compte.", color: "#a78bfa" },
   { icon: <Sparkles className="w-5 h-5" />, title: "Synergie des piliers", desc: "Les 4 piliers se renforcent mutuellement. L'exercice ameliore le sommeil qui ameliore la cognition.", color: "#ff6b6b" },
-]
-
-const references = [
-  "Lopez-Otin et al., \"Hallmarks of Aging: An Expanding Universe\", Cell (2023)",
-  "Attia P., \"Outlive: The Science & Art of Longevity\" (2023)",
-  "Walker M., \"Why We Sleep\" (2018)",
-  "Levine et al., \"Low Protein Intake Is Associated with a Major Reduction in IGF-1\", Cell Metabolism (2014)",
-  "Livingston et al., \"Dementia prevention, intervention, and care\", Lancet (2020)",
-  "Mandsager et al., \"Association of Cardiorespiratory Fitness With Long-term Mortality\", JAMA (2018)",
-  "Epel et al., \"Accelerated telomere shortening in response to life stress\", PNAS (2004)",
-  "Xie et al., \"Sleep Drives Metabolite Clearance from the Adult Brain\", Science (2013)",
-  "Longo & Mattson, \"Fasting: Molecular Mechanisms and Clinical Applications\", Cell Metabolism (2014)",
 ]
 
 /* ─── components ─── */
@@ -274,7 +262,6 @@ export default function SciencePage() {
                             </div>
                           ))}
                         </div>
-                        <p className="text-[10px] text-[#1a1a1a]/25 flex items-center gap-1"><BookOpen className="w-3 h-3" /> {p.ref}</p>
                       </div>
                     </div>
                   )}
@@ -289,7 +276,6 @@ export default function SciencePage() {
       <section className="bg-[#0a0a0a] text-white py-20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="mb-12">
-            <p className="text-[11px] font-semibold text-[#3ECF8E]/60 uppercase tracking-[0.2em] mb-3">Lopez-Otin et al., Cell (2023)</p>
             <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.02em] mb-2">Les 12 hallmarks du vieillissement</h2>
             <p className="text-[14px] text-white/30">Les mecanismes biologiques fondamentaux qui causent le vieillissement — et comment les contrer.</p>
           </div>
@@ -312,24 +298,6 @@ export default function SciencePage() {
                 </div>
               )
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════ REFERENCES — LIGHT ═══════ */}
-      <section className="bg-[#f5f3ef] text-[#1a1a1a] py-16">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="mb-8">
-            <p className="text-[11px] font-semibold text-[#1a1a1a]/25 uppercase tracking-[0.2em] mb-3">Sources</p>
-            <h2 className="text-2xl font-bold tracking-[-0.02em] text-[#1a1a1a]">References scientifiques</h2>
-          </div>
-          <div className="space-y-2">
-            {references.map((r, i) => (
-              <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-lg bg-white/60 border border-[#e0ddd7]">
-                <BookOpen className="w-4 h-4 text-[#1a1a1a]/20 mt-0.5 shrink-0" />
-                <p className="text-[12px] text-[#1a1a1a]/45 leading-relaxed">{r}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>

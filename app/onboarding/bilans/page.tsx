@@ -70,12 +70,12 @@ const bilanOptionsDefs: { id: string; bilanType: string; title: string; descript
   { id: "condition-physique", bilanType: "mobilite", title: "Condition physique", description: "43 tests — mobilite, force, equilibre, souplesse.", duration: "15 min", available: false, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
   { id: "nutrition", bilanType: "nutrition", title: "Nutrition", description: "Troubles digestifs & habitudes alimentaires.", duration: "12 min", available: true, href: "/onboarding/bilan-nutrition", icon: <Apple className="w-5 h-5" />, color: "#c9a96e" },
   { id: "sommeil", bilanType: "sommeil", title: "Sommeil", description: "Qualite & recuperation nocturne.", duration: "10 min", available: false, href: "/onboarding/bilan-sommeil", icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
-  { id: "mental", bilanType: "mental", title: "Sante mentale", description: "Emotions, stress, resilience — 2 questionnaires.", duration: "25 min", available: false, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
+  { id: "mental", bilanType: "mental", title: "Santé mentale", description: "Emotions, stress, resilience — 2 questionnaires.", duration: "25 min", available: false, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
 ]
 
 /* Hidden defs for report lookup (emotionnel + stress saved separately in DB) */
 const subBilanDefs = [
-  { id: "emotionnel", bilanType: "emotionnel", title: "Sante emotionnelle", color: "#ff6b6b", icon: <Heart className="w-5 h-5" /> },
+  { id: "emotionnel", bilanType: "emotionnel", title: "Santé émotionnelle", color: "#ff6b6b", icon: <Heart className="w-5 h-5" /> },
   { id: "stress", bilanType: "stress", title: "Gestion du stress", color: "#60a5fa", icon: <Wind className="w-5 h-5" /> },
 ]
 
@@ -209,6 +209,8 @@ export default function BilansPage() {
   const dragPayload = useRef<{ kind: "chip" | "session"; value: string } | null>(null)
   const [dragOverDay, setDragOverDay] = useState<string | null>(null)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const touchDragSessionRef = useRef<{ id: string; startX: number; startY: number } | null>(null)
+  const touchDragChipRef = useRef<string | null>(null)
 
   const addSessionAtDate = useCallback((date: Date, label: string, type: "evo" | "sport" = "sport") => {
     setSessions(prev => [
@@ -1451,6 +1453,32 @@ export default function BilansPage() {
                     onClick={() => {
                       openCreateModal(new Date(currentDate), activity)
                     }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation()
+                      touchDragChipRef.current = activity
+                    }}
+                    onTouchMove={(e) => {
+                      if (!touchDragChipRef.current) return
+                      e.preventDefault()
+                      const touch = e.touches[0]
+                      const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                      const dayCell = el?.closest('[data-day-key]')
+                      setDragOverDay(dayCell ? dayCell.getAttribute('data-day-key') : null)
+                    }}
+                    onTouchEnd={(e) => {
+                      if (!touchDragChipRef.current) return
+                      const touch = e.changedTouches[0]
+                      const dayCell = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-day-key]')
+                      const targetDayKey = dayCell?.getAttribute('data-day-key')
+                      if (targetDayKey) {
+                        const nd = new Date(targetDayKey)
+                        nd.setHours(9, 0, 0, 0)
+                        openCreateModal(nd, touchDragChipRef.current)
+                      }
+                      setDragOverDay(null)
+                      touchDragChipRef.current = null
+                    }}
+                    style={{ touchAction: 'none' }}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-black/[0.06] text-[12px] font-medium text-[#1a1a1a]/60 cursor-grab active:cursor-grabbing whitespace-nowrap hover:border-[#c9a96e]/50 hover:text-[#1a1a1a] hover:shadow-sm transition-all shrink-0 select-none"
                   >
                     {activity.includes('Muscul') || activity.includes('Fitness') ? <Dumbbell className="w-3.5 h-3.5 shrink-0" /> :
@@ -1517,6 +1545,7 @@ export default function BilansPage() {
                     const dayKey = day.toISOString()
                     return (
                       <div key={i}
+                        data-day-key={dayKey}
                         onDragOver={e => onDragOver(e, dayKey)} onDragLeave={onDragLeave} onDrop={e => onDrop(e, day)}
                         className={`relative border-r border-b border-black/[0.03] min-h-[56px] p-1 text-left group transition-all ${isToday(day) ? "bg-[#3ECF8E]/[0.05]" : ""} ${dragOverDay === dayKey ? "bg-[#3ECF8E]/[0.08]" : "hover:bg-[#3ECF8E]/[0.02]"}`}>
                         <button onClick={() => openCreateModal(day)} className="w-full text-left">
@@ -1527,6 +1556,40 @@ export default function BilansPage() {
                             <div key={s.id} draggable={isDraggable(s)} onDragStart={e => isDraggable(s) && onDragStart(e, s.id)}
                               onDragEnd={clearDragState}
                               onClick={e => { e.stopPropagation(); if (isDraggable(s)) openEditModal(s) }}
+                              onTouchStart={isDraggable(s) ? (e) => {
+                                e.stopPropagation()
+                                touchDragSessionRef.current = { id: s.id, startX: e.touches[0].clientX, startY: e.touches[0].clientY }
+                              } : undefined}
+                              onTouchMove={isDraggable(s) ? (e) => {
+                                if (!touchDragSessionRef.current) return
+                                const touch = e.touches[0]
+                                const dx = Math.abs(touch.clientX - touchDragSessionRef.current.startX)
+                                const dy = Math.abs(touch.clientY - touchDragSessionRef.current.startY)
+                                if (dx < 8 && dy < 8) return
+                                e.preventDefault()
+                                const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                                const dayCell = el?.closest('[data-day-key]')
+                                setDragOverDay(dayCell ? dayCell.getAttribute('data-day-key') : null)
+                              } : undefined}
+                              onTouchEnd={isDraggable(s) ? (e) => {
+                                if (!touchDragSessionRef.current) return
+                                const touch = e.changedTouches[0]
+                                const dayCell = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-day-key]')
+                                const targetDayKey = dayCell?.getAttribute('data-day-key')
+                                if (targetDayKey) {
+                                  const targetDate = new Date(targetDayKey)
+                                  const srcId = touchDragSessionRef.current.id
+                                  setSessions(prev => prev.map(sess => {
+                                    if (sess.id !== srcId) return sess
+                                    const nd = new Date(targetDate)
+                                    nd.setHours(getHours(sess.date), getMinutes(sess.date), 0, 0)
+                                    return { ...sess, date: nd }
+                                  }))
+                                }
+                                setDragOverDay(null)
+                                touchDragSessionRef.current = null
+                              } : undefined}
+                              style={isDraggable(s) ? { touchAction: 'none' } : undefined}
                               className={`text-[8px] font-medium px-1 py-px rounded truncate ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${s.type === "evo" ? "bg-[#3ECF8E]/10 text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 text-[#1a73e8]" : "bg-[#c9a96e]/10 text-[#a08050]"}`}>{s.type === "google" ? "Occupé" : s.label}</div>
                           ))}
                           {ds.length > 2 && <div className="text-[8px] text-[#1a1a1a]/20">+{ds.length - 2}</div>}
@@ -1695,7 +1758,7 @@ export default function BilansPage() {
           <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-white rounded-xl border border-black/[0.04] p-5">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Profil de sante</h3>
+                <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Profil de santé</h3>
                 <span className="text-[9px] font-bold text-[#c9a96e] bg-[#c9a96e]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">Bientot</span>
               </div>
               <ResponsiveContainer width="100%" height={180}>
@@ -1704,7 +1767,7 @@ export default function BilansPage() {
             </div>
             <div className="bg-white rounded-xl border border-black/[0.04] p-5">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Activite cette semaine</h3>
+                <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Activité cette semaine</h3>
                 <span className="text-[9px] font-bold text-[#c9a96e] bg-[#c9a96e]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">Bientot</span>
               </div>
               <ResponsiveContainer width="100%" height={180}>

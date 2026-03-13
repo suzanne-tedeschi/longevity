@@ -219,6 +219,9 @@ export default function ProfilPage() {
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const dragPriorityFrom = useRef<number | null>(null)
   const [dragOverPriorityIdx, setDragOverPriorityIdx] = useState<number | null>(null)
+  const touchDragPriorityFrom = useRef<number | null>(null)
+  const touchDragSessionRef = useRef<{ id: string; startX: number; startY: number } | null>(null)
+  const touchDragChipRef = useRef<string | null>(null)
 
   const agendaActivities = useMemo(() => {
     if (agendaSessions.length === 0) return ''
@@ -342,14 +345,31 @@ export default function ProfilPage() {
       const calendarParam = params.get('calendar')
       if (calendarParam === 'connected' || calendarParam === 'error') {
         const calendarStepIndex = steps.findIndex((s) => s.id === 'calendar')
-        if (calendarStepIndex !== -1) setStep(calendarStepIndex)
-        // Clean up URL without triggering a navigation
-        const cleanUrl = window.location.pathname
-        window.history.replaceState(null, '', cleanUrl)
+        if (calendarStepIndex !== -1) {
+          window.history.replaceState({ step: calendarStepIndex }, '', window.location.pathname)
+          setStep(calendarStepIndex)
+        } else {
+          window.history.replaceState({ step: 0 }, '', window.location.pathname)
+        }
+      } else {
+        // Initialize history state for step 0 so browser back works correctly
+        window.history.replaceState({ step: 0 }, '')
       }
     }
 
     init()
+  }, [])
+
+  // Listen to browser back/forward buttons to navigate between steps
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const stepFromState = e.state?.step
+      if (typeof stepFromState === 'number') {
+        setStep(stepFromState)
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   useEffect(() => {
@@ -707,7 +727,9 @@ export default function ProfilPage() {
   const chooseSingleAndNext = <T,>(setter: (value: T) => void, value: T) => {
     setter(value)
     if (step < steps.length - 1) {
-      setStep((prev) => prev + 1)
+      const nextStep = step + 1
+      window.history.pushState({ step: nextStep }, '')
+      setStep(nextStep)
     }
   }
 
@@ -889,14 +911,16 @@ export default function ProfilPage() {
   const handleNext = async () => {
     if (!canContinue()) return
     if (step < steps.length - 1) {
-      setStep(prev => prev + 1)
+      const nextStep = step + 1
+      window.history.pushState({ step: nextStep }, '')
+      setStep(nextStep)
       return
     }
     await finishOnboarding()
   }
 
   const handleBack = () => {
-    if (step > 0) setStep(prev => prev - 1)
+    if (step > 0) window.history.back()
     else router.push('/')
   }
 
@@ -1037,14 +1061,14 @@ export default function ProfilPage() {
               <div className="grid sm:grid-cols-2 gap-2 mb-4">
                 <button
                   type="button"
-                  onClick={() => { setAgendaMode('later'); setStep(prev => prev + 1) }}
+                  onClick={() => { setAgendaMode('later'); const ns = step + 1; window.history.pushState({ step: ns }, ''); setStep(ns) }}
                   className={`${cardClass} ${agendaMode === 'later' ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                 >
                   <span className="text-xs text-[#1a1a1a]/70">J&apos;ai des activités régulières mais je veux les configurer plus tard</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setAgendaMode('none'); setStep(prev => prev + 1) }}
+                  onClick={() => { setAgendaMode('none'); const ns = step + 1; window.history.pushState({ step: ns }, ''); setStep(ns) }}
                   className={`${cardClass} ${agendaMode === 'none' ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                 >
                   <span className="text-xs text-[#1a1a1a]/70">Je n&apos;ai pas d&apos;activité à horaires réguliers</span>
@@ -1065,6 +1089,32 @@ export default function ProfilPage() {
                             e.dataTransfer.setData('activity-label', label)
                             e.dataTransfer.effectAllowed = 'all'
                           }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation()
+                            touchDragChipRef.current = label
+                          }}
+                          onTouchMove={(e) => {
+                            if (!touchDragChipRef.current) return
+                            e.preventDefault()
+                            const touch = e.touches[0]
+                            const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                            const dayCell = el?.closest('[data-day-key]')
+                            setDragOverDay(dayCell ? dayCell.getAttribute('data-day-key') : null)
+                          }}
+                          onTouchEnd={(e) => {
+                            if (!touchDragChipRef.current) return
+                            const touch = e.changedTouches[0]
+                            const dayCell = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-day-key]')
+                            const targetDayKey = dayCell?.getAttribute('data-day-key')
+                            if (targetDayKey) {
+                              const date = new Date(targetDayKey)
+                              date.setHours(9, 0, 0, 0)
+                              openSessionFromActivity(touchDragChipRef.current, date)
+                            }
+                            setDragOverDay(null)
+                            touchDragChipRef.current = null
+                          }}
+                          style={{ touchAction: 'none' }}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#c9a96e]/12 border border-[#c9a96e]/30 text-[#a08050] text-xs font-medium cursor-grab active:cursor-grabbing select-none"
                         >
                           <GripVertical className="w-3 h-3 opacity-40" />
@@ -1136,6 +1186,7 @@ export default function ProfilPage() {
                         return (
                           <div
                             key={i}
+                            data-day-key={dayKey}
                             onDragOver={(e) => onDragOver(e, dayKey)}
                             onDragLeave={onDragLeave}
                             onDrop={(e) => onDrop(e, day)}
@@ -1155,6 +1206,40 @@ export default function ProfilPage() {
                                   draggable
                                   onDragStart={(e) => onDragStart(e, session.id)}
                                   onClick={() => openEditSessionModal(session)}
+                                  onTouchStart={(e) => {
+                                    e.stopPropagation()
+                                    touchDragSessionRef.current = { id: session.sourceId, startX: e.touches[0].clientX, startY: e.touches[0].clientY }
+                                  }}
+                                  onTouchMove={(e) => {
+                                    if (!touchDragSessionRef.current) return
+                                    const touch = e.touches[0]
+                                    const dx = Math.abs(touch.clientX - touchDragSessionRef.current.startX)
+                                    const dy = Math.abs(touch.clientY - touchDragSessionRef.current.startY)
+                                    if (dx < 8 && dy < 8) return
+                                    e.preventDefault()
+                                    const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                                    const dayCell = el?.closest('[data-day-key]')
+                                    setDragOverDay(dayCell ? dayCell.getAttribute('data-day-key') : null)
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    if (!touchDragSessionRef.current) return
+                                    const touch = e.changedTouches[0]
+                                    const dayCell = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-day-key]')
+                                    const targetDayKey = dayCell?.getAttribute('data-day-key')
+                                    if (targetDayKey) {
+                                      const targetDate = new Date(targetDayKey)
+                                      const srcId = touchDragSessionRef.current.id
+                                      setAgendaSessions(prev => prev.map(s => {
+                                        if (s.id !== srcId) return s
+                                        const nextDate = new Date(targetDate)
+                                        nextDate.setHours(getHours(s.date), getMinutes(s.date), 0, 0)
+                                        return { ...s, date: nextDate }
+                                      }))
+                                    }
+                                    setDragOverDay(null)
+                                    touchDragSessionRef.current = null
+                                  }}
+                                  style={{ touchAction: 'none' }}
                                   className="text-[8px] font-medium px-1 py-px rounded truncate cursor-grab active:cursor-grabbing bg-[#c9a96e]/10 text-[#a08050]"
                                 >
                                   {session.label}{session.isWeekly ? ' · hebdo' : ''}
@@ -1443,7 +1528,7 @@ export default function ProfilPage() {
                 {['Douleurs articulaires', 'Douleurs musculaires', 'Autre', 'Aucune'].map(option => (
                   <button
                     key={option}
-                    onClick={() => { toggleLimitation(option); if (option === 'Aucune') setStep(prev => prev + 1) }}
+                    onClick={() => { toggleLimitation(option); if (option === 'Aucune') { const ns = step + 1; window.history.pushState({ step: ns }, ''); setStep(ns) } }}
                     className={`${cardClass} ${limitations.includes(option) ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                   >
                     {option}
@@ -1503,6 +1588,7 @@ export default function ProfilPage() {
                 {priorities.map((item, idx) => (
                   <div
                     key={item}
+                    data-priority-idx={idx}
                     draggable
                     onDragStart={() => { dragPriorityFrom.current = idx }}
                     onDragOver={(e) => { e.preventDefault(); setDragOverPriorityIdx(idx) }}
@@ -1515,6 +1601,29 @@ export default function ProfilPage() {
                       setDragOverPriorityIdx(null)
                     }}
                     onDragEnd={() => { dragPriorityFrom.current = null; setDragOverPriorityIdx(null) }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation()
+                      touchDragPriorityFrom.current = idx
+                    }}
+                    onTouchMove={(e) => {
+                      if (touchDragPriorityFrom.current === null) return
+                      e.preventDefault()
+                      const touch = e.touches[0]
+                      const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                      const priorityEl = el?.closest('[data-priority-idx]')
+                      if (priorityEl) {
+                        const targetIdx = parseInt(priorityEl.getAttribute('data-priority-idx') || '-1')
+                        if (targetIdx >= 0) setDragOverPriorityIdx(targetIdx)
+                      }
+                    }}
+                    onTouchEnd={() => {
+                      if (touchDragPriorityFrom.current !== null && dragOverPriorityIdx !== null && touchDragPriorityFrom.current !== dragOverPriorityIdx) {
+                        setPriorities(prev => reorder(prev, touchDragPriorityFrom.current!, dragOverPriorityIdx))
+                      }
+                      touchDragPriorityFrom.current = null
+                      setDragOverPriorityIdx(null)
+                    }}
+                    style={{ touchAction: 'none' }}
                     className={`rounded-xl border bg-white px-3 py-2.5 flex items-center gap-3 cursor-grab active:cursor-grabbing transition-all select-none ${
                       dragOverPriorityIdx === idx
                         ? 'border-[#25D366]/60 bg-[#25D366]/5 shadow-md scale-[1.02]'
