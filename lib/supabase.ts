@@ -18,6 +18,22 @@ type ProfileUpsertPayload = {
 	age?: number | null
 	height?: number | null
 	weight?: number | null
+	activity_frequency?: string
+	weekly_activities?: string[]
+	agenda_sessions?: Record<string, unknown>[]
+	agenda_mode?: string
+	google_calendar_wanted?: boolean | null
+	google_calendar_connected?: boolean
+	limitations?: string[]
+	joint_pain_where?: string
+	muscle_pain_where?: string
+	other_limitation?: string
+	evo_usage?: string
+	priorities?: string[]
+	diet?: string
+	other_diet?: string
+	coach_tone?: string
+	expectations?: string
 	onboarding_data?: Record<string, unknown>
 	onboarding_completed_at?: string | null
 }
@@ -37,7 +53,13 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 
 	if (!error) return data
 
-	const missingOnboardingColumns = ['age', 'height', 'weight', 'onboarding_data', 'onboarding_completed_at'].some((field) =>
+	const onboardingFields = [
+		'age', 'height', 'weight', 'activity_frequency', 'weekly_activities', 'agenda_sessions', 'agenda_mode',
+		'google_calendar_wanted', 'google_calendar_connected', 'limitations', 'joint_pain_where', 'muscle_pain_where',
+		'other_limitation', 'evo_usage', 'priorities', 'diet', 'other_diet', 'coach_tone', 'expectations',
+		'onboarding_data', 'onboarding_completed_at'
+	]
+	const missingOnboardingColumns = onboardingFields.some((field) =>
 		error.message.includes(`profiles.${field}`)
 	)
 	if (!missingOnboardingColumns) {
@@ -49,6 +71,22 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 		age,
 		height,
 		weight,
+		activity_frequency,
+		weekly_activities,
+		agenda_sessions,
+		agenda_mode,
+		google_calendar_wanted,
+		google_calendar_connected,
+		limitations,
+		joint_pain_where,
+		muscle_pain_where,
+		other_limitation,
+		evo_usage,
+		priorities,
+		diet,
+		other_diet,
+		coach_tone,
+		expectations,
 		onboarding_data,
 		onboarding_completed_at,
 		...basicPayload
@@ -64,7 +102,7 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 		return null
 	}
 
-	console.warn('profiles table is missing onboarding columns age/height/weight; falling back to basic profile fields')
+	console.warn('profiles table is missing onboarding columns; falling back to basic profile fields')
 	return fallback.data
 }
 
