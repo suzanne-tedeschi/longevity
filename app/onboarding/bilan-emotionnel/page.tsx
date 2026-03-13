@@ -141,9 +141,9 @@ function SectionIntro({ section, sectionIndex, onStart }: { section: TestSection
 /* ═══════════════════════════════════════════════════════
    TEST CARD
    ═══════════════════════════════════════════════════════ */
-function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, selectedScore, onScore, onPrev, onNext, canGoNext }: {
+function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, selectedScore, onScore, onPrev }: {
   test: EmotionnelTest; testIndex: number; totalTests: number; sectionTitle: string; sectionIcon: SectionIcon
-  selectedScore: number | undefined; onScore: (v: number) => void; onPrev: () => void; onNext: () => void; canGoNext: boolean
+  selectedScore: number | undefined; onScore: (v: number) => void; onPrev: () => void
 }) {
   const maxValue = Math.max(...test.scoring.map(o => o.value))
   return (
@@ -168,16 +168,9 @@ function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, sele
       </div>
       <div className="h-20" />
       <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur border-t border-[#1a1a1a]/[0.08] px-4 py-3 z-50">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+        <div className="max-w-lg mx-auto flex items-center">
           <button onClick={onPrev} className="flex items-center gap-1 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors">
             <ChevronLeft className="w-4 h-4" /> Précédent
-          </button>
-          <button onClick={onNext} disabled={!canGoNext}
-            className={`flex items-center gap-1 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-              canGoNext ? 'bg-rose-500 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5' : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/20 cursor-not-allowed'
-            }`}
-          >
-            Suivant <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -535,17 +528,14 @@ export default function BilanEmotionnelPage() {
   const handleScore = useCallback((value: number) => {
     if (!currentTest) return
     setScores((prev) => ({ ...prev, [currentTest.id]: value }))
-  }, [currentTest])
-
-  const handleNext = useCallback(() => {
-    if (!currentTest || scores[currentTest.id] === undefined) return
-    if (testIndex < currentSection.tests.length - 1) {
-      setTestIndex(testIndex + 1)
-    } else {
-      // End of section
-      setPhase('section-results')
-    }
-  }, [currentTest, scores, testIndex, currentSection])
+    setTimeout(() => {
+      if (testIndex < currentSection.tests.length - 1) {
+        setTestIndex(testIndex + 1)
+      } else {
+        setPhase('section-results')
+      }
+    }, 300)
+  }, [currentTest, testIndex, currentSection])
 
   const handleSectionContinue = useCallback(() => {
     if (sectionIndex < allSections.length - 1) {
@@ -598,7 +588,7 @@ export default function BilanEmotionnelPage() {
             test={currentTest} testIndex={flatIndex} totalTests={totalTests}
             sectionTitle={currentSection.title} sectionIcon={currentSection.icon}
             selectedScore={scores[currentTest.id]} onScore={handleScore}
-            onPrev={handlePrev} onNext={handleNext} canGoNext={scores[currentTest.id] !== undefined}
+            onPrev={handlePrev}
           />
         )}
         {phase === 'section-results' && (
