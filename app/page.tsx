@@ -26,6 +26,16 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true)
+
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('code')) {
+        if (!params.get('next')) {
+          params.set('next', '/onboarding/bilans')
+        }
+        window.location.replace(`/auth/callback?${params.toString()}`)
+      }
+    }
   }, [])
 
   useEffect(() => {
