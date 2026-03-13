@@ -162,7 +162,11 @@ export default function LoginPage() {
       } = await supabase.auth.getSession()
       const appliedPending = session?.user ? await applyPendingOnboarding(session.user) : false
       const completed = Boolean(session?.user?.user_metadata?.evo_onboarding_completed)
-      router.push(appliedPending || completed ? '/onboarding/bilans' : '/onboarding/profil')
+      if (mode === 'login') {
+        router.push('/onboarding/bilans')
+      } else {
+        router.push(appliedPending || completed ? '/onboarding/bilans' : '/onboarding/profil')
+      }
     } catch {
       setErrorMsg('Une erreur est survenue. Réessayez.')
       setLoading(false)
@@ -176,10 +180,11 @@ export default function LoginPage() {
     }
     setLoading(true)
     setErrorMsg('')
+    const nextPath = mode === 'login' ? '/onboarding/bilans' : '/onboarding/login?mode=signup'
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/onboarding/login%3Fmode%3D${mode}`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
       },
     })
     if (error) {

@@ -14,7 +14,7 @@ import type { NextRequest } from 'next/server'
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const next = requestUrl.searchParams.get('next') ?? '/onboarding/profil'
+  const next = requestUrl.searchParams.get('next') ?? '/onboarding/bilans'
 
   if (code) {
     const cookieStore = cookies()
@@ -92,10 +92,10 @@ export async function GET(request: NextRequest) {
     // Code exchange failed — redirect to login with error hint
     console.error('[auth/callback] exchangeCodeForSession error:', error?.message)
     return NextResponse.redirect(
-      new URL('/onboarding/login?error=auth', request.url)
+      new URL('/onboarding/login?mode=login&error=auth', request.url)
     )
   }
 
   // No code parameter — redirect to login
-  return NextResponse.redirect(new URL('/onboarding/login', request.url))
+  return NextResponse.redirect(new URL('/onboarding/login?mode=login', request.url))
 }
