@@ -33,7 +33,6 @@ import {
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 
 type StepId =
-  | 'firstName'
   | 'age'
   | 'height'
   | 'weight'
@@ -51,7 +50,6 @@ type StepId =
 type AgendaMode = 'later' | 'none' | ''
 
 const steps: { id: StepId; label: string }[] = [
-  { id: 'firstName', label: 'Prénom' },
   { id: 'age', label: 'Âge' },
   { id: 'height', label: 'Taille' },
   { id: 'weight', label: 'Poids' },
@@ -625,8 +623,6 @@ export default function ProfilPage() {
 
   const canContinue = () => {
     switch (current.id) {
-      case 'firstName':
-        return firstName.trim().length >= 2
       case 'age':
         return Number(age) > 0 && Number(age) < 120
       case 'height':
@@ -866,19 +862,6 @@ export default function ProfilPage() {
           <div className="mb-4 inline-flex items-center rounded-full border border-[#25D366]/25 bg-[#25D366]/10 px-3 py-1">
             <span className="text-[11px] font-medium text-[#25D366]">Questionnaire onboarding evo</span>
           </div>
-          {current.id === 'firstName' && (
-            <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Quel est votre prénom ?</h2>
-              <p className="text-sm text-[#1a1a1a]/45 mb-5">Pour personnaliser votre expérience evo.</p>
-              <input
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Ex: Suzanne"
-                className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#25D366]/25 focus:border-[#25D366]"
-              />
-            </div>
-          )}
-
           {current.id === 'age' && (
             <div>
               <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Quel âge avez-vous ?</h2>
