@@ -588,6 +588,7 @@ function getPersonalizedHeadline(pct: number) {
 
 function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; onRestart?: () => void }) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [expandedInsights, setExpandedInsights] = useState<Set<string>>(new Set())
   const hasSaved = useRef(false)
 
   // Digestif sub-score
@@ -608,9 +609,9 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
   const alimentairePct = Math.round((alimentaireTotal / alimentaireMaxScore) * 100)
   const alimentaireInfo = getOverallLabel(alimentairePct)
 
-  // Global score — digestif is inverted (0=best), so convert to positive before summing
+  // Global score — equal weight between digestif (inverted) and alimentaire sub-scores
   const globalTotal = (digestifMaxScore - digestifTotal) + alimentaireTotal
-  const globalPct = Math.round((globalTotal / totalMaxScore) * 100)
+  const globalPct = Math.round((digestifPct + alimentairePct) / 2)
   // All section results for report
   const allResults = [...digestifResults, ...alimentaireResults].map(({ section, score }) => {
     const isDigestif = digestifSections.some(s => s.id === section.id)
@@ -621,11 +622,25 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
   })
 
   const report = useMemo(() => generateFullReport(
-    allResults.map(r => ({ sectionId: r.sectionId, pct: r.pct, score: r.score, maxScore: r.maxScore, title: r.title ?? '' })),
+    allResults.map(r => ({ sectionId: r.sectionId, pct: r.pct, score: r.score, maxScore: r.maxScore, title: r.title })),
     scores
   ), [allResults, scores])
 
   const hero = getPersonalizedHeadline(globalPct)
+
+  // ── Weakness splits (alimentaire first, digestif subordinate) ──
+  const digestifIds = new Set(digestifSections.map(s => s.id))
+  const alimentaireWeaknesses = report.weaknesses.filter(w => !digestifIds.has(w.sectionId))
+  const digestifWeaknesses = report.weaknesses.filter(w => digestifIds.has(w.sectionId) && w.pct < 50)
+  const alimentaireStrengths = report.strengths.filter(s => !digestifIds.has(s.sectionId)).slice(0, 3)
+
+  const toggleInsights = (sectionId: string) =>
+    setExpandedInsights(prev => {
+      const next = new Set(prev)
+      if (next.has(sectionId)) next.delete(sectionId)
+      else next.add(sectionId)
+      return next
+    })
 
   // ── Save logic (callable for retry) ──
   async function doSave() {
@@ -640,10 +655,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
       }
       setSaveStatus('saving')
 
-      const fullReport = generateFullReport(
-        allResults.map(r => ({ sectionId: r.sectionId, pct: r.pct, score: r.score, maxScore: r.maxScore, title: r.title ?? '' })),
-        scores
-      )
+      const fullReport = generateFullReport(allResults, scores)
 
       const payload = {
         bilanType: 'nutrition',
@@ -700,7 +712,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
   const r = 52
   const circ = 2 * Math.PI * r
   const dashOffset = circ - (globalPct / 100) * circ
-  const scoreColor = globalPct >= 85 ? '#10b981' : globalPct >= 70 ? '#0ea5e9' : globalPct >= 55 ? '#f59e0b' : globalPct >= 40 ? '#f97316' : '#ef4444'
+  const scoreColor = '#3b82f6'
 
   return (
     <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
@@ -725,11 +737,12 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
           {/* Text */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5">
-              <span className={`inline-block w-2 h-2 rounded-full ${hero.scoreBg}`} />
+              <span className="inline-block w-2 h-2 rounded-full bg-blue-400" />
               <span className="text-xs font-semibold tracking-widest uppercase text-[#1a1a1a]/40">Bilan Nutrition</span>
             </div>
             <h2 className="text-xl font-bold text-[#1a1a1a] leading-snug mb-2">{hero.title}</h2>
-            <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{hero.subtitle}</p>
+            <p className="text-xs text-[#1a1a1a]/50 leading-relaxed mb-2">{hero.subtitle}</p>
+            <p className="text-xs text-[#2D6A4F] font-medium leading-relaxed">Lisez chaque recommandation et essayez d&apos;en intégrer une à la fois. On revient vers vous sur WhatsApp pour suivre vos progrès et répondre à vos questions.</p>
           </div>
         </div>
         {/* Save status */}
@@ -742,7 +755,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
             </div>
           )}
           {saveStatus === 'error' && (
-            <button onClick={doSave} className="text-[10px] text-red-400 underline">Sauvegarde échouée — réessayer</button>
+            <button onClick={doSave} className="text-[10px] text-red-400 underline">Sauvegarde échouée, réessayer</button>
           )}
         </div>
       </div>
@@ -756,9 +769,9 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
             </div>
             <p className="text-xs font-semibold text-[#1a1a1a]">Digestif</p>
           </div>
-          <p className={`text-2xl font-bold ${digestifInfo.color}`}>{digestifPct}%</p>
+          <p className="text-2xl font-bold text-blue-500">{digestifPct}%</p>
           <div className="h-1 bg-[#1a1a1a]/[0.05] rounded-full mt-1.5 overflow-hidden">
-            <div className={`h-full rounded-full ${digestifInfo.bar} transition-all duration-700`} style={{ width: `${digestifPct}%` }} />
+            <div className="h-full rounded-full bg-blue-400 transition-all duration-700" style={{ width: `${digestifPct}%` }} />
           </div>
         </div>
         <div className="bg-white border border-[#1a1a1a]/[0.07] rounded-xl px-4 py-3">
@@ -768,17 +781,15 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
             </div>
             <p className="text-xs font-semibold text-[#1a1a1a]">Alimentaire</p>
           </div>
-          <p className={`text-2xl font-bold ${alimentaireInfo.color}`}>{alimentairePct}%</p>
+          <p className="text-2xl font-bold text-blue-500">{alimentairePct}%</p>
           <div className="h-1 bg-[#1a1a1a]/[0.05] rounded-full mt-1.5 overflow-hidden">
-            <div className={`h-full rounded-full ${alimentaireInfo.bar} transition-all duration-700`} style={{ width: `${alimentairePct}%` }} />
+            <div className="h-full rounded-full bg-blue-400 transition-all duration-700" style={{ width: `${alimentairePct}%` }} />
           </div>
         </div>
       </div>
 
-      
-
       {/* ── Strengths ── */}
-      {report.strengths.length > 0 && (
+      {alimentaireStrengths.length > 0 && (
         <div className="mb-10">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
@@ -787,13 +798,10 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
             <h3 className="text-sm font-bold text-[#1a1a1a]">Ce qui va bien</h3>
           </div>
           <div className="space-y-3">
-            {report.strengths.map((s) => (
+            {alimentaireStrengths.map((s) => (
               <div key={s.sectionId} className="relative pl-4 border-l-2 border-emerald-300">
-                <div className="flex items-center justify-between mb-0.5">
-                  <p className="text-sm font-semibold text-[#1a1a1a]">{s.title}</p>
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{s.pct}%</span>
-                </div>
-                <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{s.praise}</p>
+                <p className="text-sm font-semibold text-[#1a1a1a] mb-0.5">{s.title}</p>
+                <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{s.scienceNote}</p>
               </div>
             ))}
           </div>
@@ -809,29 +817,39 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
             </div>
             <h3 className="text-sm font-bold text-[#1a1a1a]">Ce qu&apos;on peut améliorer</h3>
           </div>
-          <div className="space-y-5">
-            {report.weaknesses.map((w) => {
+
+          {/* Alimentaire weaknesses — primary */}
+          <div className="space-y-4">
+            {alimentaireWeaknesses.map((w) => {
               const wInfo = getOverallLabel(w.pct)
-              const isDigestif = digestifSections.some(s => s.id === w.sectionId)
               const result = allResults.find(r => r.sectionId === w.sectionId)
+              const isExpanded = expandedInsights.has(w.sectionId)
               return (
                 <div key={w.sectionId} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
-                  <div className="px-5 py-4 border-b border-[#1a1a1a]/[0.06] flex items-start gap-3">
+                  <div className="px-5 py-4 flex items-start gap-3">
                     <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${
                       w.pct < 40 ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-500'
                     }`}>
-                      {result ? renderSectionIcon(result.icon, 'w-4 h-4') : (isDigestif ? <StomachIcon className="w-4 h-4" /> : <UtensilsIcon className="w-4 h-4" />)}
+                      {result ? renderSectionIcon(result.icon, 'w-4 h-4') : <UtensilsIcon className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="mb-1">
                         <p className="text-sm font-bold text-[#1a1a1a]">{w.title}</p>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${wInfo.color} bg-[#1a1a1a]/[0.04]`}>{w.pct}%</span>
                       </div>
-                      <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{w.concern}</p>
+                      <p className="text-xs text-[#1a1a1a]/50 leading-relaxed mb-2">{w.concern}</p>
+                      {w.triggeredInsights.length > 0 && (
+                        <button
+                          onClick={() => toggleInsights(w.sectionId)}
+                          className="flex items-center gap-1 text-[10px] text-[#2D6A4F] font-semibold"
+                        >
+                          {isExpanded ? 'Masquer' : `Voir ${w.triggeredInsights.length} recommandation${w.triggeredInsights.length > 1 ? 's' : ''}`}
+                          <ChevronRight className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                        </button>
+                      )}
                     </div>
                   </div>
-                  {w.triggeredInsights.length > 0 && (
-                    <div className="divide-y divide-[#1a1a1a]/[0.05]">
+                  {isExpanded && w.triggeredInsights.length > 0 && (
+                    <div className="divide-y divide-[#1a1a1a]/[0.05] border-t border-[#1a1a1a]/[0.06]">
                       {w.triggeredInsights.map((ins, i) => (
                         <div key={i} className="px-5 py-4">
                           <div className="flex items-start gap-2.5 mb-3">
@@ -850,58 +868,105 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
               )
             })}
           </div>
+
+          {/* Digestif weaknesses — subordinate, linked to nutrition */}
+          {digestifWeaknesses.length > 0 && (
+            <div className="mt-4">
+              {alimentaireWeaknesses.length > 0 && (
+                <p className="text-[10px] text-[#1a1a1a]/35 italic mb-3 px-1">
+                  Ces inconforts digestifs sont souvent liés à votre alimentation :
+                </p>
+              )}
+              <div className="space-y-3">
+                {digestifWeaknesses.map((w) => {
+                  const wInfo = getOverallLabel(w.pct)
+                  const result = allResults.find(r => r.sectionId === w.sectionId)
+                  const isExpanded = expandedInsights.has(w.sectionId)
+                  return (
+                    <div key={w.sectionId} className="bg-[#1a1a1a]/[0.02] border border-[#1a1a1a]/[0.06] rounded-2xl overflow-hidden">
+                      <div className="px-4 py-3 flex items-start gap-3">
+                        <div className={`mt-0.5 flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center ${
+                          w.pct < 40 ? 'bg-red-50 text-red-400' : 'bg-amber-50 text-amber-400'
+                        }`}>
+                          {result ? renderSectionIcon(result.icon, 'w-3.5 h-3.5') : <StomachIcon className="w-3.5 h-3.5" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="mb-0.5">
+                            <p className="text-xs font-semibold text-[#1a1a1a]/70">{w.title}</p>
+                          </div>
+                          <p className="text-[10px] text-[#1a1a1a]/40 leading-relaxed mb-1.5">{w.concern}</p>
+                          {w.triggeredInsights.length > 0 && (
+                            <button
+                              onClick={() => toggleInsights(w.sectionId)}
+                              className="flex items-center gap-1 text-[10px] text-[#2D6A4F]/70 font-semibold"
+                            >
+                              {isExpanded ? 'Masquer' : `Voir ${w.triggeredInsights.length} recommandation${w.triggeredInsights.length > 1 ? 's' : ''}`}
+                              <ChevronRight className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {isExpanded && w.triggeredInsights.length > 0 && (
+                        <div className="divide-y divide-[#1a1a1a]/[0.05] border-t border-[#1a1a1a]/[0.05]">
+                          {w.triggeredInsights.map((ins, i) => (
+                            <div key={i} className="px-4 py-3">
+                              <div className="flex items-start gap-2 mb-2">
+                                <span className="flex-shrink-0 w-4 h-4 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-[9px] font-bold text-amber-600 mt-0.5">{i + 1}</span>
+                                <p className="text-[10px] text-[#1a1a1a]/55 leading-relaxed italic">{ins.insight}</p>
+                              </div>
+                              <div className="ml-6 bg-[#2D6A4F]/[0.04] border border-[#2D6A4F]/[0.12] rounded-xl px-3 py-2.5">
+                                <p className="text-[10px] font-semibold text-[#2D6A4F] uppercase tracking-wider mb-1">Recommandation</p>
+                                <p className="text-[10px] text-[#1a1a1a]/65 leading-relaxed">{ins.recommendation}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* ── Action plan ── */}
-      {report.actionPlan.length > 0 && (
-        <div className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-5 h-5 rounded-full bg-[#2D6A4F]/15 flex items-center justify-center flex-shrink-0">
-              <ChevronRight className="w-3 h-3 text-[#2D6A4F]" />
+      {/* ── Action plan (phase 1 only) ── */}
+      {report.actionPlan.length > 0 && (() => {
+        const phase1 = report.actionPlan.find(p => p.phase === 1)
+        if (!phase1) return null
+        return (
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-5 h-5 rounded-full bg-[#2D6A4F]/15 flex items-center justify-center flex-shrink-0">
+                <ChevronRight className="w-3 h-3 text-[#2D6A4F]" />
+              </div>
+              <h3 className="text-sm font-bold text-[#1a1a1a]">Votre plan d&apos;action</h3>
+              <span className="text-[10px] text-[#1a1a1a]/30 ml-auto">{phase1.timeframe}</span>
             </div>
-            <h3 className="text-sm font-bold text-[#1a1a1a]">Votre plan d&apos;action</h3>
-          </div>
-          <div className="relative pl-6">
-            <div className="absolute left-2.5 top-3 bottom-3 w-px bg-[#1a1a1a]/[0.08]" />
-            <div className="space-y-6">
-              {report.actionPlan.map((phase) => {
-                const phaseColors = [
-                  { dot: 'bg-[#2D6A4F]', badge: 'bg-[#2D6A4F]/10 text-[#2D6A4F] border-[#2D6A4F]/20' },
-                  { dot: 'bg-sky-500', badge: 'bg-sky-50 text-sky-600 border-sky-200' },
-                  { dot: 'bg-amber-500', badge: 'bg-amber-50 text-amber-600 border-amber-200' },
-                ]
-                const c = phaseColors[(phase.phase - 1) % phaseColors.length]
-                return (
-                  <div key={phase.phase} className="relative">
-                    <div className={`absolute -left-6 top-3 w-4 h-4 rounded-full border-2 border-white ${c.dot} shadow-sm`} />
-                    <div className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
-                      <div className="flex items-center gap-3 px-5 py-3 border-b border-[#1a1a1a]/[0.06]">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${c.badge}`}>Phase {phase.phase}</span>
-                        <p className="text-xs font-bold text-[#1a1a1a] flex-1">{phase.phaseTitle}</p>
-                        <span className="text-[10px] text-[#1a1a1a]/25">{phase.timeframe}</span>
+            <div className="space-y-3">
+              {phase1.actions.slice(0, 5).map((action, i) => (
+                <div key={i} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
+                  <div className="flex gap-4 px-5 py-5">
+                    <div className="flex-shrink-0 pt-0.5">
+                      <div className="w-8 h-8 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white text-sm font-bold leading-none">
+                        {i + 1}
                       </div>
-                      <div className="divide-y divide-[#1a1a1a]/[0.05]">
-                        {phase.actions.map((action, i) => (
-                          <div key={i} className="flex gap-3 px-5 py-3">
-                            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#1a1a1a]/[0.04] flex items-center justify-center mt-0.5">
-                              <svg className="w-3 h-3 text-[#1a1a1a]/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                            </div>
-                            <div>
-                              <p className="text-xs font-semibold text-[#1a1a1a] leading-snug mb-0.5">{action.action}</p>
-                              <p className="text-[10px] text-[#1a1a1a]/35 leading-relaxed">{action.why}</p>
-                            </div>
-                          </div>
-                        ))}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[#1a1a1a] leading-snug mb-3">{action.action}</p>
+                      <div className="bg-[#1a1a1a]/[0.03] border border-[#1a1a1a]/[0.06] rounded-xl px-3 py-2.5">
+                        <p className="text-[10px] font-semibold text-[#1a1a1a]/35 uppercase tracking-wider mb-1">Pourquoi</p>
+                        <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{action.why}</p>
                       </div>
                     </div>
                   </div>
-                )
-              })}
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* ── Science cards ── */}
       {globalKeyInsights.length > 0 && (
@@ -925,31 +990,15 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
         </div>
       )}
 
-      {/* ── Medical disclaimer ── */}
-      {digestifSections.some(section => section.tests.some(t => (scores[t.id] ?? 0) >= 50)) && (
-        <div className="mb-8 bg-red-50 border border-red-200 rounded-2xl px-5 py-4">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center mt-0.5">
-              <InfoIcon className="w-3 h-3 text-red-600" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-red-700 mb-1">Avis médical recommandé</p>
-              <p className="text-xs text-red-600/80 leading-relaxed">
-                Vos réponses indiquent des symptômes digestifs fréquents ou sévères. Ce rapport est un outil d&apos;information, non un diagnostic médical. Consultez un professionnel de santé avant tout changement alimentaire significatif.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── Disclaimer ── */}
+      <div className="mb-6">
+        <p className="text-[10px] text-[#1a1a1a]/35 text-center leading-relaxed">
+          Ce rapport est fourni à titre informatif et ne se substitue pas à un avis médical professionnel.
+        </p>
+      </div>
 
       {/* ── CTA ── */}
       <div className="flex flex-col items-center gap-3 pt-2">
-        <button
-          onClick={() => window.print()}
-          className="w-full max-w-xs px-10 py-4 text-base rounded-full border border-[#1a1a1a]/20 text-[#1a1a1a]/70 font-semibold hover:bg-[#1a1a1a]/[0.04] transition-colors"
-        >
-          Télécharger en PDF
-        </button>
         {onRestart && (
           <button
             onClick={onRestart}
@@ -1154,10 +1203,10 @@ export default function BilanNutritionPage() {
           />
         )}
 
-        {phase === 'testing' && currentTest && currentSection && (
+        {phase === 'testing' && currentTest && (
           <TestCard
             test={currentTest} testIndex={flatIndex} totalTests={partTotalTests}
-            sectionTitle={currentSection.title ?? ''} sectionIcon={currentSection.icon}
+            sectionTitle={currentSection.title} sectionIcon={currentSection.icon}
             selectedScore={scores[currentTest.id]} onScore={handleScore}
             onPrev={handlePrev}
           />

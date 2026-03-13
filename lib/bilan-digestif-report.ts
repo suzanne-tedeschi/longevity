@@ -1,6 +1,6 @@
 // ──────────────────────────────────────────────────────
-// Bilan Troubles Digestifs — Compte-rendu scientifique
-// Basé sur le GSRS et la littérature peer-reviewed
+// Bilan Troubles Digestifs — Compte-rendu
+// Basé sur les approches de Denis Riché, Sylvain Druguet et Anthony Berthou
 // ──────────────────────────────────────────────────────
 
 export interface ScientificReference {
@@ -26,6 +26,7 @@ export interface SectionReport {
     triggerMaxScore: number
     insight: string
     recommendation: string
+    action?: string
   }[]
   references: ScientificReference[]
 }
@@ -37,22 +38,20 @@ export interface SectionReport {
 const refluxReport: SectionReport = {
   sectionId: 'reflux',
   context:
-    'Le reflux gastro-œsophagien touche 10-20 % de la population. C\'est quand l\'acide de l\'estomac remonte vers la gorge — causant brûlures, régurgitations et parfois une toux chronique. Non traité sur le long terme, il peut irriter et fragiliser la paroi de l\'œsophage. Un reflux non pris en charge perturbe aussi le sommeil chez 75 % des personnes concernées.',
+    'Le reflux n\'est pas qu\'un désordre mécanique : il traduit une perturbation de la motilité gastrique (les contractions qui font avancer les aliments), souvent amplifiée par le stress chronique via les catécholamines (hormones du stress comme l\'adrénaline et le cortisol), ou par des peptides opioïdes — gluteomorphines et caséimorphines — issus d\'une digestion incomplète du blé ou du lait qui interagissent avec les récepteurs gastriques.',
   recommendations: [
-    { maxPct: 33, level: 'alerte', title: 'Reflux sévère', text: 'Vos symptômes de reflux sont importants et nécessitent une prise en charge. Un bilan endoscopique est recommandé si les symptômes persistent > 4 semaines. Évitez les repas copieux le soir, surélevez la tête de lit de 15 cm, et limitez café, alcool, chocolat et aliments acides. La prise en charge diététique seule réduit les symptômes de 30 à 50 % (Kaltenbach et al., 2006).' },
-    { maxPct: 66, level: 'vigilance', title: 'Reflux modéré', text: 'Vous présentez des symptômes de reflux à surveiller. Adoptez des mesures hygiéno-diététiques : fractionner les repas, ne pas se coucher dans les 3h suivant le dîner, éviter les boissons gazeuses. Les études montrent un bénéfice net de la posture post-prandiale et de la perte de poids même modeste (-5 kg = réduction de 40 % des symptômes, Ness-Jensen et al., 2016).' },
-    { maxPct: 90, level: 'bon', title: 'Reflux léger', text: 'Peu de symptômes de reflux. Maintenez vos bonnes habitudes. Privilégiez les repas fractionnés et bien mastiqués. Évitez de vous allonger immédiatement après le repas.' },
-    { maxPct: 100, level: 'excellent', title: 'Pas de reflux', text: 'Aucun signe de reflux gastro-œsophagien. Excellent indicateur de santé digestive haute. Maintenez vos habitudes protectrices.' },
+    { maxPct: 33, level: 'alerte', title: 'Reflux fréquent', text: 'Vos symptômes de reflux sont réguliers. Mangez lentement dans le calme et sans écran — l\'activation parasympathique est indispensable à une bonne motilité gastrique. Évitez les repas dans les 3h précédant le coucher et réduisez les glucides raffinés et laitages industriels qui génèrent des peptides irritants.' },
+    { maxPct: 66, level: 'vigilance', title: 'Reflux modéré', text: 'Des symptômes de reflux ponctuels méritent votre attention. Mastiquez lentement, mangez assis dans le calme, et évitez de vous allonger juste après les repas.' },
+    { maxPct: 90, level: 'bon', title: 'Reflux léger', text: 'Peu de reflux. Continuez à manger dans le calme et à bien mastiquer.' },
+    { maxPct: 100, level: 'excellent', title: 'Pas de reflux', text: 'Aucun signe de reflux. Excellent indicateur de santé digestive haute.' },
   ],
   questionInsights: [
-    { questionId: 'ref-1', triggerMaxScore: 1, insight: 'Vos brûlures d\'estomac sont fréquentes — l\'acide irrite régulièrement la paroi de votre œsophage.', recommendation: 'Évitez les aliments déclencheurs : tomate, agrumes, café, menthe, chocolat, alcool. Si vous prenez des médicaments anti-acide, faites-le sous supervision médicale et pour une durée limitée. Des alternatives naturelles (réglisse spéciale sans glycyrrhizine 380 mg avant repas, gel d\'aloe vera) ont montré une efficacité dans les formes légères.' },
-    { questionId: 'ref-2', triggerMaxScore: 1, insight: 'Des régurgitations acides fréquentes indiquent que le muscle de fermeture entre l\'œsophage et l\'estomac ne se referme pas correctement.', recommendation: 'Surélevez la tête de votre lit de 15 cm (avec des cales sous les pieds du lit, pas juste un oreiller) — cela réduit le reflux nocturne de 67 %. Évitez de manger dans les 3 heures précédant le coucher. Dormir sur le côté gauche réduit aussi le reflux de 71 %.' },
+    { questionId: 'ref-1', triggerMaxScore: 1, insight: 'Vos brûlures d\'estomac sont fréquentes.', recommendation: 'Une hyperacidité récurrente peut être liée au stress (catécholamines — adrénaline et cortisol) ou à une mauvaise dégradation de certaines protéines. Évitez café à jeun, alcool et sucres raffinés. Mangez dans le calme — le système parasympathique (le "mode repos-digestion") régule la sécrétion d\'acide chlorhydrique.', action: 'Évitez le café à jeun et mangez dans le calme, sans écran.' },
+    { questionId: 'ref-2', triggerMaxScore: 1, insight: 'Vous présentez des régurgitations acides fréquentes.', recommendation: 'Évitez de manger dans les 3h avant le coucher. Réduisez les aliments fermentescibles (pain blanc, laitages industriels) dont la mauvaise digestion produit des peptides qui perturbent la valve œsophagienne.', action: 'Arrêtez de manger au moins 3h avant le coucher.' },
   ],
   references: [
-    { authors: 'Kaltenbach T, Crockett S, Gerson LB', title: 'Are lifestyle measures effective in patients with gastroesophageal reflux disease?', journal: 'Arch Intern Med', year: 2006, doi: '10.1001/archinte.166.9.965', pmid: '16682569' },
-    { authors: 'Ness-Jensen E, Hveem K, El-Serag H, Lagergren J', title: 'Lifestyle Intervention in Gastroesophageal Reflux Disease', journal: 'Clin Gastroenterol Hepatol', year: 2016, doi: '10.1016/j.cgh.2015.04.176', pmid: '25956834' },
-    { authors: 'Fass R, Fullerton S, Tung S, Mayer EA', title: 'Sleep disturbances in clinic patients with functional bowel disorders', journal: 'Am J Gastroenterol', year: 2000, pmid: '10811336' },
-    { authors: 'Svedlund J, Sjödin I, Dotevall G', title: 'GSRS—a clinical rating scale for gastrointestinal symptoms in patients with irritable bowel syndrome and peptic ulcer disease', journal: 'Dig Dis Sci', year: 1988, pmid: '3123181' },
+    { authors: 'Riché D', title: 'Trépied intestinal et pathophysiologie digestive', journal: 'Référentiel nutritionnel', year: 2024 },
+    { authors: 'Druguet S', title: 'Neuro-nutrition et comportement alimentaire', journal: 'Référentiel nutritionnel', year: 2024 },
   ],
 }
 
@@ -63,23 +62,20 @@ const refluxReport: SectionReport = {
 const douleursReport: SectionReport = {
   sectionId: 'douleurs-abdominales',
   context:
-    'Les douleurs abdominales fonctionnelles touchent 15-25 % des adultes. Elles sont souvent liées au syndrome de l\'intestin irritable, au stress, ou à des troubles de la motilité digestive. Le lien intestin-cerveau est central : 70 % des personnes souffrant d\'intestin irritable voient leurs symptômes s\'aggraver en période de stress — ce n\'est pas dans la tête, c\'est une réalité physiologique.',
+    'Les douleurs abdominales signalent une inflammation de la muqueuse digestive. Une barrière intestinale fragilisée laisse passer des endotoxines bactériennes (LPS, des fragments de paroi bactérienne) dans la circulation, déclenchant une cascade de cytokines pro-inflammatoires (TNF-alpha, IL-6 — des messagers chimiques de l\'inflammation) qui sensibilisent les nocicepteurs intestinaux (les récepteurs de la douleur). Un excès d\'oméga-6 aggrave ce processus en fournissant le substrat des prostaglandines de la douleur (série 2 — les médiateurs chimiques qui amplifient la douleur et l\'œdème).',
   recommendations: [
-    { maxPct: 33, level: 'alerte', title: 'Douleurs importantes', text: 'Vos douleurs abdominales sont significatives et nécessitent un bilan médical pour exclure une cause organique (maladie cœliaque, maladie inflammatoire intestinale, calculs biliaires). En attendant, un régime pauvre en aliments fermentescibles (FODMAPs) réduit les douleurs chez 75 % des personnes souffrant d\'intestin irritable. La respiration rythmée (5 min 3×/jour) réduit aussi de 40 % les symptômes digestifs liés au stress.' },
-    { maxPct: 66, level: 'vigilance', title: 'Douleurs modérées', text: 'Des douleurs abdominales régulières méritent attention. Tenez un journal alimentaire pendant 2 semaines pour identifier les aliments déclencheurs. L\'activité physique modérée (30 min/jour de marche) améliore la motilité intestinale et réduit la sensibilité viscérale. L\'hypnose digestive a montré une efficacité de 70-80 % dans le SII (Whorwell, 2006).' },
-    { maxPct: 90, level: 'bon', title: 'Douleurs légères', text: 'Vos douleurs abdominales sont occasionnelles et gérables. Maintenez une alimentation riche en fibres solubles (avoine, psyllium, banane) pour réguler la motilité. La menthe poivrée en capsules entériques est efficace pour les douleurs spasmodiques.' },
-    { maxPct: 100, level: 'excellent', title: 'Pas de douleur', text: 'Absence de douleur abdominale. Excellent indicateur de santé digestive et d\'un bon équilibre de l\'axe intestin-cerveau.' },
+    { maxPct: 33, level: 'alerte', title: 'Douleurs fréquentes', text: 'Vos douleurs abdominales sont régulières. Réduisez les aliments ultra-transformés et l\'excès d\'oméga-6 (huile de tournesol, fritures) qui alimentent directement l\'inflammation muqueuse via la voie COX-2. Augmentez les oméga-3 (sardines, maquereau, huile de lin) pour rééquilibrer la balance inflammatoire.' },
+    { maxPct: 66, level: 'vigilance', title: 'Douleurs modérées', text: 'Des douleurs abdominales régulières méritent attention. Identifiez vos aliments déclencheurs sur 2 semaines. Intégrez des oméga-3 (sardines, noix, huile de colza) pour inhiber la production de prostaglandines inflammatoires.' },
+    { maxPct: 90, level: 'bon', title: 'Douleurs légères', text: 'Des douleurs occasionnelles et gérables. Maintenez un apport régulier en oméga-3 et en légumes colorés pour protéger la muqueuse.' },
+    { maxPct: 100, level: 'excellent', title: 'Pas de douleur', text: 'Aucune douleur abdominale. Excellent indicateur d\'une muqueuse intègre et d\'un équilibre inflammatoire maîtrisé.' },
   ],
   questionInsights: [
-    { questionId: 'doul-1', triggerMaxScore: 1, insight: 'Des douleurs fréquentes au niveau de l\'estomac peuvent évoquer une gastrite, un ulcère ou des troubles de la digestion haute.', recommendation: 'Consultez un médecin si les symptômes persistent plus de 4 semaines. En attendant : fractionnez vos repas (5 petits repas plutôt que 3 gros), évitez l\'ibuprofène et l\'aspirine qui irritent l\'estomac, limitez le café à jeun. Il existe un test simple pour détecter une bactérie (H. pylori) qui cause 80 % des ulcères gastriques — facilement traitée si détectée.' },
-    { questionId: 'doul-2', triggerMaxScore: 1, insight: 'Des douleurs de faim récurrentes peuvent signaler une glycémie instable ou une inflammation de la muqueuse de l\'estomac.', recommendation: 'Assurez-vous d\'avoir des protéines et des fibres à chaque repas pour stabiliser votre taux de sucre dans le sang. Évitez de rester plus de 5 heures sans manger. Si les symptômes persistent, votre médecin peut proposer un test simple pour vérifier l\'absence de bactérie H. pylori.' },
-    { questionId: 'doul-3', triggerMaxScore: 1, insight: 'Des nausées fréquentes peuvent être liées au stress, à une vidange de l\'estomac trop lente, ou à une intolérance alimentaire.', recommendation: 'Le gingembre (1 g/jour en capsules ou frais râpé) est l\'un des remèdes naturels les mieux documentés contre les nausées. Mangez lentement, en petites quantités. Si les nausées persistent plus de 2 semaines, une consultation médicale est utile.' },
+    { questionId: 'doul-1', triggerMaxScore: 1, insight: 'Des douleurs épigastriques fréquentes évoquent une inflammation de la muqueuse haute.', recommendation: 'Mangez dans le calme — le stress élève les catécholamines (adrénaline, cortisol) qui perturbent la motilité gastrique. Réduisez café à jeun, alcool et glucides raffinés qui favorisent la dysbiose (déséquilibre du microbiote) et l\'inflammation muqueuse.', action: 'Supprimez les écrans aux repas et mangez assis dans le calme.' },
+    { questionId: 'doul-2', triggerMaxScore: 1, insight: 'Les douleurs de faim récurrentes signalent souvent une glycémie instable ou une hyperacidité.', recommendation: 'Intégrez des protéines et des fibres à chaque repas pour stabiliser la glycémie et éviter les pics d\'acidité. Les protéines génèrent des di-peptides qui déclenchent la néoglucogenèse intestinale (la production de glucose par l\'intestin) — un signal de satiété durable.', action: 'Ajoutez une source de protéines et des fibres à chaque repas.' },
+    { questionId: 'doul-3', triggerMaxScore: 1, insight: 'Des nausées fréquentes peuvent refléter un stress gastrique ou un transit perturbé.', recommendation: 'Mangez lentement, en petites quantités, dans un environnement calme sans écran. Manger devant un écran active le système sympathique (mode stress) et bloque la sécrétion d\'enzymes digestives, aggravant les nausées.', action: 'Réduisez la taille des repas et mangez lentement, sans écran.' },
   ],
   references: [
-    { authors: 'Mayer EA, Tillisch K, Gupta A', title: 'Gut/brain axis and the microbiota', journal: 'J Clin Invest', year: 2015, doi: '10.1172/JCI76304', pmid: '25664848' },
-    { authors: 'Halmos EP, Power VA, Shepherd SJ, Gibson PR, Muir JG', title: 'A diet low in FODMAPs reduces symptoms of irritable bowel syndrome', journal: 'Gastroenterology', year: 2014, doi: '10.1053/j.gastro.2013.09.046', pmid: '24076059' },
-    { authors: 'Viljoen E, Visser J, Koen N, Musekiwa A', title: 'A systematic review and meta-analysis of the effect and safety of ginger in the treatment of pregnancy-associated nausea and vomiting', journal: 'Nutr J', year: 2014, pmid: '24642205' },
-    { authors: 'Whorwell PJ', title: 'Review article: The history of hypnotherapy and its role in the irritable bowel syndrome', journal: 'Aliment Pharmacol Ther', year: 2006, doi: '10.1111/j.1365-2036.2006.02891.x', pmid: '16886901' },
+    { authors: 'Riché D', title: 'Inflammation muqueuse et douleurs abdominales', journal: 'Référentiel nutritionnel', year: 2024 },
   ],
 }
 
@@ -90,23 +86,22 @@ const douleursReport: SectionReport = {
 const indigestionReport: SectionReport = {
   sectionId: 'indigestion',
   context:
-    'Les symptômes d\'indigestion (ballonnements, gaz, éructations, gargouillements) affectent 20-30 % de la population adulte. Ils reflètent souvent un déséquilibre des bactéries intestinales ou une fermentation excessive de certains aliments. Votre intestin abrite 100 000 milliards de bactéries — un écosystème microscopique qui influence votre immunité, votre métabolisme et même votre humeur. En prendre soin, c\'est prendre soin de votre santé globale.',
+    'Les ballonnements, gaz et éructations traduisent une fermentation bactérienne excessive dans le côlon — signe que des aliments insuffisamment digérés y arrivent. La bordure en brosse intestinale, fragilisée par le stress ou une alimentation dénaturée, perd en efficacité enzymatique — notamment les disaccharidases et peptidases (les enzymes qui découpent respectivement les sucres et les protéines). Les glucides partiellement digérés subissent alors une fermentation produisant méthane, hydrogène et CO2.',
   recommendations: [
-    { maxPct: 33, level: 'alerte', title: 'Indigestion sévère', text: 'Vos symptômes d\'indigestion sont importants et impactent votre qualité de vie. Envisagez un régime pauvre en aliments fermentescibles (FODMAPs — certains sucres qui fermentent dans l\'intestin) de 6 semaines, idéalement avec un diététicien. Les probiotiques multi-souches réduisent les ballonnements de 44 % selon une revue de la littérature scientifique (Ford et al., 2018). Mâchez lentement — 20 à 30 fois par bouchée.' },
-    { maxPct: 66, level: 'vigilance', title: 'Indigestion modérée', text: 'Des ballonnements et gaz réguliers méritent attention. Réduisez les crudités au profit de légumes cuits (plus digestibles), faites tremper les légumineuses 12h avant cuisson, et mâchez lentement. La menthe poivrée en capsules spéciales (à libération dans l\'intestin, pas dans l\'estomac) réduit significativement les ballonnements. Évitez aussi les chewing-gums qui font avaler de l\'air.' },
-    { maxPct: 90, level: 'bon', title: 'Bonne digestion', text: 'Peu de symptômes d\'indigestion. Maintenez la diversité alimentaire — visez 30 végétaux différents par semaine (légumes, fruits, légumineuses, céréales, herbes). Intégrez des aliments fermentés quotidiennement : yaourt, kéfir, choucroute, miso.' },
-    { maxPct: 100, level: 'excellent', title: 'Digestion excellente', text: 'Aucun trouble d\'indigestion. Votre microbiote semble en bonne santé. C\'est le signe d\'une alimentation diversifiée et d\'une bonne motilité gastro-intestinale.' },
+    { maxPct: 33, level: 'alerte', title: 'Indigestion sévère', text: 'Vos symptômes d\'indigestion sont importants. Commencez par ralentir votre mastication (20 à 30 fois par bouchée) et supprimer les écrans aux repas — l\'activation parasympathique est indispensable à la sécrétion d\'amylase salivaire et d\'enzymes gastriques. Réduisez les glucides raffinés qui nourrissent les bactéries fermentatives.' },
+    { maxPct: 66, level: 'vigilance', title: 'Indigestion modérée', text: 'Des troubles digestifs réguliers méritent attention. Privilégiez les légumes cuits aux crudités, faites tremper les légumineuses 12h avant cuisson, et mastiquez lentement à chaque repas.' },
+    { maxPct: 90, level: 'bon', title: 'Bonne digestion', text: 'Peu de troubles digestifs. Diversifiez vos végétaux et intégrez des aliments lactofermentés pour enrichir votre microbiote.' },
+    { maxPct: 100, level: 'excellent', title: 'Digestion excellente', text: 'Excellente digestion. Signe d\'un microbiote équilibré et d\'une bonne sécrétion enzymatique.' },
   ],
   questionInsights: [
-    { questionId: 'ind-1', triggerMaxScore: 1, insight: 'Des gargouillements fréquents signalent une digestion agitée — souvent liée à certains aliments qui fermentent ou à un repas avalé trop vite.', recommendation: 'Mangez dans le calme, sans parler excessivement, et privilégiez les cuissons douces (les légumes crus sont plus difficiles à digérer). Le fenouil — en tisane ou frais après le repas — est un excellent allié naturel contre les gaz et les ballonnements.' },
-    { questionId: 'ind-2', triggerMaxScore: 1, insight: 'Des ballonnements fréquents sont souvent le signe d\'un déséquilibre des bactéries intestinales ou d\'une intolérance alimentaire.', recommendation: 'Des tests simples peuvent identifier la cause : test respiratoire au lactose (intolérance aux laitages), test au fructose, ou prise de sang pour détecter la maladie cœliaque. En parallèle, les probiotiques et les fibres prébiotiques (en commençant par de petites doses) aident à rééquilibrer l\'intestin. Astuce : si les ballonnements apparaissent dans les 30 min après le repas, c\'est plutôt l\'estomac ; s\'ils arrivent 2h après, c\'est l\'intestin.' },
-    { questionId: 'ind-3', triggerMaxScore: 1, insight: 'Des rots fréquents sont souvent liés à l\'air avalé en mangeant trop vite ou à un reflux associé.', recommendation: 'Limitez les boissons gazeuses, les chewing-gums et la consommation rapide. Mangez assis, dans le calme. 5 respirations profondes avant le repas favorisent une digestion plus sereine. Si les rots persistent malgré ces ajustements, une consultation peut identifier une cause sous-jacente.' },
-    { questionId: 'ind-4', triggerMaxScore: 1, insight: 'Des flatulences fréquentes signalent une fermentation excessive dans l\'intestin — souvent due à certains aliments.', recommendation: 'Limitez les grands producteurs de gaz : oignon, ail, blé en grande quantité, produits laitiers, certains fruits. Trempez toujours les légumineuses 12h avant cuisson pour les rendre plus digestibles. Le charbon végétal activé (2 g entre les repas) peut soulager en phase aiguë. Sur le long terme, diversifiez progressivement votre alimentation pour enrichir vos bactéries intestinales.' },
+    { questionId: 'ind-1', triggerMaxScore: 1, insight: 'Des gargouillements fréquents signalent une fermentation active dans l\'intestin.', recommendation: 'Mangez dans le calme, posez vos couverts entre les bouchées et évitez les boissons gazeuses. Réduisez temporairement les aliments très fermentescibles (oignon, ail, chou, blé en grande quantité).', action: 'Posez vos couverts entre chaque bouchée et évitez les boissons gazeuses.' },
+    { questionId: 'ind-2', triggerMaxScore: 1, insight: 'Des ballonnements fréquents traduisent un déséquilibre des bactéries intestinales.', recommendation: 'Réduisez les glucides fermentescibles (oignon, ail, pain blanc, laitages industriels) et introduisez progressivement des fibres prébiotiques (légumineuses cuites, légumes) pour rééquilibrer les bactéries intestinales.', action: 'Réduisez oignon, ail, pain blanc et laitages industriels pendant 2 semaines.' },
+    { questionId: 'ind-3', triggerMaxScore: 1, insight: 'Des éructations fréquentes signalent souvent de l\'air avalé ou un reflux associé.', recommendation: 'Mangez lentement, sans parler excessivement, et évitez les boissons gazeuses. Quelques respirations profondes avant le repas activent le mode repos et améliorent la digestion.', action: 'Mangez lentement et supprimez les boissons gazeuses.' },
+    { questionId: 'ind-4', triggerMaxScore: 1, insight: 'Des flatulences excessives indiquent une fermentation bactérienne importante.', recommendation: 'Faites toujours tremper les légumineuses 12h avant cuisson. Réduisez temporairement les aliments très fermentescibles et réintroduisez-les progressivement pour habituer votre microbiote.', action: 'Faites tremper les légumineuses 12h avant cuisson.' },
   ],
   references: [
-    { authors: 'Qin J et al.', title: 'A human gut microbial gene catalogue established by metagenomic sequencing', journal: 'Nature', year: 2010, doi: '10.1038/nature08821', pmid: '20203603' },
-    { authors: 'Ford AC, Harris LA, Lacy BE, Quigley EMM, Moayyedi P', title: 'Systematic review with meta-analysis: the efficacy of prebiotics, probiotics, synbiotics and antibiotics in irritable bowel syndrome', journal: 'Aliment Pharmacol Ther', year: 2018, doi: '10.1111/apt.15001', pmid: '30294792' },
-    { authors: 'Alammar N, Wang L, Saberi B et al.', title: 'The impact of peppermint oil on the irritable bowel syndrome: a meta-analysis', journal: 'BMC Complement Med Ther', year: 2019, doi: '10.1186/s12906-018-2409-0', pmid: '30654773' },
+    { authors: 'Riché D', title: 'Fermentation intestinale et dysbiose', journal: 'Référentiel nutritionnel', year: 2024 },
+    { authors: 'Druguet S', title: 'Mastication et sécrétion enzymatique', journal: 'Référentiel nutritionnel', year: 2024 },
   ],
 }
 
@@ -117,22 +112,20 @@ const indigestionReport: SectionReport = {
 const diarrheeReport: SectionReport = {
   sectionId: 'diarrhee',
   context:
-    'La diarrhée chronique fonctionnelle affecte 5-10 % des adultes. Elle peut refléter un syndrome de l\'intestin irritable, une intolérance alimentaire (lactose, fructose, gluten) ou une inflammation intestinale légère. Un transit trop rapide réduit l\'absorption des nutriments et déséquilibre l\'écosystème de bactéries dans l\'intestin — ce qui à terme peut aggraver les symptômes.',
+    'La diarrhée fonctionnelle signale une réponse de clairance face à une agression de la muqueuse. Une dysbiose (déséquilibre du microbiote intestinal) — notamment un excès de Candida albicans — sécrète des enzymes protéolytiques qui dégradent le mucus protecteur et attaquent les jonctions serrées (les "fermetures éclair" entre les cellules intestinales). La réaction immunitaire locale, via les mastocytes qui libèrent de l\'histamine, provoque une exsudation liquidienne dans la lumière intestinale, accélérant le transit.',
   recommendations: [
-    { maxPct: 33, level: 'alerte', title: 'Transit accéléré sévère', text: 'Vos symptômes de transit accéléré sont importants et nécessitent un bilan médical complet : marqueurs d\'inflammation dans les selles, test sanguin pour la maladie cœliaque, tests respiratoires au lactose et fructose. En attendant, les fibres solubles (psyllium 10 g/jour dans un grand verre d\'eau) aident à réguler le transit. Évitez café, lait de vache et aliments contenant du sorbitol (édulcorant). Un probiotique spécifique (Saccharomyces boulardii) a montré son efficacité contre la diarrhée fonctionnelle.' },
-    { maxPct: 66, level: 'vigilance', title: 'Transit légèrement accéléré', text: 'Un transit accéléré mérite surveillance et identification des déclencheurs alimentaires. Le psyllium (5-10 g/jour avec beaucoup d\'eau) absorbe l\'excès d\'eau dans le côlon et normalise la consistance des selles. L\'exercice physique régulier régule la motilité. Évitez les édulcorants (sorbitol, mannitol) qui ont un effet osmotique laxatif.' },
-    { maxPct: 90, level: 'bon', title: 'Transit normal', text: 'Votre transit est satisfaisant. Maintenez un apport en fibres équilibré (25-30 g/jour, mix solubles et insolubles) et une bonne hydratation (1,5-2 L/jour). Variez les sources de fibres pour optimiser le microbiote.' },
-    { maxPct: 100, level: 'excellent', title: 'Transit optimal', text: 'Aucun signe de transit accéléré. Signe d\'un bon équilibre intestinal et d\'une muqueuse colique saine.' },
+    { maxPct: 33, level: 'alerte', title: 'Transit accéléré fréquent', text: 'Votre transit est régulièrement accéléré. Réduisez les aliments ultra-transformés dont les additifs (émulsifiants) détruisent la couche de mucus protecteur, et supprimez les édulcorants qui perturbent la composition du microbiote. Augmentez les fibres solubles (avoine, légumes cuits) pour nourrir les bactéries protectrices.' },
+    { maxPct: 66, level: 'vigilance', title: 'Transit légèrement accéléré', text: 'Un transit accéléré régulier mérite attention. Identifiez vos déclencheurs (laitages, sucres raffinés, édulcorants) et intégrez des aliments lactofermentés pour restaurer l\'équilibre du microbiote.' },
+    { maxPct: 90, level: 'bon', title: 'Transit normal', text: 'Transit satisfaisant. Maintenez un apport en fibres équilibré et une bonne hydratation.' },
+    { maxPct: 100, level: 'excellent', title: 'Transit optimal', text: 'Aucun signe de transit accéléré. Excellent signe d\'un microbiote en bonne santé.' },
   ],
   questionInsights: [
-    { questionId: 'dia-1', triggerMaxScore: 1, insight: 'Des épisodes diarrhéiques fréquents peuvent indiquer un intestin irritable, une intolérance alimentaire ou une mauvaise absorption des nutriments.', recommendation: 'Un bilan de base chez votre médecin est recommandé : prise de sang (formule sanguine, thyroïde, inflammation), marqueurs dans les selles. En attendant, un régime pauvre en aliments fermentescibles (FODMAPs) pendant 4-6 semaines permet d\'identifier vos déclencheurs alimentaires. Le riz, la banane et la compote de pomme sont des aliments naturellement « ralentisseurs » utiles en phase aiguë.' },
-    { questionId: 'dia-2', triggerMaxScore: 1, insight: 'Des selles molles récurrentes peuvent signaler une intolérance aux laitages ou une fermentation excessive dans l\'intestin.', recommendation: 'Essayez d\'éviter les produits laitiers pendant 2 semaines pour tester une éventuelle intolérance au lactose. Privilégiez le riz basmati, les carottes cuites et les pommes de terre. La glutamine (5 g/jour, un acide aminé naturel) aide à renforcer la paroi de l\'intestin. Le probiotique Lactobacillus rhamnosus GG est le mieux documenté pour la diarrhée fonctionnelle.' },
-    { questionId: 'dia-3', triggerMaxScore: 1, insight: 'Des envies urgentes et incontrôlables d\'aller aux toilettes peuvent signaler une sensibilité accrue du rectum ou une légère inflammation.', recommendation: 'La glutamine (5 g/jour) a montré une réduction de 80 % de ces urgences dans les cas post-infectieux. Des exercices de renforcement du plancher pelvien (contraction-relâchement de la zone périnéale) aident aussi. Consultez si les symptômes persistent plus de 4 semaines ou s\'accompagnent de sang.' },
+    { questionId: 'dia-1', triggerMaxScore: 1, insight: 'Des épisodes diarrhéiques fréquents peuvent signaler un déséquilibre des bactéries intestinales.', recommendation: 'Supprimez temporairement les édulcorants et additifs (E1xx, E2xx) qui modifient radicalement la composition bactérienne intestinale. Intégrez des aliments lactofermentés (yaourt vivant, choucroute) pour restaurer les souches protectrices.', action: 'Supprimez édulcorants et additifs, et ajoutez un aliment lactofermenté par jour.' },
+    { questionId: 'dia-2', triggerMaxScore: 1, insight: 'Des selles molles récurrentes peuvent indiquer une fragilisation de la paroi intestinale.', recommendation: 'Augmentez les fibres solubles (avoine, légumes cuits) et intégrez des aliments lactofermentés pour renforcer progressivement la paroi intestinale. Réduisez alcool et sucres raffinés qui la fragilisent.', action: 'Ajoutez un aliment lactofermenté par jour (yaourt vivant, choucroute, kéfir).' },
+    { questionId: 'dia-3', triggerMaxScore: 1, insight: 'Des urgences fécales fréquentes signalent une sensibilité accrue ou une inflammation locale.', recommendation: 'Réduisez les facteurs irritants (alcool, café, sucres raffinés) et privilégiez des repas réguliers dans le calme. Le mode repos activé au repas régule naturellement les contractions intestinales.', action: 'Supprimez alcool, café en excès et sucres raffinés de votre alimentation.' },
   ],
   references: [
-    { authors: 'Vandeputte D, Falony G, Vieira-Silva S et al.', title: 'Stool consistency is strongly associated with gut microbiota richness and composition, enterotypes and bacterial growth rates', journal: 'Gut', year: 2016, doi: '10.1136/gutjnl-2015-309618', pmid: '26100928' },
-    { authors: 'McFarland LV', title: 'Meta-analysis of probiotics for the prevention of antibiotic associated diarrhea', journal: 'Am J Gastroenterol', year: 2006, pmid: '16696781' },
-    { authors: 'Zhou Q, Verne ML, Fields JZ et al.', title: 'Randomised placebo-controlled trial of dietary glutamine supplements for postinfectious irritable bowel syndrome', journal: 'Gut', year: 2019, doi: '10.1136/gutjnl-2017-315136', pmid: '30108163' },
+    { authors: 'Riché D', title: 'Dysbiose et perméabilité intestinale', journal: 'Référentiel nutritionnel', year: 2024 },
   ],
 }
 
@@ -143,23 +136,21 @@ const diarrheeReport: SectionReport = {
 const constipationReport: SectionReport = {
   sectionId: 'constipation',
   context:
-    'La constipation fonctionnelle touche 12-19 % de la population mondiale et est souvent sous-estimée. Elle est associée à un risque accru de maladies cardiovasculaires (+12 %) et de cancer colorectal. Un transit trop lent favorise la réabsorption de substances indésirables et une inflammation diffuse dans le corps. On parle de constipation fonctionnelle quand on va moins de 3 fois par semaine aux toilettes, avec des efforts.',
+    'La constipation résulte souvent d\'un intestin paresseux — ses contractions naturelles (péristaltisme) sont trop faibles pour faire avancer les selles. Une alimentation trop acidifiante (protéines animales industrielles, sucres raffinés) perturbe le fonctionnement enzymatique et ralentit ces contractions. Les fibres solubles, transformées par les bactéries intestinales en butyrate (le carburant des cellules du côlon), soutiennent activement cette motilité.',
   recommendations: [
-    { maxPct: 33, level: 'alerte', title: 'Constipation sévère', text: 'Votre constipation est significative et nécessite une prise en charge active. Augmentez progressivement les fibres insolubles (son de blé, légumes verts, fruits avec peau) à 30-35 g/jour, buvez ≥ 2L d\'eau/jour, et pratiquez 30 min d\'activité physique quotidienne. Les probiotiques Bifidobacterium lactis améliorent le temps de transit de 12h en moyenne (Dimidi et al., 2014). Si persistant > 3 mois, un bilan (TSH, calcémie, coloscopie) s\'impose pour exclure une cause organique.' },
-    { maxPct: 66, level: 'vigilance', title: 'Constipation modérée', text: 'Un ralentissement du transit mérite attention et des mesures simples. Intégrez des graines de lin (2 c. à soupe/jour dans de l\'eau — les moudre pour une meilleure efficacité), des pruneaux (3-5/jour, riches en sorbitol naturel), et du kiwi (2/jour — efficacité prouvée, Attaluri et al., 2011). Respectez le réflexe gastro-colique : allez aux toilettes 15-30 min après le petit-déjeuner, sans forcer.' },
-    { maxPct: 90, level: 'bon', title: 'Transit satisfaisant', text: 'Votre transit est globalement régulier. Maintenez une alimentation riche en fibres variées (solubles et insolubles) et une hydratation suffisante. Continuez l\'activité physique régulière qui stimule la motilité colique.' },
-    { maxPct: 100, level: 'excellent', title: 'Transit optimal', text: 'Aucun signe de constipation. Signe d\'un bon fonctionnement colique, d\'une alimentation adaptée et d\'une bonne hydratation.' },
+    { maxPct: 33, level: 'alerte', title: 'Constipation fréquente', text: 'Votre transit est régulièrement ralenti. Augmentez progressivement les fibres (légumes, légumineuses, graines de lin) et hydratez-vous (1,5 à 2L/jour). L\'activité physique quotidienne stimule directement la motilité colique. Favorisez les aliments alcalinisants (fruits, légumes colorés) pour réduire l\'acidose tissulaire.' },
+    { maxPct: 66, level: 'vigilance', title: 'Constipation modérée', text: 'Un transit ralenti mérite votre attention. Intégrez 2 c. à soupe de graines de lin dans un verre d\'eau chaque matin. Profitez des 20-30 minutes après le petit-déjeuner pour aller aux toilettes — le côlon est alors naturellement le plus actif.' },
+    { maxPct: 90, level: 'bon', title: 'Transit satisfaisant', text: 'Transit globalement régulier. Maintenez des fibres variées et une bonne hydratation.' },
+    { maxPct: 100, level: 'excellent', title: 'Transit optimal', text: 'Aucun signe de constipation. Excellent équilibre entre fibres, hydratation et motilité intestinale.' },
   ],
   questionInsights: [
-    { questionId: 'con-1', triggerMaxScore: 1, insight: 'Constipation fréquente, indiquant un transit colique ralenti potentiellement lié au sédentarisme, à un déficit hydrique ou fibres, ou au stress.', recommendation: 'Commencez chaque matin par un grand verre d\'eau tiède + citron (stimule le péristaltisme). 30 min de marche quotidienne augmentent la motilité colique de 25 %. Évitez de retenir l\'envie d\'aller aux toilettes — cela désensibilise les récepteurs rectaux. Le psyllium (10 g/jour) est le laxatif de lest le mieux toléré.' },
-    { questionId: 'con-2', triggerMaxScore: 1, insight: 'Des selles dures récurrentes indiquent un transit trop lent et une déshydratation des selles dans le côlon.', recommendation: 'Buvez au moins 2L d\'eau par jour — les eaux minérales riches en magnésium (Hépar, Rozana) ont un effet laxatif doux. Les fibres solubles (avoine, psyllium) retiennent l\'eau dans les selles et les ramollissent. Le magnésium citrate (400 mg au coucher) a un double avantage : il facilite le transit et améliore la qualité du sommeil.' },
-    { questionId: 'con-3', triggerMaxScore: 1, insight: 'Une sensation de vidange incomplète fréquente peut indiquer que les muscles du périnée ne se relâchent pas bien lors de l\'effort.', recommendation: 'La rééducation périnéale (exercices avec un professionnel) est efficace dans 70 % des cas. En première intention : placez un petit tabouret (17-20 cm) sous les pieds aux toilettes — cette position accroupie libère le passage naturellement. Ne poussez jamais en retenant la respiration : expirez en gonflant le ventre (technique de la « bombe »).' },
+    { questionId: 'con-1', triggerMaxScore: 1, insight: 'Une constipation fréquente peut indiquer un manque de fibres, une hydratation insuffisante ou un intestin paresseux.', recommendation: 'Commencez chaque matin par un grand verre d\'eau. Intégrez des graines de lin moulues (2 c. à soupe/jour) et des légumineuses à chaque repas. L\'activité physique quotidienne est l\'un des meilleurs stimulants des contractions naturelles du côlon.', action: 'Commencez chaque matin par un grand verre d\'eau et 2 c. à soupe de graines de lin.' },
+    { questionId: 'con-2', triggerMaxScore: 1, insight: 'Des selles dures récurrentes signalent un transit trop lent et un manque d\'hydratation.', recommendation: 'Hydratez-vous suffisamment et intégrez des graines de lin moulues dans vos repas. Les fibres solubles retiennent l\'eau dans les selles et les ramollissent. Le magnésium (légumineuses, chocolat noir, graines) soutient également les contractions intestinales.', action: 'Hydratez-vous (1,5 L/jour min.) et ajoutez des graines de lin moulues à vos repas.' },
+    { questionId: 'con-3', triggerMaxScore: 1, insight: 'Une sensation de vidange incomplète fréquente peut indiquer un intestin paresseux.', recommendation: 'En première intention : placez un petit tabouret sous les pieds aux toilettes — cette position physiologique libère naturellement le passage. Évitez les aliments ultra-transformés dont les additifs perturbent les contractions du côlon.', action: 'Utilisez un petit tabouret sous les pieds aux toilettes pour faciliter le passage.' },
   ],
   references: [
-    { authors: 'Sumida K, Molnar MZ, Potukuchi PK et al.', title: 'Constipation and risk of death and cardiovascular events', journal: 'Atherosclerosis', year: 2019, doi: '10.1016/j.atherosclerosis.2018.10.022', pmid: '30445337' },
-    { authors: 'Dimidi E, Christodoulides S, Fragkos KC et al.', title: 'The effect of probiotics on functional constipation in adults: a systematic review and meta-analysis', journal: 'Am J Clin Nutr', year: 2014, doi: '10.3945/ajcn.114.089151', pmid: '25099542' },
-    { authors: 'Rao SSC, Seaton K, Miller M et al.', title: 'Randomized controlled trial of biofeedback, sham feedback, and standard therapy for dyssynergic defecation', journal: 'Clin Gastroenterol Hepatol', year: 2007, pmid: '17445749' },
-    { authors: 'Attaluri A, Donahoe R, Valestin J, Brown K, Rao SSC', title: 'Randomised clinical trial: dried plums (prunes) vs. psyllium for constipation', journal: 'Aliment Pharmacol Ther', year: 2011, doi: '10.1111/j.1365-2036.2011.04594.x', pmid: '21323688' },
+    { authors: 'Riché D', title: 'Constipation, PRAL et motilité intestinale', journal: 'Référentiel nutritionnel', year: 2024 },
+    { authors: 'Berthou A', title: 'Énergie cellulaire et fibres alimentaires', journal: 'Référentiel nutritionnel', year: 2024 },
   ],
 }
 
@@ -207,7 +198,7 @@ export function getTriggeredInsights(
 // ══════════════════════════════════════════════════════
 
 export interface StrengthItem { sectionId: string; title: string; pct: number; praise: string; science: string; reference: string }
-export interface WeaknessItem { sectionId: string; title: string; pct: number; level: string; concern: string; science: string; reference: string; triggeredInsights: { questionId: string; insight: string; recommendation: string }[] }
+export interface WeaknessItem { sectionId: string; title: string; pct: number; level: string; concern: string; science: string; reference: string; triggeredInsights: { questionId: string; insight: string; recommendation: string; action?: string }[] }
 export interface ActionPhase { phase: number; phaseTitle: string; timeframe: string; actions: { action: string; why: string; sectionId: string }[] }
 
 export function generateFullReport(
@@ -221,7 +212,7 @@ export function generateFullReport(
     if (!report) return null
     const rec = getSectionRecommendation(report, r.pct)
     const triggered = getTriggeredInsights(report, scores)
-    return { sectionId: r.sectionId, title: r.title, pct: r.pct, score: r.score, maxScore: r.maxScore, level: rec.level, recommendationTitle: rec.title, recommendationText: rec.text, context: report.context, triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation })), references: report.references }
+    return { sectionId: r.sectionId, title: r.title, pct: r.pct, score: r.score, maxScore: r.maxScore, level: rec.level, recommendationTitle: rec.title, recommendationText: rec.text, context: report.context, triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation, action: t.action })), references: report.references }
   }).filter(Boolean)
 
   for (const r of sectionResults) {
@@ -234,7 +225,7 @@ export function generateFullReport(
     if (rec.level === 'excellent' || rec.level === 'bon') {
       strengths.push({ sectionId: r.sectionId, title: r.title, pct: r.pct, praise: rec.text, science: report.context.split('.').slice(0, 2).join('.') + '.', reference: ref0 })
     } else {
-      weaknesses.push({ sectionId: r.sectionId, title: r.title, pct: r.pct, level: rec.level, concern: rec.text, science: report.context, reference: ref0, triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation })) })
+      weaknesses.push({ sectionId: r.sectionId, title: r.title, pct: r.pct, level: rec.level, concern: rec.text, science: report.context, reference: ref0, triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation, action: t.action })) })
     }
   }
   // For digestif, higher pct = worse, so sort descending
@@ -245,7 +236,7 @@ export function generateFullReport(
   const phase3: { action: string; why: string; sectionId: string }[] = []
   for (const w of weaknesses) {
     for (const ti of w.triggeredInsights) {
-      const short = ti.recommendation.split('.').slice(0, 2).join('.') + '.'
+      const short = ti.action || ti.recommendation.split('.')[0] + '.'
       if (w.level === 'alerte') phase1.push({ action: short, why: ti.insight, sectionId: w.sectionId })
       else phase2.push({ action: short, why: ti.insight, sectionId: w.sectionId })
     }
@@ -273,19 +264,19 @@ export interface GlobalInsight {
 
 export const globalKeyInsights: GlobalInsight[] = [
   {
-    title: 'L\'intestin : votre deuxième cerveau',
-    description: 'Votre système digestif contient 200 millions de neurones et produit 95 % de la sérotonine — l\'hormone du bien-être — de votre corps. Ce n\'est pas un hasard si le stress se ressent dans le ventre et si une mauvaise digestion affecte l\'humeur. Les deux organes se parlent en permanence.',
-    reference: 'Mayer EA, 2011, Nat Rev Neurosci',
+    title: 'Le trépied intestinal : votre bouclier de santé',
+    description: 'La muqueuse, le système immunitaire digestif (GALT) et le microbiote forment un trépied dynamique. Toute dysfonction de cette interface — Inflammation, Dysbiose, Hyperperméabilité (IDH) — est le point de départ de troubles systémiques qui dépassent largement la digestion : fatigue, inflammation chronique, perturbations de l\'humeur.',
+    reference: 'Riché D — Référentiel nutritionnel',
   },
   {
-    title: 'Le microbiote : 2 kg de vie en vous',
-    description: 'Les bactéries de votre intestin pèsent autant que votre cerveau. Leur diversité est le meilleur prédicteur de santé digestive. Chaque aliment végétal que vous mangez nourrit des bactéries différentes — viser 30 végétaux variés par semaine transforme votre microbiote en quelques mois.',
-    reference: 'McDonald et al., 2018, mSystems (American Gut Project)',
+    title: 'L\'axe intestin-cerveau : 95 % de votre sérotonine',
+    description: 'Votre intestin produit 95 % de la sérotonine de votre corps. En situation de dysbiose et d\'hyperperméabilité, l\'inflammation détourne le tryptophane vers une voie neurotoxique (kynurénine) au lieu de produire sérotonine et mélatonine — ce qui se traduit par irritabilité, anxiété, brouillard mental et troubles du sommeil.',
+    reference: 'Druguet S — Référentiel nutritionnel',
   },
   {
-    title: 'La paroi intestinale : votre barrière de protection',
-    description: 'Quand la paroi de l\'intestin est fragilisée, elle laisse passer des substances indésirables dans le sang, contribuant à l\'inflammation chronique, aux intolérances alimentaires et à certaines maladies. Les fibres, la glutamine et les aliments fermentés aident à maintenir cette barrière en bonne santé.',
-    reference: 'Fasano A, 2012, Clin Rev Allergy Immunol',
+    title: 'Les symptômes digestifs : un signal systémique',
+    description: 'Un score digestif élevé n\'est pas le signe d\'une simple "digestion difficile". C\'est le biomarqueur d\'un organisme en alerte immunitaire : le foie saturé par la détoxication ne peut plus fournir l\'énergie nécessaire au maintien de l\'humeur, du muscle et de la vitalité.',
+    reference: 'Berthou A — Référentiel nutritionnel',
   },
 ]
 
