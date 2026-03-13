@@ -274,7 +274,7 @@ export default function Home() {
         <span className="text-xl font-light tracking-wide text-white/90">evo</span>
         <div className="flex items-center gap-6">
           <a href="/science" className="text-[13px] font-medium text-white/50 hover:text-white transition-colors duration-200 hidden sm:block">Science</a>
-          <a href={isLoggedIn ? '/onboarding/bilans' : '/onboarding/profil'} className="text-[13px] font-medium text-white/70 hover:text-white transition-colors duration-200 border border-white/20 hover:border-white/40 rounded-full px-4 py-1.5">
+          <a href={isLoggedIn ? '/onboarding/bilans' : '/onboarding/choix-bilan'} className="text-[13px] font-medium text-white/70 hover:text-white transition-colors duration-200 border border-white/20 hover:border-white/40 rounded-full px-4 py-1.5">
             {isLoggedIn ? 'Mon espace' : 'Login'}
           </a>
         </div>
@@ -300,7 +300,7 @@ export default function Home() {
           <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-bold leading-[1.05] tracking-[-0.02em] mb-10">Bouge aujourd&rsquo;hui.<br /><span style={{ color: '#c9a96e' }}>Vis mieux demain.</span></h1>
           <p className="text-lg md:text-xl text-white/40 max-w-xl leading-relaxed mb-12 font-light">Programmes long&eacute;vit&eacute; con&ccedil;us par un expert, d&eacute;livr&eacute;s via <span className="text-[#25D366] font-medium">WhatsApp</span>. Ton coach s&rsquo;adapte &agrave; ta vraie vie, te garde r&eacute;gulier, et r&eacute;pond &agrave; toutes tes questions.</p>
           <div className="flex flex-wrap items-center gap-4">
-            <a href={isLoggedIn ? '/onboarding/bilans' : '/onboarding/profil'} className="inline-flex items-center gap-2.5 px-7 py-4 rounded-2xl bg-white text-[#0a0a0a] font-semibold text-[15px] hover:bg-white/90 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)] hover:-translate-y-0.5">
+            <a href={isLoggedIn ? '/onboarding/bilans' : '/onboarding/choix-bilan'} className="inline-flex items-center gap-2.5 px-7 py-4 rounded-2xl bg-white text-[#0a0a0a] font-semibold text-[15px] hover:bg-white/90 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)] hover:-translate-y-0.5">
               {isLoggedIn ? 'Voir mon dashboard' : 'Commencer mon programme'}
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
             </a>
@@ -371,7 +371,7 @@ export default function Home() {
         <h2 className="relative z-10 text-4xl md:text-5xl font-bold mb-6">Pr&ecirc;t(e) &agrave; jouer le long terme&nbsp;?</h2>
         <p className="relative z-10 text-white/40 text-lg max-w-xl mx-auto mb-10">Commence ton programme en 2 minutes.</p>
         <div className="relative z-10 flex flex-col items-center gap-4">
-          <a href={isLoggedIn ? '/onboarding/bilans' : '/onboarding/profil'} className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-white text-[#0a0a0a] font-semibold text-[15px] hover:bg-white/90 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)] hover:-translate-y-0.5">
+          <a href={isLoggedIn ? '/onboarding/bilans' : '/onboarding/choix-bilan'} className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-white text-[#0a0a0a] font-semibold text-[15px] hover:bg-white/90 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)] hover:-translate-y-0.5">
             Je me lance
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
           </a>
