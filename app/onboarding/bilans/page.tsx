@@ -813,14 +813,14 @@ export default function BilansPage() {
                 </div>
 
                 {/* 3 autres cartes — toujours visibles, compactes sur mobile */}
-                <div className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0">
+                <div className="grid grid-cols-3 gap-2 lg:gap-3 lg:grid-cols-3">
                   {scoreCards.filter(c => c.label !== "Nutrition").map((card, i) => (
-                    <div key={i} className={`${css.kpiCard} relative min-w-[150px] sm:min-w-[170px] lg:min-w-0 snap-start rounded-2xl p-4 lg:p-3.5 text-left lg:text-center overflow-hidden border`} style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
-                      <div className={`${css.kpiIcon} w-10 h-10 lg:w-8 lg:h-8 rounded-xl lg:rounded-lg flex items-center justify-center mb-3 lg:mb-2 lg:mx-auto`} style={{ background: 'rgba(255,255,255,0.05)', color: card.color }}>
-                        <span>{card.icon}</span>
+                    <div key={i} className={`${css.kpiCard} relative rounded-2xl p-3 lg:p-3.5 text-center overflow-hidden border`} style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
+                      <div className={`${css.kpiIcon} w-8 h-8 lg:w-8 lg:h-8 rounded-xl lg:rounded-lg flex items-center justify-center mb-2 mx-auto`} style={{ background: 'rgba(255,255,255,0.05)', color: card.color }}>
+                        <span className="scale-90 lg:scale-100">{card.icon}</span>
                       </div>
-                      <p className="text-[11px] lg:text-[10px] font-medium uppercase tracking-[0.14em] text-white/35 leading-tight">{card.label}</p>
-                      <p className="mt-2 text-[15px] lg:text-[14px] font-semibold text-white/80">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-white/35 leading-tight">{card.label}</p>
+                      <p className="mt-1.5 text-[13px] lg:text-[14px] font-semibold text-white/80">
                         {card.score !== null ? `${card.score}/100` : 'Bientôt'}
                       </p>
                     </div>
