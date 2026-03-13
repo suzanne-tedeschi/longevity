@@ -595,7 +595,7 @@ function TestCard({
             </div>
 
             {/* Bottom navigation */}
-            <div className="flex items-center justify-between px-4 pb-3 pt-2" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
+            <div className="flex items-center px-4 pb-3 pt-2" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
               <button
                 onClick={onPrev}
                 className="flex items-center gap-1 text-sm text-white/40 hover:text-white transition-colors"
@@ -655,7 +655,7 @@ function TestCard({
 
       <div className="h-20" />
       <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur border-t border-[#1a1a1a]/[0.08] px-4 py-3 z-50">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+        <div className="max-w-lg mx-auto flex items-center">
           <button
             onClick={onPrev}
             className="flex items-center gap-1 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors"
