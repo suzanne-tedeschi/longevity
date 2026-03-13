@@ -1157,7 +1157,7 @@ export default function BilanNutritionPage() {
         {phase === 'testing' && currentTest && currentSection && (
           <TestCard
             test={currentTest} testIndex={flatIndex} totalTests={partTotalTests}
-            sectionTitle={currentSection.title} sectionIcon={currentSection.icon}
+            sectionTitle={currentSection.title ?? ''} sectionIcon={currentSection.icon}
             selectedScore={scores[currentTest.id]} onScore={handleScore}
             onPrev={handlePrev}
           />
