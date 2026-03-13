@@ -54,9 +54,17 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 		expectations: payload.expectations,
 	})
 
+	// Clean up undefined values - convert to null or empty strings
+	const cleanedPayload = Object.fromEntries(
+		Object.entries(payload).map(([key, value]) => [
+			key,
+			value === undefined ? null : value,
+		])
+	) as ProfileUpsertPayload
+
 	const { data, error } = await supabase
 		.from('profiles')
-		.upsert(payload, { onConflict: 'id' })
+		.upsert(cleanedPayload, { onConflict: 'id' })
 		.select()
 		.single()
 
@@ -93,12 +101,10 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 	console.warn('[upsertProfile fallback] Detected missing onboarding columns, trying basic fields only')
 
 	// Fallback: try to save ALL fields (in case it's just a transient error)
-	// The payload already has all the fields we want to save
-	const fallbackPayload = payload
-
+	// The cleaned payload already has all the fields we want to save
 	const fallback = await supabase
 		.from('profiles')
-		.upsert(fallbackPayload, { onConflict: 'id' })
+		.upsert(cleanedPayload, { onConflict: 'id' })
 		.select()
 		.single()
 
