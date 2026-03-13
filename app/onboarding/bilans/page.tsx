@@ -1683,9 +1683,9 @@ export default function BilansPage() {
                 <div className="absolute bottom-0 left-0 w-40 h-40 opacity-[0.06] pointer-events-none" style={{ background: "radial-gradient(circle, #c9a96e 0%, transparent 70%)" }} />
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                   <div>
-                    <p className="text-[11px] font-semibold text-[#3ECF8E]/80 uppercase tracking-[0.15em] mb-3">Longevity Science</p>
-                    <h3 className="text-2xl font-bold text-white/90 leading-tight mb-2">La longevite est une <span className="text-[#3ECF8E]">competence</span></h3>
-                    <p className="text-[13px] text-white/30 max-w-md leading-relaxed">Decouvre les piliers scientifiques de la longevite, les 12 hallmarks du vieillissement, et les strategies evidence-based pour vivre plus longtemps en bonne sante.</p>
+                    <p className="text-[11px] font-semibold text-[#3ECF8E]/80 uppercase tracking-[0.15em] mb-3">Science de la longévité</p>
+                    <h3 className="text-2xl font-bold text-white/90 leading-tight mb-2">La longévité est une <span className="text-[#3ECF8E]">compétence</span></h3>
+                    <p className="text-[13px] text-white/30 max-w-md leading-relaxed">Découvre les piliers scientifiques de la longévité, les 12 hallmarks du vieillissement, et les stratégies validées par la recherche pour vivre plus longtemps en bonne santé.</p>
                     <div className="flex items-center gap-8 mt-5">
                       {[{ label: "Ans gagnes", value: "+7" }, { label: "Mortalite", value: "-35%" }, { label: "Modifiable", value: "80%" }].map((s, i) => (
                         <div key={i}><p className="text-lg font-bold text-[#3ECF8E]">{s.value}</p><p className="text-[9px] text-white/25 mt-0.5">{s.label}</p></div>
