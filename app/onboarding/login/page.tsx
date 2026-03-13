@@ -24,7 +24,8 @@ export default function LoginPage() {
         data: { session },
       } = await supabase.auth.getSession()
       if (session?.user) {
-        router.replace('/onboarding/bilans')
+        const completed = Boolean(session.user.user_metadata?.evo_onboarding_completed)
+        router.replace(completed ? '/onboarding/bilans' : '/onboarding/profil')
       }
     }
     redirectIfAuthenticated()
@@ -88,7 +89,11 @@ export default function LoginPage() {
           return
         }
       }
-      router.push('/onboarding/bilans')
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const completed = Boolean(session?.user?.user_metadata?.evo_onboarding_completed)
+      router.push(completed ? '/onboarding/bilans' : '/onboarding/profil')
     } catch {
       setErrorMsg('Une erreur est survenue. Réessayez.')
       setLoading(false)

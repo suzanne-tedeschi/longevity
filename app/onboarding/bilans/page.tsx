@@ -34,6 +34,15 @@ interface Session {
   duration: number
   notes?: string
 }
+
+interface StoredSession {
+  id: string
+  date: string
+  type: "evo" | "sport"
+  label: string
+  duration: number
+  notes?: string
+}
 type CalView = "week" | "month" | "day"
 
 /* ─── data ─── */
@@ -56,10 +65,10 @@ const weeklyActivity = [
 ]
 
 const bilanOptionsDefs: { id: string; bilanType: string; title: string; description: string; duration: string; available: boolean; href: string; icon: React.ReactNode; color: string }[] = [
-  { id: "condition-physique", bilanType: "mobilite", title: "Condition physique", description: "43 tests — mobilite, force, equilibre, souplesse.", duration: "15 min", available: true, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
+  { id: "condition-physique", bilanType: "mobilite", title: "Condition physique", description: "43 tests — mobilite, force, equilibre, souplesse.", duration: "15 min", available: false, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
   { id: "nutrition", bilanType: "nutrition", title: "Nutrition", description: "Troubles digestifs & habitudes alimentaires.", duration: "12 min", available: true, href: "/onboarding/bilan-nutrition", icon: <Apple className="w-5 h-5" />, color: "#c9a96e" },
-  { id: "sommeil", bilanType: "sommeil", title: "Sommeil", description: "Qualite & recuperation nocturne.", duration: "10 min", available: true, href: "/onboarding/bilan-sommeil", icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
-  { id: "mental", bilanType: "mental", title: "Sante mentale", description: "Emotions, stress, resilience — 2 questionnaires.", duration: "25 min", available: true, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
+  { id: "sommeil", bilanType: "sommeil", title: "Sommeil", description: "Qualite & recuperation nocturne.", duration: "10 min", available: false, href: "/onboarding/bilan-sommeil", icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
+  { id: "mental", bilanType: "mental", title: "Sante mentale", description: "Emotions, stress, resilience — 2 questionnaires.", duration: "25 min", available: false, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
 ]
 
 /* Hidden defs for report lookup (emotionnel + stress saved separately in DB) */
@@ -170,7 +179,7 @@ export default function BilansPage() {
   const [expandedReport, setExpandedReport] = useState<string | null>(null)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [sessions, setSessions] = useState<Session[]>([
-    { id: "1", date: (() => { const d = new Date(); d.setHours(9, 0, 0, 0); return d })(), type: "evo", label: "Seance EVO Mobilite", duration: 45 },
+    { id: "1", date: (() => { const d = new Date(); d.setHours(9, 0, 0, 0); return d })(), type: "evo", label: "Seance evo Mobilite", duration: 45 },
     { id: "2", date: (() => { const d = new Date(); d.setHours(14, 0, 0, 0); return d })(), type: "sport", label: "Run 5km", duration: 30 },
   ])
   const [modal, setModal] = useState<{ open: boolean; date: Date | null }>({ open: false, date: null })
@@ -255,10 +264,15 @@ export default function BilansPage() {
       if (forceSync) { setSyncingEvents(true); await fetch("/api/calendar/google/sync", { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` } }) }
       const timeMin = startOfMonth(d).toISOString(), timeMax = endOfMonth(d).toISOString()
       const res = await fetch(`/api/calendar/google/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}`, { headers: { Authorization: `Bearer ${session.access_token}` } })
-      if (!res.ok) return
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` })) as { error?: string }
+        setCalendarError(`Erreur Google Agenda : ${err.error ?? res.status}`)
+        return
+      }
+      setCalendarError(null)
       const body = await res.json() as { events?: { id: string; summary: string; start: string; end: string; allDay: boolean }[] }
       setGoogleEvents((body.events ?? []).map(ev => ({ id: `g-${ev.id}`, date: parseISO(ev.start), type: "google" as const, label: ev.summary, duration: ev.allDay ? 0 : Math.round((new Date(ev.end).getTime() - new Date(ev.start).getTime()) / 60000) })))
-    } catch { /* ignore */ } finally { setSyncingEvents(false) }
+    } catch (e) { setCalendarError(`Erreur : ${e instanceof Error ? e.message : 'inconnue'}`) } finally { setSyncingEvents(false) }
   }
 
   useEffect(() => {
@@ -270,6 +284,20 @@ export default function BilansPage() {
         const u = session.user
         const name = u?.user_metadata?.first_name || u?.user_metadata?.full_name?.split(' ')[0] || u?.user_metadata?.name?.split(' ')[0] || u?.email?.split('@')[0] || null
         if (name) setUserName(name.charAt(0).toUpperCase() + name.slice(1))
+
+        const metadataSessions = (u?.user_metadata?.evo_onboarding as { agendaSessions?: StoredSession[] } | undefined)?.agendaSessions
+        const localSessionsRaw = typeof window !== "undefined" ? localStorage.getItem("evo_planning_sessions") : null
+        const localSessions = localSessionsRaw ? (JSON.parse(localSessionsRaw) as StoredSession[]) : null
+        const baseSessions = Array.isArray(metadataSessions) && metadataSessions.length > 0 ? metadataSessions : Array.isArray(localSessions) ? localSessions : []
+        if (baseSessions.length > 0) {
+          const parsed = baseSessions
+            .map((s) => ({ ...s, date: parseISO(s.date), type: s.type as "evo" | "sport" }))
+            .filter((s) => !Number.isNaN(s.date.getTime()))
+          if (parsed.length > 0) {
+            setSessions(parsed)
+          }
+        }
+
         // Fetch calendar status
         const r = await fetch("/api/calendar/google/status", { headers: { Authorization: `Bearer ${session.access_token}` } })
         const body = await r.json() as { connected?: boolean; email?: string | null }
@@ -287,6 +315,20 @@ export default function BilansPage() {
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    localStorage.setItem(
+      "evo_planning_sessions",
+      JSON.stringify(
+        sessions.map((session) => ({
+          ...session,
+          date: session.date.toISOString(),
+        }))
+      )
+    )
+  }, [sessions])
+
   useEffect(() => { if (calendarConnected) fetchGoogleEvents(currentDate) }, [currentDate, calendarConnected]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleConnectCalendar = async () => {
@@ -441,16 +483,14 @@ export default function BilansPage() {
             <div className="flex flex-col md:flex-row items-center md:items-end gap-10 md:gap-16">
               {/* left: age biologique */}
               <div className="shrink-0 relative">
-                {/* glow behind number */}
-                <div className="absolute -inset-8 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #3ECF8E 0%, transparent 70%)" }} />
                 <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/40 mb-2">Age biologique</p>
                 <div className="flex items-baseline gap-3 relative">
-                  <span className="text-[112px] leading-none font-extrabold tracking-tighter text-white" style={{ textShadow: "0 0 60px rgba(62,207,142,0.25), 0 0 120px rgba(62,207,142,0.1)" }}>46.2</span>
-                  <span className="text-3xl font-semibold text-white/35">ans</span>
+                  <span className="text-[112px] leading-none font-extrabold tracking-tighter text-white/10 select-none blur-[6px]">00.0</span>
+                  <span className="text-3xl font-semibold text-white/10 blur-[4px]">ans</span>
                 </div>
                 <div className="flex items-center gap-2 mt-3">
-                  <span className="w-2 h-2 rounded-full bg-[#3ECF8E] animate-pulse" />
-                  <p className="text-[14px] text-[#3ECF8E] font-semibold">−9 mois vs ton age reel</p>
+                  <span className="w-2 h-2 rounded-full bg-white/20" />
+                  <p className="text-[13px] text-white/30 font-medium">Bientôt disponible</p>
                 </div>
               </div>
               {/* right: 4 score cards */}
@@ -524,6 +564,7 @@ export default function BilansPage() {
               const c = bilan.color
               return (
                 <div key={bilan.id} onClick={() => {
+                  if (!bilan.available) return
                   if (completed && bilan.bilanType !== 'mental') {
                     setExpandedReport(bilan.bilanType)
                     setTimeout(() => document.getElementById('compte-rendu')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
@@ -532,10 +573,8 @@ export default function BilansPage() {
                   }
                 }}
                   className={`relative rounded-xl border p-4 transition-all duration-300 flex flex-col items-center text-center group/bilan ${
-                    bilan.available && !completed
+                    bilan.available
                       ? "bg-white hover:shadow-lg hover:-translate-y-1 cursor-pointer"
-                      : completed
-                      ? "bg-white cursor-pointer hover:shadow-lg hover:-translate-y-1"
                       : "bg-white hover:-translate-y-0.5 cursor-default"
                   }`}
                   style={{ borderColor: bilan.available ? `${c}30` : `${c}20` }}>
@@ -545,7 +584,7 @@ export default function BilansPage() {
                     {bilan.icon}
                   </div>
                   <h3 className={`text-[13px] font-medium mb-1 leading-tight ${!bilan.available ? "text-[#1a1a1a]/60" : "text-[#1a1a1a]"}`}>{bilan.title}</h3>
-                  {completed && bilan.score !== null ? (
+                  {completed && bilan.score !== null && bilan.available ? (
                     <div className="flex flex-col items-center gap-1 mt-1">
                       <ScoreRing value={bilan.score} size={44} />
                       {bilan.delta !== null && bilan.delta !== 0 && (
@@ -575,7 +614,7 @@ export default function BilansPage() {
                       <p className="text-[10px] text-[#1a1a1a]/35 mt-1 leading-relaxed px-1">{bilan.description.split('.')[0]}</p>
                     </div>
                   )}
-                  {(completed || bilan.available) && (
+                  {bilan.available && (completed || inProgress) && (
                     <div className="w-full mt-3">
                       <div className="rounded-full h-1" style={{ background: `${c}0a` }}>
                         <div className="h-1 rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: (completed || inProgress) ? c : "transparent" }} />
@@ -590,13 +629,19 @@ export default function BilansPage() {
         </section>
 
         {/* ════════ COMPTE-RENDU / REPORT ════════ */}
-        {bilanResults.length > 0 && (
+        {bilanResults.some(r => bilanOptionsDefs.find(d => d.bilanType === r.bilan_type && d.available)) && (
           <section id="compte-rendu" className="scroll-mt-20">
             <SectionHeader title="Compte-rendu" subtitle="Bilan global, connaissances scientifiques & prochaines etapes" gold />
 
             {/* ── Report cards per bilan ── */}
             <div className="space-y-4">
-              {bilanResults.map(result => {
+              {[...bilanResults]
+                .filter(r => bilanOptionsDefs.find(d => d.bilanType === r.bilan_type && d.available))
+                .sort((a, b) => {
+                  const order = bilanOptionsDefs.map(d => d.bilanType)
+                  return (order.indexOf(a.bilan_type) ?? 99) - (order.indexOf(b.bilan_type) ?? 99)
+                })
+                .map(result => {
                 const def = bilanOptionsDefs.find(d => d.bilanType === result.bilan_type) || subBilanDefs.find(d => d.bilanType === result.bilan_type)
                 if (!def) return null
                 const isOpen = expandedReport === result.bilan_type
@@ -1025,6 +1070,13 @@ export default function BilansPage() {
                 <>
                   <span className="flex items-center gap-1.5 text-[11px] font-medium text-[#3ECF8E] bg-[#3ECF8E]/8 px-2.5 py-1 rounded-md"><span className="w-1.5 h-1.5 rounded-full bg-[#3ECF8E]" />Google{calendarEmail ? ` · ${calendarEmail}` : ""}</span>
                   <button onClick={() => fetchGoogleEvents(currentDate, true)} disabled={syncingEvents} className="inline-flex items-center gap-1 text-[11px] font-medium text-[#1a1a1a]/35 border border-black/[0.06] px-2 py-1 rounded-md hover:border-[#3ECF8E]/40 hover:text-[#3ECF8E] transition-all disabled:opacity-30"><RefreshCw className={`w-3 h-3 ${syncingEvents ? "animate-spin" : ""}`} /> Sync</button>
+                  <button onClick={async () => {
+                    if (!supabase) return
+                    const { data: { session } } = await supabase.auth.getSession()
+                    if (!session?.access_token) return
+                    await fetch('/api/calendar/google/disconnect', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` } })
+                    setCalendarConnected(false); setCalendarEmail(null); setGoogleEvents([])
+                  }} className="inline-flex items-center gap-1 text-[11px] font-medium text-[#1a1a1a]/25 border border-black/[0.04] px-2 py-1 rounded-md hover:border-red-300 hover:text-red-400 transition-all">Déconnecter</button>
                 </>
               ) : (
                 <button onClick={handleConnectCalendar} disabled={calendarWorking || calendarLoading} className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#1a1a1a]/40 border border-black/[0.06] px-3 py-1.5 rounded-md hover:border-[#3ECF8E]/40 hover:text-[#3ECF8E] transition-all disabled:opacity-30"><Plus className="w-3 h-3" /> Google Agenda</button>
@@ -1035,7 +1087,7 @@ export default function BilansPage() {
 
           {/* filter toggles */}
           <div className="flex items-center gap-3 mb-3">
-            {([{ key: "evo" as const, label: "EVO", color: "#3ECF8E" }, { key: "sport" as const, label: "Sport", color: "#c9a96e" }, { key: "google" as const, label: "Agenda", color: "#4285f4" }]).map(f => (
+            {([{ key: "evo" as const, label: "evo", color: "#3ECF8E" }, { key: "sport" as const, label: "Sport", color: "#c9a96e" }, { key: "google" as const, label: "Agenda", color: "#4285f4" }]).map(f => (
               <label key={f.key} className="flex items-center gap-1.5 cursor-pointer select-none">
                 <input type="checkbox" checked={calFilters[f.key]} onChange={() => setCalFilters(prev => ({ ...prev, [f.key]: !prev[f.key] }))} className="sr-only peer" />
                 <div className="w-3.5 h-3.5 rounded border-2 flex items-center justify-center transition-all" style={{ borderColor: calFilters[f.key] ? f.color : "#d1d5db", background: calFilters[f.key] ? `${f.color}15` : "transparent", color: f.color }}>
@@ -1180,7 +1232,7 @@ export default function BilansPage() {
             )}
           </div>
           <div className="flex items-center gap-4 mt-2.5 text-[10px] text-[#1a1a1a]/25">
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-[#3ECF8E]/20" /> EVO</span>
+            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-[#3ECF8E]/20" /> evo</span>
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-[#c9a96e]/20" /> Sport</span>
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-[#4285f4]/20" /> Indisponible</span>
           </div>
@@ -1200,7 +1252,7 @@ export default function BilansPage() {
                   <Plus className="w-3.5 h-3.5" /> Ajouter mes seances sport
                 </button>
                 <button disabled className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl bg-white/10 text-white/40 text-[12px] font-medium cursor-not-allowed border border-white/10">
-                  <Dumbbell className="w-3.5 h-3.5" /> Seances EVO — a venir
+                  <Dumbbell className="w-3.5 h-3.5" /> Seances evo — a venir
                 </button>
               </div>
               <div className="mt-auto pt-4 border-t border-white/10 space-y-2.5">
@@ -1319,11 +1371,11 @@ export default function BilansPage() {
             <div className="grid grid-cols-2 gap-2">
               {(["evo", "sport"] as const).map(type => (
                 <button key={type} onClick={() => setNewSession(s => ({ ...s, type }))} className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[13px] font-medium border transition-all ${newSession.type === type ? type === "evo" ? "bg-[#3ECF8E]/8 border-[#3ECF8E]/30 text-[#1B9C6E]" : "bg-[#c9a96e]/8 border-[#c9a96e]/30 text-[#a08050]" : "border-black/[0.06] text-[#1a1a1a]/35"}`}>
-                  {type === "evo" ? <><Dumbbell className="w-3.5 h-3.5" /> EVO</> : <><Activity className="w-3.5 h-3.5" /> Sport</>}
+                  {type === "evo" ? <><Dumbbell className="w-3.5 h-3.5" /> evo</> : <><Activity className="w-3.5 h-3.5" /> Sport</>}
                 </button>
               ))}
             </div>
-            <input type="text" placeholder={newSession.type === "evo" ? "ex. Mobilite EVO" : "ex. Run 5km"} value={newSession.label} onChange={e => setNewSession(s => ({ ...s, label: e.target.value }))} className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40 transition-colors placeholder:text-[#1a1a1a]/20" />
+            <input type="text" placeholder={newSession.type === "evo" ? "ex. Mobilite evo" : "ex. Run 5km"} value={newSession.label} onChange={e => setNewSession(s => ({ ...s, label: e.target.value }))} className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40 transition-colors placeholder:text-[#1a1a1a]/20" />
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 text-[11px] text-[#1a1a1a]/30 shrink-0"><Timer className="w-3 h-3" /> min</div>
               <input type="number" min={5} max={180} step={5} value={newSession.duration} onChange={e => setNewSession(s => ({ ...s, duration: Number(e.target.value) }))} className="flex-1 px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40" />

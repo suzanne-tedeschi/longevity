@@ -14,7 +14,7 @@ import type { NextRequest } from 'next/server'
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const next = requestUrl.searchParams.get('next') ?? '/onboarding/bilans'
+  const next = requestUrl.searchParams.get('next') ?? '/onboarding/profil'
 
   if (code) {
     const cookieStore = cookies()
@@ -45,6 +45,17 @@ export async function GET(request: NextRequest) {
     if (!error && data.session) {
       // Create or update the profile row
       const user = data.session.user
+
+      const isOnboardingCompleted = Boolean(
+        user.user_metadata?.evo_onboarding_completed
+      )
+
+      if (isOnboardingCompleted) {
+        return NextResponse.redirect(
+          new URL('/onboarding/bilans', request.url)
+        )
+      }
+
       const profile = {
         id: user.id,
         first_name:
@@ -72,9 +83,7 @@ export async function GET(request: NextRequest) {
         existingProfile?.height &&
         existingProfile?.weight
       ) {
-        return NextResponse.redirect(
-          new URL('/onboarding/bilans', request.url)
-        )
+        return NextResponse.redirect(new URL(next, request.url))
       }
 
       return NextResponse.redirect(new URL(next, request.url))

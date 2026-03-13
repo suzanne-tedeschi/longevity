@@ -1,20 +1,9 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
-type FormState = 'idle' | 'submitting' | 'success' | 'error'
-
 export default function Home() {
-  const router = useRouter()
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [formState, setFormState] = useState<FormState>('idle')
-  const [errorMessage, setErrorMessage] = useState('')
-  const [formOpen, setFormOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
@@ -30,7 +19,6 @@ export default function Home() {
   const [rotatingWordIndex, setRotatingWordIndex] = useState(0)
   const [typedText, setTypedText] = useState('')
   const [isTyping, setIsTyping] = useState(true)
-  const formRef = useRef<HTMLFormElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctaSectionRef = useRef<HTMLDivElement>(null)
 
@@ -48,7 +36,7 @@ export default function Home() {
         data: { session },
       } = await supabase!.auth.getSession()
       if (session?.user) {
-        router.replace('/onboarding/bilans')
+        setIsLoggedIn(true)
         return
       }
       setIsLoggedIn(false)
@@ -60,7 +48,7 @@ export default function Home() {
       data: { subscription },
     } = supabase!.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        router.replace('/onboarding/bilans')
+        setIsLoggedIn(true)
       } else {
         setIsLoggedIn(false)
       }
@@ -249,16 +237,6 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotatingWordIndex])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); setFormState('submitting'); setErrorMessage('')
-    if (!isSupabaseConfigured || !supabase) { setErrorMessage('Les inscriptions sont temporairement indisponibles.'); setFormState('error'); return }
-    try {
-      const { error } = await supabase.from('waitlist').insert({ first_name: firstName.trim(), last_name: lastName.trim(), email: email.trim().toLowerCase(), phone: phone.trim() || null })
-      if (error) { setErrorMessage(error.code === '23505' ? 'Cette adresse email est d\u00e9j\u00e0 inscrite.' : 'Une erreur est survenue. Veuillez r\u00e9essayer.'); setFormState('error'); return }
-      setFormState('success')
-    } catch { setErrorMessage('Une erreur est survenue. Veuillez r\u00e9essayer.'); setFormState('error') }
-  }
-
   const features = [
     { iconType: 'calendar', title: 'Adapt\u00e9 \u00e0 ta vraie vie', desc: "Dis au coach quand tu es dispo. Il construit ta semaine autour de ton emploi du temps r\u00e9el. R\u00e9union d\u00e9cal\u00e9e\u00a0? La s\u00e9ance s\u2019adapte." },
     { iconType: 'flame', title: 'Moteur de r\u00e9gularit\u00e9', desc: "S\u00e9ries, paliers, et le bon message au bon moment. Le plus dur, ce n\u2019est pas l\u2019entra\u00eenement. C\u2019est de s\u2019y tenir. On r\u00e9sout \u00e7a." },
@@ -304,7 +282,7 @@ export default function Home() {
 
       <section className="relative min-h-screen flex flex-col justify-center px-6 md:px-16 lg:px-24 overflow-hidden">
         {heroVideos.map((src, i) => (
-          <video key={i} ref={videoRefs[i]} autoPlay={i === 0} muted playsInline
+          <video key={i} ref={videoRefs[i]} autoPlay={i === 0} muted playsInline preload="auto"
             onEnded={() => { const next = (i + 1) % heroVideos.length; setActiveVideo(next); videoRefs[next].current?.play() }}
             className="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-[2000ms] ease-in-out"
             style={{ opacity: activeVideo === i ? 1 : 0 }}>
@@ -320,16 +298,16 @@ export default function Home() {
             </span>
           </div>
           <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-bold leading-[1.05] tracking-[-0.02em] mb-10">Bouge aujourd&rsquo;hui.<br /><span style={{ color: '#c9a96e' }}>Vis mieux demain.</span></h1>
-          <p className="text-lg md:text-xl text-white/40 max-w-xl leading-relaxed mb-12 font-light">Programmes long&eacute;vit&eacute; con&ccedil;us par un expert, d&eacute;livr&eacute;s via WhatsApp. Ton coach s&rsquo;adapte &agrave; ta vraie vie, te garde r&eacute;gulier, et r&eacute;pond &agrave; toutes tes questions.</p>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/[0.05] border border-white/[0.06]">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
-              <span className="text-sm text-white/60 font-medium">Ton coach vit sur WhatsApp</span>
-            </div>
-            <button type="button" onClick={() => setFormOpen(true)} className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/[0.05] border border-white/[0.06] text-sm text-white/60 font-medium hover:bg-white/[0.08] hover:text-white/80 transition-all duration-300 cursor-pointer">
-              Rejoindre la liste d&rsquo;attente
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-            </button>
+          <p className="text-lg md:text-xl text-white/40 max-w-xl leading-relaxed mb-12 font-light">Programmes long&eacute;vit&eacute; con&ccedil;us par un expert, d&eacute;livr&eacute;s via <span className="text-[#25D366] font-medium">WhatsApp</span>. Ton coach s&rsquo;adapte &agrave; ta vraie vie, te garde r&eacute;gulier, et r&eacute;pond &agrave; toutes tes questions.</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <a href="/onboarding/login" className="inline-flex items-center gap-2.5 px-7 py-4 rounded-2xl bg-white text-[#0a0a0a] font-semibold text-[15px] hover:bg-white/90 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)] hover:-translate-y-0.5">
+              Commencer mon programme
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+            </a>
+            <a href="https://wa.me/message/QTBSFJSLI3PKN1" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2.5 px-5 py-4 rounded-2xl border border-white/[0.12] text-white/50 text-[13px] font-medium hover:border-[#25D366]/40 hover:text-[#25D366] transition-all duration-300">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+              Parle directement &agrave; ton coach
+            </a>
           </div>
         </div>
       </section>
@@ -374,7 +352,7 @@ export default function Home() {
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-[2.75rem] font-bold leading-tight mb-5">L&rsquo;industrie fitness optimise pour 12&nbsp;semaines.<br /><span style={{ color: '#c9a96e' }}>Nous, pour 12&nbsp;d&eacute;cennies.</span></h2>
             <p className="text-[#1a1a1a]/45 text-base max-w-2xl mx-auto leading-relaxed mb-4">L&rsquo;entra&icirc;nement long&eacute;vit&eacute;, ce n&rsquo;est pas se pr&eacute;parer pour l&rsquo;&eacute;t&eacute;. C&rsquo;est construire la force, la mobilit&eacute; et la sant&eacute; m&eacute;tabolique qui permettent de vivre pleinement &agrave; 40, 60, 80&nbsp;ans et au-del&agrave;.</p>
-            <p className="text-[#1a1a1a]/45 text-base max-w-2xl mx-auto leading-relaxed">Chaque programme Evo est con&ccedil;u par un expert en long&eacute;vit&eacute;. Pas g&eacute;n&eacute;r&eacute; par une IA. Pas copi&eacute;-coll&eacute; d&rsquo;internet. Construit par quelqu&rsquo;un qui comprend comment le corps vieillit &mdash; et comment l&rsquo;entra&icirc;nement peut ralentir ce processus.</p>
+            <p className="text-[#1a1a1a]/45 text-base max-w-2xl mx-auto leading-relaxed">Chaque programme evo est con&ccedil;u par un expert en long&eacute;vit&eacute;. Pas g&eacute;n&eacute;r&eacute; par une IA. Pas copi&eacute;-coll&eacute; d&rsquo;internet. Construit par quelqu&rsquo;un qui comprend comment le corps vieillit &mdash; et comment l&rsquo;entra&icirc;nement peut ralentir ce processus.</p>
           </div>
           <div className="flex items-center gap-4 max-w-md mx-auto mb-16 px-6 py-5 rounded-2xl bg-white/60 border border-[#e0ddd7]">
             <div className="w-11 h-11 rounded-full bg-[#e8e5df] flex items-center justify-center flex-shrink-0">
@@ -391,49 +369,21 @@ export default function Home() {
       <section ref={ctaSectionRef} className="relative min-h-[600px] flex flex-col items-center justify-center px-6 text-center overflow-hidden">
         <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
         <h2 className="relative z-10 text-4xl md:text-5xl font-bold mb-6">Pr&ecirc;t(e) &agrave; jouer le long terme&nbsp;?</h2>
-        <p className="relative z-10 text-white/40 text-lg max-w-xl mx-auto mb-10">Rejoins la liste d&rsquo;attente. Places limit&eacute;es.</p>
-        <button type="button" onClick={() => setFormOpen(true)} className="relative z-10 btn-cta btn-shimmer">Rejoindre la liste d&rsquo;attente</button>
+        <p className="relative z-10 text-white/40 text-lg max-w-xl mx-auto mb-10">Commence ton programme en 2 minutes.</p>
+        <div className="relative z-10 flex flex-col items-center gap-4">
+          <a href="/onboarding/login" className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-white text-[#0a0a0a] font-semibold text-[15px] hover:bg-white/90 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)] hover:-translate-y-0.5">
+            Je me lance
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+          </a>
+          <a href="https://wa.me/message/QTBSFJSLI3PKN1" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-[13px] text-white/30 hover:text-[#25D366] transition-colors duration-300">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+            Des questions avant de commencer&nbsp;? Demande-nous directement&nbsp;!
+          </a>
+        </div>
       </section>
 
-      <footer className="py-8 px-6 border-t border-white/5 text-center"><p className="text-sm text-white/20">Evo &mdash; L&rsquo;entra&icirc;nement pour le long terme.</p></footer>
+      <footer className="py-8 px-6 border-t border-white/5 text-center"><p className="text-sm text-white/20">evo &mdash; L&rsquo;entra&icirc;nement pour le long terme.</p></footer>
 
-      {formOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ animation: 'modalBackdropIn 0.3s ease-out forwards' }}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setFormOpen(false)} />
-          <div className="relative w-full max-w-lg" style={{ animation: 'modalCardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards' }}>
-            <button type="button" onClick={() => setFormOpen(false)} className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/20 transition-all duration-300 z-10">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-            </button>
-            {formState === 'success' ? (
-              <div className="bg-[#141414] rounded-2xl p-10 border border-white/[0.08] text-center shadow-[0_25px_60px_rgba(0,0,0,0.5)]">
-                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center justify-center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400"><polyline points="20 6 9 17 4 12" /></svg></div>
-                <h2 className="text-2xl font-bold mb-2">Bienvenue dans l&rsquo;aventure</h2>
-                <p className="text-white/50 mb-6">Ta place est r&eacute;serv&eacute;e. On te contacte tr&egrave;s vite.</p>
-                <div className="bg-white/[0.04] rounded-xl p-4"><p className="text-white/40 text-xs mb-1">Inscrit(e) sous</p><p className="font-semibold">{firstName} {lastName}</p><p className="text-white/50 text-sm">{email}</p></div>
-              </div>
-            ) : (
-              <form ref={formRef} onSubmit={handleSubmit} className="bg-[#141414] rounded-2xl p-8 md:p-10 border border-white/[0.08] relative overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.5)]">
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
-                <h2 className="text-2xl font-bold mb-1 text-center">Rejoins la liste d&rsquo;attente</h2>
-                <p className="text-white/40 mb-8 text-sm text-center">Places limit&eacute;es &mdash; inscription gratuite et sans engagement.</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><label htmlFor="firstName" className="block text-sm font-medium text-white/70 mb-1.5">Pr&eacute;nom</label><input id="firstName" type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Ton pr\u00e9nom" className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40 transition-all duration-300" /></div>
-                  <div><label htmlFor="lastName" className="block text-sm font-medium text-white/70 mb-1.5">Nom</label><input id="lastName" type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Ton nom" className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40 transition-all duration-300" /></div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div><label htmlFor="email" className="block text-sm font-medium text-white/70 mb-1.5">Email</label><input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ton@email.com" className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40 transition-all duration-300" /></div>
-                  <div><label htmlFor="phone" className="block text-sm font-medium text-white/70 mb-1.5">T&eacute;l&eacute;phone</label><input id="phone" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="06 12 34 56 78" className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40 transition-all duration-300" /></div>
-                </div>
-                {formState === 'error' && errorMessage && <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{errorMessage}</div>}
-                <button type="submit" disabled={formState === 'submitting'} className="btn-cta btn-shimmer w-full mt-8 disabled:opacity-60 disabled:cursor-not-allowed">
-                  {formState === 'submitting' ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>Inscription en cours...</span> : "M'inscrire"}
-                </button>
-                <p className="text-xs text-white/20 mt-4 text-center">Tes donn&eacute;es restent confidentielles et ne seront jamais partag&eacute;es.</p>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

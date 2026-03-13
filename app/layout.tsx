@@ -9,7 +9,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Evo - Gagnez des années de vie en forme',
+  title: 'evo - Gagnez des années de vie en forme',
   description: 'Programmes longévité conçus par un expert, délivrés via WhatsApp. Ton coach s\'adapte à ta vraie vie, te garde régulier, et répond à toutes tes questions.',
 }
 

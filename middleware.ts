@@ -27,7 +27,26 @@ export async function middleware(request: NextRequest) {
 
   // IMPORTANT: Do NOT add code between createServerClient and getUser().
   // A small mistake here can cause very hard-to-debug random logouts.
-  await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const pathname = request.nextUrl.pathname
+  const isBilansRoute = pathname.startsWith('/onboarding/bilans')
+  const isProfilRoute = pathname.startsWith('/onboarding/profil')
+  const isOnboardingDone = Boolean(user?.user_metadata?.evo_onboarding_completed)
+
+  if (user && isBilansRoute && !isOnboardingDone) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/onboarding/profil'
+    return NextResponse.redirect(url)
+  }
+
+  if (user && isProfilRoute && isOnboardingDone) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/onboarding/bilans'
+    return NextResponse.redirect(url)
+  }
 
   return supabaseResponse
 }
