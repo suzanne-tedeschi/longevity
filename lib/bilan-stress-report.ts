@@ -39,7 +39,7 @@ export interface SectionReport {
 const ghq12Report: SectionReport = {
   sectionId: 'ghq-12',
   context:
-    'Le GHQ-12 (General Health Questionnaire) est un outil de dépistage validé mondialement pour évaluer la détresse psychologique. Développé par Goldberg, il détecte les troubles psychiatriques mineurs (anxiété, dépression, dysfonctionnement social). Un score élevé dans notre scoring inversé indique un bon bien-être mental.',
+    'Ce questionnaire évalue votre bien-être mental général : comment vous vous sentez au quotidien, votre humeur, votre capacité à faire face aux difficultés et à profiter de la vie. C\'est l\'un des outils les plus utilisés dans le monde pour mesurer la santé mentale de façon simple et fiable.',
   recommendations: [
     { minPct: 80, level: 'excellent', title: 'Bien-être psychologique stable', text: 'Votre santé mentale est excellente. Vous faites preuve d\'une bonne capacité à maintenir votre équilibre psychique au quotidien.' },
     { minPct: 60, level: 'bon', title: 'Bon bien-être mental', text: 'Votre état psychique est globalement bon. Quelques signaux de stress ou de baisse de moral existent mais restent gérables.' },
@@ -49,7 +49,7 @@ const ghq12Report: SectionReport = {
   insights: [
     { questionId: 'ghq-2', threshold: 1, insight: 'Les troubles du sommeil liés aux soucis sont un marqueur précoce d\'anxiété généralisée.', recommendation: 'Pratiquez l\'écriture de « worry time » : notez vos préoccupations 20 min avant le coucher pour libérer l\'esprit.' },
     { questionId: 'ghq-5', threshold: 1, insight: 'Le sentiment de pression constante active l\'axe du stress (HPA) et peut mener à l\'épuisement.', recommendation: 'Identifiez vos 3 principales sources de pression et appliquez la matrice d\'Eisenhower (urgent/important) pour prioriser.' },
-    { questionId: 'ghq-9', threshold: 1, insight: 'Un sentiment dépressif persistant nécessite une attention particulière car il peut évoluer vers un épisode dépressif majeur.', recommendation: 'L\'activation comportementale (planifier des activités plaisantes malgré le manque d\'envie) est une technique TCC validée.' },
+    { questionId: 'ghq-9', threshold: 1, insight: 'Un sentiment dépressif persistant nécessite une attention particulière car il peut s\'aggraver avec le temps.', recommendation: 'Une technique simple mais efficace : planifiez chaque jour une activité qui vous plaisait autrefois, même si vous n\'en avez pas envie. Agir d\'abord aide à retrouver progressivement l\'envie — c\'est souvent le contraire de ce qu\'on imagine.' },
     { questionId: 'ghq-10', threshold: 1, insight: 'La perte de confiance en soi est souvent liée à des distorsions cognitives qui peuvent être corrigées.', recommendation: 'Tenez un journal de vos réussites quotidiennes, même petites. La thérapie cognitive peut aider à restructurer les pensées négatives.' },
     { questionId: 'ghq-11', threshold: 1, insight: 'Le sentiment de ne rien valoir est un signal d\'alerte important pour la santé mentale.', recommendation: 'Parlez-en à un proche de confiance ou à un professionnel. Ces pensées ne reflètent pas la réalité mais un état émotionnel temporaire.' },
   ],
@@ -66,7 +66,7 @@ const ghq12Report: SectionReport = {
 const cdRiscReport: SectionReport = {
   sectionId: 'cd-risc',
   context:
-    'Le CD-RISC (Connor-Davidson Resilience Scale) mesure la résilience psychologique, c\'est-à-dire la capacité à faire face à l\'adversité et à rebondir après des événements stressants. La résilience est un facteur protecteur majeur contre la dépression, le PTSD et le burn-out, et elle peut être développée par des interventions ciblées.',
+    'La résilience, c\'est votre capacité à tenir bon face aux coups durs et à rebondir après des périodes difficiles. C\'est un facteur protecteur majeur contre la dépression, l\'épuisement et les états de stress prolongés — et la bonne nouvelle : elle se développe tout au long de la vie grâce à des pratiques concrètes.',
   recommendations: [
     { minPct: 80, level: 'excellent', title: 'Résilience élevée', text: 'Vous avez une capacité remarquable à rebondir face aux difficultés. Cette résilience est un atout majeur pour votre santé mentale et physique à long terme.' },
     { minPct: 60, level: 'bon', title: 'Bonne résilience', text: 'Votre résilience est bonne dans l\'ensemble. Renforcez votre capacité à gérer les émotions intenses et à maintenir votre concentration sous pression.' },
@@ -75,8 +75,8 @@ const cdRiscReport: SectionReport = {
   ],
   insights: [
     { questionId: 'cdr-1', threshold: 1, insight: 'Une faible adaptabilité au changement augmente la vulnérabilité au stress lors des transitions de vie.', recommendation: 'Commencez par de petits changements volontaires dans votre routine pour développer votre flexibilité.' },
-    { questionId: 'cdr-5', threshold: 1, insight: 'Une mauvaise gestion du stress est un facteur de risque pour les maladies cardiovasculaires et les troubles immunitaires.', recommendation: 'La cohérence cardiaque (6 respirations/min pendant 5 min, 3×/jour) est scientifiquement validée pour réduire le cortisol.' },
-    { questionId: 'cdr-8', threshold: 1, insight: 'Se laisser submerger par les émotions peut indiquer un déficit de la fonction préfrontale de régulation.', recommendation: 'La pleine conscience renforce les circuits de régulation émotionnelle préfrontaux. 10 min/jour pendant 8 semaines montrent des effets mesurables.' },
+    { questionId: 'cdr-5', threshold: 1, insight: 'Mal gérer le stress au quotidien augmente le risque de maladies cardiaques et fragilise le système immunitaire.', recommendation: 'Essayez la respiration rythmée : inspirez 5 secondes, expirez 5 secondes, pendant 5 minutes. En faisant ça 3 fois par jour, vous aidez votre corps à retrouver son calme naturel — c\'est scientifiquement validé pour réduire l\'hormone du stress (le cortisol).' },
+    { questionId: 'cdr-8', threshold: 1, insight: 'Se laisser submerger par les émotions est souvent un signe que notre cerveau est en mode survie — et qu\'il a besoin d\'un peu d\'entraînement.', recommendation: 'La méditation de pleine conscience (rester attentif à ce qui se passe maintenant, sans jugement) renforce progressivement votre capacité à réguler vos émotions. 10 min/jour pendant 8 semaines suffisent pour des effets mesurables.' },
     { questionId: 'cdr-10', threshold: 1, insight: 'Le sentiment de perte de contrôle est associé à un stress plus intense et une récupération plus lente.', recommendation: 'Identifiez ce qui est dans votre cercle de contrôle vs. d\'influence vs. de préoccupation, et concentrez votre énergie sur le premier.' },
   ],
   references: [
@@ -92,7 +92,7 @@ const cdRiscReport: SectionReport = {
 const pssReport: SectionReport = {
   sectionId: 'pss',
   context:
-    'Le PSS (Perceived Stress Scale) de Cohen est l\'outil de référence pour mesurer le stress perçu. Contrairement aux mesures objectives de stresseurs, le PSS évalue la perception subjective du stress, qui est le meilleur prédicteur des conséquences sur la santé. Un stress perçu élevé est associé à l\'inflammation chronique, aux troubles cardiovasculaires et au vieillissement cellulaire accéléré.',
+    'Ce n\'est pas tant ce qui vous arrive qui compte, mais comment vous le vivez. Ce score évalue votre ressenti face au stress : est-ce que vous vous sentez dépassé, sans contrôle sur votre vie ? Un niveau de stress perçu élevé est associé à une inflammation chronique, des troubles cardiovasculaires et un vieillissement accéléré — même en l\'absence de problèmes objectifs.',
   recommendations: [
     { minPct: 80, level: 'excellent', title: 'Stress perçu faible', text: 'Votre niveau de stress est faible. Vous avez un bon sentiment de contrôle sur votre vie et gérez efficacement les imprévus.' },
     { minPct: 60, level: 'bon', title: 'Stress modéré', text: 'Votre stress est modéré et gérable. Maintenez vos stratégies actuelles et renforcez votre sentiment de contrôle par des routines structurantes.' },
@@ -102,7 +102,7 @@ const pssReport: SectionReport = {
   insights: [
     { questionId: 'pss-1', threshold: 1, insight: 'Se sentir fréquemment dépassé active la réponse de stress chronique (cortisol, inflammation).', recommendation: 'Pratiquez le « brain dump » quotidien : listez toutes vos tâches/préoccupations pour décharger votre mémoire de travail.' },
     { questionId: 'pss-2', threshold: 1, insight: 'Le sentiment de perte de contrôle est l\'un des plus puissants activateurs du stress psychologique.', recommendation: 'Adoptez la planification hebdomadaire : 30 min le dimanche pour organiser votre semaine redonne un sentiment de maîtrise.' },
-    { questionId: 'pss-3', threshold: 1, insight: 'La nervosité chronique indique une hyperactivation sympathique qui affecte la digestion, le sommeil et l\'immunité.', recommendation: 'La technique de respiration 4-7-8 (inspirer 4s, retenir 7s, expirer 8s) active rapidement le parasympathique.' },
+    { questionId: 'pss-3', threshold: 1, insight: 'La nervosité chronique met votre corps en état d\'alerte permanent — ce qui perturbe la digestion, le sommeil et les défenses immunitaires.', recommendation: 'La technique de respiration 4-7-8 est une vraie ancre rapide : inspirez 4 secondes, retenez 7 secondes, expirez lentement 8 secondes. Elle déclenche la réponse de détente de votre corps en moins d\'une minute.' },
     { questionId: 'pss-7', threshold: 1, insight: 'L\'accumulation perçue des difficultés est un facteur de risque pour le burn-out et la dépression.', recommendation: 'Décomposez chaque problème en sous-étapes concrètes. La résolution séquentielle réduit le sentiment d\'accumulation.' },
     { questionId: 'pss-10', threshold: 1, insight: 'Le sentiment chronique de surcharge est un précurseur fréquent du burn-out.', recommendation: 'Apprenez à dire non et à déléguer. Priorisez avec la règle des 20% : identifiez les 20% d\'actions qui produisent 80% des résultats.' },
   ],
@@ -129,7 +129,7 @@ const fatigueReport: SectionReport = {
   insights: [
     { questionId: 'fat-1', threshold: 1, insight: 'Des difficultés de concentration persistantes peuvent indiquer une fatigue cognitive ou un trouble attentionnel.', recommendation: 'Utilisez la technique Pomodoro (25 min de focus + 5 min de pause) et limitez le multitâche.' },
     { questionId: 'fat-2', threshold: 1, insight: 'La saturation cognitive rapide est un signe de surcharge mentale ou de manque de sommeil profond.', recommendation: 'Réduisez la stimulation digitale (emails, notifications) et pratiquez des pauses de déconnexion de 10 min toutes les 2h.' },
-    { questionId: 'fat-4', threshold: 1, insight: 'Une fatigue corporelle persistante malgré un sommeil correct peut signaler une carence (fer, B12, D) ou un trouble sous-jacent.', recommendation: 'Faites un bilan sanguin incluant ferritine, vitamine D, TSH et CRP pour identifier d\'éventuelles carences.' },
+    { questionId: 'fat-4', threshold: 1, insight: 'Une fatigue corporelle persistante malgré un sommeil correct peut signaler une carence ou un trouble sous-jacent.', recommendation: 'Demandez à votre médecin un bilan sanguin complet : taux de fer, vitamine D, fonction thyroïdienne et marqueurs d\'inflammation. Ces 4 éléments expliquent la grande majorité des fatigues chroniques inexpliquées.' },
     { questionId: 'fat-6', threshold: 1, insight: 'La sensation de lourdeur corporelle sans cause évidente peut être liée à l\'inflammation systémique ou au sédentarisme.', recommendation: 'L\'exercice physique modéré (marche rapide 30 min/jour) réduit paradoxalement la fatigue et améliore l\'énergie perçue.' },
     { questionId: 'fat-7', threshold: 1, insight: 'La perte d\'élan pour les activités autrefois motivantes est un signal d\'alerte pour le burn-out ou la dépression.', recommendation: 'Reconnectez-vous à vos valeurs profondes. Planifiez au moins une activité « plaisir » par jour, même brève.' },
   ],
@@ -145,18 +145,18 @@ const fatigueReport: SectionReport = {
 // ══════════════════════════════════════════════════════
 export const globalKeyInsights: { title: string; description: string; reference: string }[] = [
   {
-    title: 'Le stress chronique accélère le vieillissement',
-    description: 'Le stress chronique raccourcit les télomères, augmente l\'inflammation systémique et affaiblit le système immunitaire. C\'est l\'un des principaux facteurs de vieillissement accéléré.',
+    title: 'Le stress chronique vieillit littéralement vos cellules',
+    description: 'Le stress prolongé raccourcit les télomères — les « capuchons » protecteurs au bout de vos chromosomes. C\'est un mécanisme direct de vieillissement cellulaire accéléré. Il augmente aussi l\'inflammation dans le corps et fragilise le système immunitaire.',
     reference: 'Epel et al., 2004, PNAS',
   },
   {
-    title: 'La résilience se développe',
-    description: 'Les programmes MBSR (Mindfulness-Based Stress Reduction) ont montré des effets mesurables sur le cortisol, la pression artérielle et la structure cérébrale en seulement 8 semaines.',
+    title: 'Votre cerveau peut changer en 8 semaines',
+    description: 'Les programmes de méditation et de pleine conscience ont montré des effets mesurables sur le cortisol (l\'hormone du stress), la pression artérielle — et même sur la structure du cerveau — en seulement 8 semaines de pratique régulière.',
     reference: 'Hölzel et al., 2011, Psychiatry Research',
   },
   {
-    title: 'L\'activité physique : le meilleur anti-stress',
-    description: 'L\'activité physique régulière est l\'intervention la plus efficace pour améliorer simultanément le stress perçu, la fatigue et la résilience mentale.',
+    title: 'Le meilleur anti-stress : bouger',
+    description: 'L\'activité physique régulière est l\'intervention la plus efficace pour améliorer simultanément le stress ressenti, la fatigue mentale et la capacité à rebondir face aux difficultés.',
     reference: 'Schuch et al., 2018, Neuroscience & Biobehavioral Reviews',
   },
 ]
