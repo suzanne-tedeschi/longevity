@@ -9,6 +9,65 @@ export const supabase = isSupabaseConfigured
 	? createBrowserClient(supabaseUrl!, supabaseAnonKey!)
 	: null
 
+type ProfileUpsertPayload = {
+	id: string
+	first_name?: string
+	last_name?: string
+	email?: string
+	avatar_url?: string
+	age?: number | null
+	height?: number | null
+	weight?: number | null
+	onboarding_data?: Record<string, unknown>
+	onboarding_completed_at?: string | null
+}
+
+/**
+ * Upsert profile fields, while tolerating projects where onboarding columns
+ * have not yet been added to `profiles`.
+ */
+export async function upsertProfile(payload: ProfileUpsertPayload) {
+	if (!supabase) return null
+
+	const { data, error } = await supabase
+		.from('profiles')
+		.upsert(payload, { onConflict: 'id' })
+		.select()
+		.single()
+
+	if (!error) return data
+
+	const missingOnboardingColumns = ['age', 'height', 'weight', 'onboarding_data', 'onboarding_completed_at'].some((field) =>
+		error.message.includes(`profiles.${field}`)
+	)
+	if (!missingOnboardingColumns) {
+		console.warn('Profile upsert failed:', error.message)
+		return null
+	}
+
+	const {
+		age,
+		height,
+		weight,
+		onboarding_data,
+		onboarding_completed_at,
+		...basicPayload
+	} = payload
+	const fallback = await supabase
+		.from('profiles')
+		.upsert(basicPayload, { onConflict: 'id' })
+		.select()
+		.single()
+
+	if (fallback.error) {
+		console.warn('Profile fallback upsert failed:', fallback.error.message)
+		return null
+	}
+
+	console.warn('profiles table is missing onboarding columns age/height/weight; falling back to basic profile fields')
+	return fallback.data
+}
+
 /**
  * Create or update a profile row for the current user.
  * Safe to call multiple times (upsert).
@@ -30,15 +89,5 @@ export async function ensureProfile() {
 		avatar_url: user.user_metadata?.avatar_url || '',
 	}
 
-	const { data, error } = await supabase
-		.from('profiles')
-		.upsert(profile, { onConflict: 'id' })
-		.select()
-		.single()
-
-	if (error) {
-		console.warn('Profile upsert failed:', error.message)
-		return null
-	}
-	return data
+	return upsertProfile(profile)
 }

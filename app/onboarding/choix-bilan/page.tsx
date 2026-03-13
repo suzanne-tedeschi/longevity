@@ -18,8 +18,8 @@ export default function ChoixBilanPage() {
             className="w-full inline-flex items-center justify-between rounded-xl border-2 border-[#25D366]/25 bg-[#25D366]/10 px-4 py-4 text-left hover:border-[#25D366]/45 transition-all"
           >
             <span>
-              <p className="text-sm font-semibold text-[#1a1a1a]">Commencer le bilan</p>
-              <p className="text-xs text-[#1a1a1a]/55">Je suis nouveau, je réponds au questionnaire d’abord.</p>
+              <p className="text-sm font-semibold text-[#1a1a1a]">Configurer mon profil</p>
+              <p className="text-xs text-[#1a1a1a]/55">Je suis nouveau, je configure mon profil d’abord.</p>
             </span>
             <span className="text-[#25D366]">→</span>
           </Link>

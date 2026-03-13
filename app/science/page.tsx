@@ -117,7 +117,8 @@ function AnimatedCounter({ end, suffix = "" }: { end: number; suffix?: string })
   const started = useRef(false)
 
   useEffect(() => {
-    if (!ref.current || started.current) return
+    if (!ref.current) return
+    started.current = false
     const obs = new IntersectionObserver(([e]) => {
       if (e.isIntersecting && !started.current) {
         started.current = true
@@ -132,7 +133,7 @@ function AnimatedCounter({ end, suffix = "" }: { end: number; suffix?: string })
       }
     }, { threshold: 0.3 })
     obs.observe(ref.current)
-    return () => obs.disconnect()
+    return () => { obs.disconnect(); started.current = false }
   }, [end])
 
   return <div ref={ref}>{count}{suffix}</div>

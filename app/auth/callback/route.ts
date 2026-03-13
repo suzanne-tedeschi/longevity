@@ -71,21 +71,6 @@ export async function GET(request: NextRequest) {
       }
       await supabase.from('profiles').upsert(profile, { onConflict: 'id' })
 
-      // Check if user already completed their profile questionnaire
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('age, height, weight')
-        .eq('id', user.id)
-        .single()
-
-      if (
-        existingProfile?.age &&
-        existingProfile?.height &&
-        existingProfile?.weight
-      ) {
-        return NextResponse.redirect(new URL(next, request.url))
-      }
-
       return NextResponse.redirect(new URL(next, request.url))
     }
 
