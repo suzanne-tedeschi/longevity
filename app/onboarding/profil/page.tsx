@@ -30,7 +30,7 @@ import {
   Plus,
   X,
 } from 'lucide-react'
-import { isSupabaseConfigured, supabase } from '@/lib/supabase'
+import { isSupabaseConfigured, supabase, upsertProfile } from '@/lib/supabase'
 
 type StepId =
   | 'age'
@@ -794,16 +794,15 @@ export default function ProfilPage() {
         },
       })
 
-      await supabase.from('profiles').upsert(
-        {
-          id: session.user.id,
-          first_name: firstName.trim() || session.user.user_metadata?.first_name || '',
-          age: Number(age),
-          height: Number(height),
-          weight: Number(weight),
-        },
-        { onConflict: 'id' }
-      )
+      await upsertProfile({
+        id: session.user.id,
+        first_name: firstName.trim() || session.user.user_metadata?.first_name || '',
+        age: Number(age),
+        height: Number(height),
+        weight: Number(weight),
+        onboarding_data: payload,
+        onboarding_completed_at: payload.completedAt,
+      })
 
       localStorage.setItem('evo_onboarding_completed', 'true')
       localStorage.removeItem('evo_onboarding_data')
@@ -829,8 +828,9 @@ export default function ProfilPage() {
   }
 
   const cardClass =
-    'w-full rounded-xl border-2 p-3.5 text-left transition-all duration-200 ' +
-    'border-[#1a1a1a]/[0.1] bg-white hover:border-[#25D366]/40 hover:-translate-y-[1px] hover:shadow-[0_8px_24px_-14px_rgba(37,211,102,0.45)]'
+    'w-full rounded-xl border-2 p-3.5 text-left transition-all duration-200 outline-none ' +
+    'border-[#1a1a1a]/[0.1] bg-white hover:border-[#25D366]/40 hover:-translate-y-[1px] hover:shadow-[0_8px_24px_-14px_rgba(37,211,102,0.45)] ' +
+    'focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)]'
 
   return (
     <div className="min-h-screen bg-[#FAF8F5]">
@@ -869,8 +869,10 @@ export default function ProfilPage() {
                 type="number"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && canContinue() && handleNext()}
                 placeholder="Ex: 35"
-                className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm"
+                autoFocus
+                className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm outline-none focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)] transition-all"
               />
             </div>
           )}
@@ -882,8 +884,10 @@ export default function ProfilPage() {
                 type="number"
                 value={height}
                 onChange={(e) => setHeight(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && canContinue() && handleNext()}
                 placeholder="Ex: 170 (cm)"
-                className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm"
+                autoFocus
+                className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm outline-none focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)] transition-all"
               />
             </div>
           )}
@@ -895,8 +899,10 @@ export default function ProfilPage() {
                 type="number"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && canContinue() && handleNext()}
                 placeholder="Ex: 68 (kg)"
-                className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm"
+                autoFocus
+                className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm outline-none focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)] transition-all"
               />
             </div>
           )}
@@ -1337,7 +1343,7 @@ export default function ProfilPage() {
                   value={jointPainWhere}
                   onChange={(e) => setJointPainWhere(e.target.value)}
                   placeholder="Où ? (genoux, hanches, épaules...)"
-                  className="mt-3 w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm"
+                  className="mt-3 w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm outline-none focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)] transition-all"
                 />
               )}
               {limitations.includes('Douleurs musculaires') && (
@@ -1345,7 +1351,7 @@ export default function ProfilPage() {
                   value={musclePainWhere}
                   onChange={(e) => setMusclePainWhere(e.target.value)}
                   placeholder="Où ?"
-                  className="mt-3 w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm"
+                  className="mt-3 w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm outline-none focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)] transition-all"
                 />
               )}
               {limitations.includes('Autre') && (
@@ -1353,7 +1359,7 @@ export default function ProfilPage() {
                   value={otherLimitation}
                   onChange={(e) => setOtherLimitation(e.target.value)}
                   placeholder="Précisez"
-                  className="mt-3 w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm"
+                  className="mt-3 w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm outline-none focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)] transition-all"
                 />
               )}
             </div>
@@ -1436,7 +1442,7 @@ export default function ProfilPage() {
                   value={otherDiet}
                   onChange={(e) => setOtherDiet(e.target.value)}
                   placeholder="Précisez votre régime"
-                  className="mt-3 w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm"
+                  className="mt-3 w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm outline-none focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)] transition-all"
                 />
               )}
             </div>
@@ -1481,7 +1487,7 @@ export default function ProfilPage() {
                 onChange={(e) => setExpectations(e.target.value)}
                 rows={5}
                 placeholder="Dites-nous ce qui est important pour vous"
-                className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm"
+                className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm outline-none focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)] transition-all"
               />
             </div>
           )}

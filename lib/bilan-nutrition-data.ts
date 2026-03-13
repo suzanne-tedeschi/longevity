@@ -46,11 +46,10 @@ export interface ScoreInterpretation {
 // ══════════════════════════════════════════════════════
 
 const gsrsScoring: ScoreOption[] = [
-  { value: 0, label: 'Aucun inconfort du tout', description: '' },
-  { value: 25, label: 'Inconfort occasionnel, sans impact sur votre quotidien', description: '' },
-  { value: 50, label: 'Inconfort perceptible mais supportable', description: '' },
-  { value: 75, label: 'Inconfort fréquent, limitant vos activités', description: '' },
-  { value: 100, label: 'Inconfort constant ou très difficile à supporter', description: '' },
+  { value: 0, label: 'Non, jamais', description: '' },
+  { value: 34, label: 'Occasionnellement, sans impact sur mon quotidien', description: '' },
+  { value: 67, label: 'Fréquemment, limitant mes activités', description: '' },
+  { value: 100, label: 'Très difficile à supporter', description: '' },
 ]
 
 const reflux: TestSection = {
@@ -74,7 +73,7 @@ const reflux: TestSection = {
       id: 'ref-2',
       name: 'Reflux acides',
       description: 'Régurgitations acides ou liquide amer',
-      criteria: 'Avez-vous été gêné(e) par des reflux acides au cours de la semaine écoulée ? (Sensation de régurgiter de petites quantités d\'acide ou écoulement de liquide amer de l\'estomac vers la gorge)',
+      criteria: 'Avez-vous été gêné(e) par des reflux acides au cours de la semaine écoulée ?',
       scoring: gsrsScoring,
     },
   ],
@@ -100,7 +99,7 @@ const douleursAbdominales: TestSection = {
       id: 'doul-2',
       name: 'Douleurs de faim',
       description: 'Sensation de creux et besoin de manger entre les repas',
-      criteria: 'Au cours de la semaine écoulée, avez-vous été gêné(e) par des douleurs de faim dans l\'estomac ? (Sensation de creux associée au besoin de manger entre les repas)',
+      criteria: 'Au cours de la semaine écoulée, avez-vous été gêné(e) par des douleurs de faim dans l\'estomac ?',
       scoring: gsrsScoring,
       tip: 'Des douleurs de faim récurrentes peuvent être liées à une gastrite ou un déséquilibre glycémique.',
     },
@@ -127,7 +126,7 @@ const indigestion: TestSection = {
       id: 'ind-1',
       name: 'Gargouillements',
       description: 'Vibrations ou bruits dans l\'estomac',
-      criteria: 'Au cours de la semaine écoulée, avez-vous été gêné(e) par des gargouillements dans votre estomac ? (Vibrations ou bruits dans l\'estomac)',
+      criteria: 'Au cours de la semaine écoulée, avez-vous été gêné(e) par des gargouillements dans votre estomac ?',
       scoring: gsrsScoring,
     },
     {
@@ -142,7 +141,7 @@ const indigestion: TestSection = {
       id: 'ind-3',
       name: 'Éructations',
       description: 'Rots ou renvois d\'air',
-      criteria: 'Avez-vous été gêné(e) par des éructations au cours de la semaine écoulée ? (Les rots consistent à faire sortir de l\'air de l\'estomac par la bouche)',
+      criteria: 'Avez-vous été gêné(e) par des éructations (rots) au cours de la semaine écoulée ?',
       scoring: gsrsScoring,
     },
     {
@@ -162,20 +161,13 @@ const diarrhee: TestSection = {
   icon: 'transit',
   description:
     'Ces questions évaluent les symptômes liés à un transit accéléré au cours de la dernière semaine.',
-  maxScore: 300,
+  maxScore: 200,
   tests: [
     {
       id: 'dia-1',
       name: 'Diarrhée',
       description: 'Vidange trop fréquente des intestins',
-      criteria: 'Avez-vous été gêné(e) par une diarrhée au cours de la semaine écoulée ? (Vidange trop fréquente des intestins)',
-      scoring: gsrsScoring,
-    },
-    {
-      id: 'dia-2',
-      name: 'Selles molles',
-      description: 'Selles de consistance molle',
-      criteria: 'Avez-vous été gêné(e) par des selles molles au cours de la semaine écoulée ?',
+      criteria: 'Avez-vous été gêné(e) par une diarrhée au cours de la semaine écoulée ?',
       scoring: gsrsScoring,
     },
     {
@@ -196,7 +188,7 @@ const constipation: TestSection = {
   icon: 'constipation',
   description:
     'Ces questions évaluent les symptômes liés à un transit ralenti au cours de la dernière semaine.',
-  maxScore: 300,
+  maxScore: 100,
   tests: [
     {
       id: 'con-1',
@@ -204,21 +196,6 @@ const constipation: TestSection = {
       description: 'Diminution de la capacité à vider les intestins',
       criteria: 'Avez-vous été gêné(e) par la constipation au cours de la semaine écoulée ?',
       scoring: gsrsScoring,
-    },
-    {
-      id: 'con-2',
-      name: 'Selles dures',
-      description: 'Selles de consistance dure',
-      criteria: 'Avez-vous été gêné(e) par des selles dures au cours de la semaine écoulée ?',
-      scoring: gsrsScoring,
-    },
-    {
-      id: 'con-3',
-      name: 'Vidange incomplète',
-      description: 'Sensation de ne pas avoir complètement évacué',
-      criteria: 'En allant aux toilettes au cours de la semaine écoulée, avez-vous eu la sensation de ne pas vider complètement les selles ?',
-      scoring: gsrsScoring,
-      tip: 'Cette sensation de vidange incomplète peut être liée à un dysfonctionnement du plancher pelvien.',
     },
   ],
 }
@@ -248,7 +225,7 @@ const habitudesGenerales: TestSection = {
   icon: 'habitudes',
   description:
     'Ces questions évaluent vos habitudes alimentaires quotidiennes : rythme des repas, qualité de l\'alimentation et comportement à table.',
-  maxScore: 7,
+  maxScore: 9,
   tests: [
     {
       id: 'hab-1',
@@ -281,13 +258,6 @@ const habitudesGenerales: TestSection = {
       tip: 'Bien mastiquer améliore la digestion et la satiété.',
     },
     {
-      id: 'hab-5',
-      name: 'Repas fait maison',
-      description: 'Au moins un repas cuisiné maison par jour',
-      criteria: 'Prenez-vous au moins un repas cuisiné maison par jour ?',
-      scoring: ouiPositifScoring(1),
-    },
-    {
       id: 'hab-6',
       name: 'Hydratation',
       description: 'Boire au moins 1L d\'eau par jour',
@@ -310,17 +280,17 @@ const habitudesGenerales: TestSection = {
       tip: 'Manger en pleine conscience améliore la satiété et la digestion.',
     },
     {
-      id: 'hab-9',
-      name: 'Environnement calme',
-      description: 'Repas dans un cadre serein',
-      criteria: 'Prenez-vous vos repas dans un environnement calme ?',
+      id: 'hab-10a',
+      name: 'Sensation de faim',
+      description: 'Écoute des signaux de faim',
+      criteria: 'Ressentez-vous clairement vos sensations de faim avant de manger ?',
       scoring: ouiPositifScoring(1),
     },
     {
-      id: 'hab-10',
-      name: 'Conscience faim/satiété',
-      description: 'Écoute des signaux corporels',
-      criteria: 'Avez-vous conscience de vos sensations de faim et de satiété ?',
+      id: 'hab-10b',
+      name: 'Sensation de satiété',
+      description: 'Arrêt en fonction de la satiété',
+      criteria: 'Vous arrêtez-vous de manger lorsque vous vous sentez rassasié(e), sans finir votre assiette par habitude ?',
       scoring: ouiPositifScoring(1),
     },
   ],
@@ -333,7 +303,7 @@ const macronutriments: TestSection = {
   icon: 'macronutriments',
   description:
     'Ces questions évaluent la qualité et l\'équilibre de vos apports en macronutriments : protéines, glucides et graisses.',
-  maxScore: 11,
+  maxScore: 9,
   tests: [
     {
       id: 'mac-1',
@@ -363,14 +333,6 @@ const macronutriments: TestSection = {
       description: 'Huile olive, colza, noix…',
       criteria: 'Ajoutez-vous des bonnes graisses (huile olive, colza, noix…) à vos repas ?',
       scoring: ouiPositifScoring(2),
-    },
-    {
-      id: 'mac-5',
-      name: 'Ultra-transformés quotidiens',
-      description: 'Plats industriels, snacks…',
-      criteria: 'Mangez-vous des aliments ultra-transformés (plats industriels, snacks) tous les jours ?',
-      scoring: ouiNegatifScoring(2),
-      tip: 'Les aliments ultra-transformés sont associés à l\'inflammation chronique et aux maladies métaboliques.',
     },
     {
       id: 'mac-6',
@@ -487,7 +449,7 @@ const ultraTransformes: TestSection = {
   icon: 'ultra-transformes',
   description:
     'Ces questions évaluent votre exposition aux aliments ultra-transformés, nocifs pour la santé métabolique et inflammatoire.',
-  maxScore: 11,
+  maxScore: 8,
   tests: [
     {
       id: 'ut-1',
@@ -511,18 +473,12 @@ const ultraTransformes: TestSection = {
       scoring: ouiNegatifScoring(1),
     },
     {
-      id: 'ut-4',
-      name: 'Charcuterie et snacks frits',
-      description: 'Nuggets, charcuterie, snacks…',
-      criteria: 'Mangez-vous régulièrement de la charcuterie, des nuggets ou des snacks frits ?',
-      scoring: ouiNegatifScoring(2),
-    },
-    {
       id: 'ut-5',
       name: 'Additifs alimentaires',
-      description: 'Aliments avec E-numéros, glutamate…',
-      criteria: 'Consommez-vous des aliments avec additifs (E…) ou exhausteurs de goût (glutamate, etc.) ?',
+      description: 'Aliments avec colorants, conservateurs, exhausteurs de goût…',
+      criteria: 'Consommez-vous régulièrement des produits dont la liste d\'ingrédients contient des additifs — colorants (E1xx), conservateurs (E2xx), arômes artificiels ou exhausteurs de goût comme le glutamate (E621) ? On les retrouve souvent dans les plats cuisinés, sauces industrielles, charcuteries et chips.',
       scoring: ouiNegatifScoring(1),
+      tip: 'Pour le repérer facilement : plus la liste d\'ingrédients est longue et incompréhensible, plus le produit est transformé.',
     },
     {
       id: 'ut-6',
@@ -570,7 +526,7 @@ const inflammatoire: TestSection = {
       id: 'inf-4',
       name: 'Anti-inflammatoires naturels',
       description: 'Curcuma, oméga-3, légumes…',
-      criteria: 'Consommez-vous des aliments anti-inflammatoires (curcuma, oméga-3, légumes) quotidiennement ?',
+      criteria: 'Consommez-vous quotidiennement des aliments reconnus pour leur effet anti-inflammatoire — comme les poissons gras (sardines, maquereau, saumon), les légumes à feuilles vertes (épinards, brocoli, chou kale), les baies (myrtilles, framboises), le curcuma ou le gingembre ?',
       scoring: ouiPositifScoring(4),
       tip: 'L\'alimentation anti-inflammatoire est un pilier de la longévité.',
     },

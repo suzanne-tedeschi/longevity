@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { isSupabaseConfigured, supabase } from "@/lib/supabase"
+import { isSupabaseConfigured, supabase, upsertProfile } from "@/lib/supabase"
 import { getProgressPercent, BILAN_TOTAL_QUESTIONS, clearProgress } from "@/lib/bilan-progress"
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -21,7 +21,7 @@ import {
   Activity, Moon, Apple, Brain, Dumbbell, Heart, RefreshCw, Plus, X,
   Timer, Zap, Shield, Leaf, Microscope, Lightbulb, ArrowRight, GripVertical,
   Dna, Clock, Wind, Recycle, Bug, Radio, Sprout, Ban, LayoutGrid, Columns3, CalendarDays,
-  MessageCircle, CheckCircle, AlertTriangle, LogOut,
+  MessageCircle, CheckCircle, AlertTriangle, LogOut, Sparkles,
 } from "lucide-react"
 import css from "./bilans.module.css"
 
@@ -178,12 +178,10 @@ export default function BilansPage() {
   const [bilanResults, setBilanResults] = useState<BilanResult[]>([])
   const [expandedReport, setExpandedReport] = useState<string | null>(null)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
-  const [sessions, setSessions] = useState<Session[]>([
-    { id: "1", date: (() => { const d = new Date(); d.setHours(9, 0, 0, 0); return d })(), type: "evo", label: "Seance evo Mobilite", duration: 45 },
-    { id: "2", date: (() => { const d = new Date(); d.setHours(14, 0, 0, 0); return d })(), type: "sport", label: "Run 5km", duration: 30 },
-  ])
+  const [sessions, setSessions] = useState<Session[]>([])
   const [modal, setModal] = useState<{ open: boolean; date: Date | null }>({ open: false, date: null })
-  const [newSession, setNewSession] = useState({ type: "evo" as "evo" | "sport", label: "", duration: 45, notes: "" })
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
+  const [newSession, setNewSession] = useState({ type: "sport" as "evo" | "sport", label: "", duration: 45, notes: "", time: "09:00" })
   const [calendarConnected, setCalendarConnected] = useState(false)
   const [calendarEmail, setCalendarEmail] = useState<string | null>(null)
   const [calendarLoading, setCalendarLoading] = useState(true)
@@ -193,18 +191,125 @@ export default function BilansPage() {
   const [syncingEvents, setSyncingEvents] = useState(false)
   const [calFilters, setCalFilters] = useState({ evo: true, sport: true, google: true })
   const [userName, setUserName] = useState<string | null>(null)
+  const [userAge, setUserAge] = useState<number | null>(null)
+  const [userActivityFreq, setUserActivityFreq] = useState<string | null>(null)
+  const [userDiet, setUserDiet] = useState<string | null>(null)
+  const [userEvoUsage, setUserEvoUsage] = useState<string | null>(null)
+  const [userWeeklyActivities, setUserWeeklyActivities] = useState<string[]>([])
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
 
   /* ── drag & drop ── */
+  const sessionsHydratedRef = useRef(false)
+  const persistSessionsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dragId = useRef<string | null>(null)
+  const dragPayload = useRef<{ kind: "chip" | "session"; value: string } | null>(null)
   const [dragOverDay, setDragOverDay] = useState<string | null>(null)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
 
+  const addSessionAtDate = useCallback((date: Date, label: string, type: "evo" | "sport" = "sport") => {
+    setSessions(prev => [
+      ...prev,
+      {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        date,
+        type,
+        label,
+        duration: 45,
+        notes: "",
+      },
+    ])
+  }, [])
+
+  const getDraggedChipLabel = useCallback((e: React.DragEvent) => {
+    if (dragPayload.current?.kind === "chip") return dragPayload.current.value.trim()
+    if (e.dataTransfer.getData("application/evo-drag-kind") !== "chip") return ""
+    return e.dataTransfer.getData("application/evo-chip").trim()
+  }, [])
+
+  const getDraggedSessionId = useCallback((e: React.DragEvent) => {
+    if (dragPayload.current?.kind === "session") return dragPayload.current.value.trim()
+    const customId = e.dataTransfer.getData("application/evo-session-id").trim()
+    if (customId) return customId
+    if (e.dataTransfer.getData("application/evo-drag-kind") === "session") {
+      return (dragId.current || e.dataTransfer.getData("text/plain")).trim()
+    }
+    return ""
+  }, [])
+
+  const clearDragState = useCallback(() => {
+    dragId.current = null
+    dragPayload.current = null
+  }, [])
+
+  const resetModalState = useCallback(() => {
+    setModal({ open: false, date: null })
+    setEditingSessionId(null)
+    setNewSession({ type: "sport", label: "", duration: 45, notes: "", time: "09:00" })
+  }, [])
+
+  const openCreateModal = useCallback((date: Date, label = "") => {
+    const nextDate = new Date(date)
+    const hasExplicitTime = getHours(nextDate) !== 0 || getMinutes(nextDate) !== 0
+    setEditingSessionId(null)
+    setNewSession({
+      type: "sport",
+      label,
+      duration: 45,
+      notes: "",
+      time: hasExplicitTime ? format(nextDate, "HH:mm") : "09:00",
+    })
+    setModal({ open: true, date: nextDate })
+  }, [])
+
+  const openEditModal = useCallback((session: Session) => {
+    if (session.type === "google") return
+    setEditingSessionId(session.id)
+    setNewSession({
+      type: session.type,
+      label: session.label,
+      duration: session.duration,
+      notes: session.notes || "",
+      time: format(session.date, "HH:mm"),
+    })
+    setModal({ open: true, date: new Date(session.date) })
+  }, [])
+
+  const updateModalDate = useCallback((value: string) => {
+    if (!value) return
+    setModal(prev => {
+      if (!prev.date) return prev
+      const [year, month, day] = value.split("-").map(Number)
+      const nextDate = new Date(prev.date)
+      nextDate.setFullYear(year, (month || 1) - 1, day || 1)
+      return { ...prev, date: nextDate }
+    })
+  }, [])
+
+  const getDateFromGridPointer = useCallback((clientY: number, element: HTMLElement, targetDate: Date) => {
+    const rect = element.getBoundingClientRect()
+    const y = clientY - rect.top
+    const rawHours = 8 + y / H_PX
+    const h = Math.max(8, Math.min(20, Math.floor(rawHours)))
+    const rawMin = (rawHours - Math.floor(rawHours)) * 60
+    const m = Math.min(45, Math.round(rawMin / 15) * 15)
+    const nextDate = new Date(targetDate)
+    nextDate.setHours(h, m, 0, 0)
+    return nextDate
+  }, [])
+
+  const onTimeGridClick = useCallback((e: React.MouseEvent<HTMLElement>, targetDate: Date) => {
+    const nextDate = getDateFromGridPointer(e.clientY, e.currentTarget, targetDate)
+    openCreateModal(nextDate)
+  }, [getDateFromGridPointer, openCreateModal])
+
   const onDragStart = useCallback((e: React.DragEvent, sessionId: string) => {
     dragId.current = sessionId
+    dragPayload.current = { kind: "session", value: sessionId }
     e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData("application/evo-drag-kind", "session")
+    e.dataTransfer.setData("application/evo-session-id", sessionId)
     e.dataTransfer.setData("text/plain", sessionId)
     // ghost
     const el = e.currentTarget as HTMLElement
@@ -222,7 +327,14 @@ export default function BilansPage() {
   const onDrop = useCallback((e: React.DragEvent, targetDate: Date) => {
     e.preventDefault()
     setDragOverDay(null)
-    const sid = dragId.current || e.dataTransfer.getData("text/plain")
+    const chipLabel = getDraggedChipLabel(e)
+    if (chipLabel) {
+      const nd = new Date(targetDate); nd.setHours(9, 0, 0, 0)
+      addSessionAtDate(nd, chipLabel, "sport")
+      clearDragState()
+      return
+    }
+    const sid = getDraggedSessionId(e)
     if (!sid) return
     setSessions(prev => prev.map(s => {
       if (s.id !== sid) return s
@@ -230,30 +342,37 @@ export default function BilansPage() {
       nd.setHours(getHours(s.date), getMinutes(s.date), 0, 0)
       return { ...s, date: nd }
     }))
-    dragId.current = null
-  }, [])
+    clearDragState()
+  }, [addSessionAtDate, clearDragState, getDraggedChipLabel, getDraggedSessionId])
 
   /* drop with hour calculation from Y position */
   const onDropTime = useCallback((e: React.DragEvent, targetDate: Date) => {
     e.preventDefault()
     e.stopPropagation()
     setDragOverDay(null)
-    const sid = dragId.current || e.dataTransfer.getData("text/plain")
-    if (!sid) return
     const rect = e.currentTarget.getBoundingClientRect()
     const y = e.clientY - rect.top
     const rawHours = 8 + y / H_PX
     const h = Math.max(8, Math.min(20, Math.floor(rawHours)))
     const rawMin = (rawHours - Math.floor(rawHours)) * 60
     const m = Math.min(45, Math.round(rawMin / 15) * 15)
+    const chipLabel = getDraggedChipLabel(e)
+    if (chipLabel) {
+      const nd = new Date(targetDate); nd.setHours(h, m, 0, 0)
+      addSessionAtDate(nd, chipLabel, "sport")
+      clearDragState()
+      return
+    }
+    const sid = getDraggedSessionId(e)
+    if (!sid) return
     setSessions(prev => prev.map(s => {
       if (s.id !== sid) return s
       const nd = new Date(targetDate)
       nd.setHours(h, m, 0, 0)
       return { ...s, date: nd }
     }))
-    dragId.current = null
-  }, [])
+    clearDragState()
+  }, [addSessionAtDate, clearDragState, getDraggedChipLabel, getDraggedSessionId])
 
   /* ── google calendar ── */
   const fetchGoogleEvents = async (d: Date, forceSync = false) => {
@@ -284,6 +403,27 @@ export default function BilansPage() {
         const u = session.user
         const name = u?.user_metadata?.first_name || u?.user_metadata?.full_name?.split(' ')[0] || u?.user_metadata?.name?.split(' ')[0] || u?.email?.split('@')[0] || null
         if (name) setUserName(name.charAt(0).toUpperCase() + name.slice(1))
+        const onb = u?.user_metadata?.evo_onboarding as Record<string, unknown> | undefined
+        if (onb) {
+          if (onb.age) setUserAge(Number(onb.age))
+          if (onb.activityFrequency) setUserActivityFreq(onb.activityFrequency as string)
+          if (onb.diet) setUserDiet(onb.diet as string)
+          if (onb.evoUsage) setUserEvoUsage(onb.evoUsage as string)
+          if (Array.isArray(onb.weeklyActivities)) setUserWeeklyActivities(onb.weeklyActivities as string[])
+        } else {
+          // Fallback to localStorage
+          try {
+            const cached = localStorage.getItem('evo_onboarding_data')
+            if (cached) {
+              const d = JSON.parse(cached) as Record<string, unknown>
+              if (d.age) setUserAge(Number(d.age))
+              if (d.activityFrequency) setUserActivityFreq(d.activityFrequency as string)
+              if (d.diet) setUserDiet(d.diet as string)
+              if (d.evoUsage) setUserEvoUsage(d.evoUsage as string)
+              if (Array.isArray(d.weeklyActivities)) setUserWeeklyActivities(d.weeklyActivities as string[])
+            }
+          } catch { /* ignore */ }
+        }
 
         const metadataSessions = (u?.user_metadata?.evo_onboarding as { agendaSessions?: StoredSession[] } | undefined)?.agendaSessions
         const localSessionsRaw = typeof window !== "undefined" ? localStorage.getItem("evo_planning_sessions") : null
@@ -297,6 +437,7 @@ export default function BilansPage() {
             setSessions(parsed)
           }
         }
+        sessionsHydratedRef.current = true
 
         // Fetch calendar status
         const r = await fetch("/api/calendar/google/status", { headers: { Authorization: `Bearer ${session.access_token}` } })
@@ -329,6 +470,56 @@ export default function BilansPage() {
     )
   }, [sessions])
 
+  useEffect(() => {
+    if (!sessionsHydratedRef.current || !isSupabaseConfigured || !supabase) return
+    const sb = supabase
+
+    if (persistSessionsTimeoutRef.current) {
+      clearTimeout(persistSessionsTimeoutRef.current)
+    }
+
+    persistSessionsTimeoutRef.current = setTimeout(async () => {
+      try {
+        const { data: { session } } = await sb.auth.getSession()
+        if (!session?.user) return
+
+        const existingOnboarding =
+          (session.user.user_metadata?.evo_onboarding as Record<string, unknown> | undefined) ?? {}
+
+        const nextOnboarding = {
+          ...existingOnboarding,
+          agendaSessions: sessions.map((storedSession) => ({
+            ...storedSession,
+            date: storedSession.date.toISOString(),
+          })),
+        }
+
+        await sb.auth.updateUser({
+          data: {
+            ...session.user.user_metadata,
+            evo_onboarding: nextOnboarding,
+          },
+        })
+
+        await upsertProfile({
+          id: session.user.id,
+          first_name: (session.user.user_metadata?.first_name as string | undefined) || '',
+          onboarding_data: nextOnboarding,
+          onboarding_completed_at:
+            (existingOnboarding.completedAt as string | undefined) ?? null,
+        })
+      } catch (error) {
+        console.warn("Failed to persist planning sessions to Supabase:", error)
+      }
+    }, 500)
+
+    return () => {
+      if (persistSessionsTimeoutRef.current) {
+        clearTimeout(persistSessionsTimeoutRef.current)
+      }
+    }
+  }, [sessions])
+
   useEffect(() => { if (calendarConnected) fetchGoogleEvents(currentDate) }, [currentDate, calendarConnected]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleConnectCalendar = async () => {
@@ -353,9 +544,19 @@ export default function BilansPage() {
 
   const addSessionHandler = () => {
     if (!modal.date || !newSession.label) return
-    const d = new Date(modal.date); d.setHours(9, 0, 0, 0)
-    setSessions(prev => [...prev, { id: Date.now().toString(), date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }])
-    setModal({ open: false, date: null }); setNewSession({ type: "evo", label: "", duration: 45, notes: "" })
+    const d = new Date(modal.date)
+    const [hours, minutes] = newSession.time.split(":").map(Number)
+    d.setHours(Number.isFinite(hours) ? hours : 9, Number.isFinite(minutes) ? minutes : 0, 0, 0)
+    if (editingSessionId) {
+      setSessions(prev => prev.map(session =>
+        session.id === editingSessionId
+          ? { ...session, date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }
+          : session
+      ))
+    } else {
+      setSessions(prev => [...prev, { id: Date.now().toString(), date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }])
+    }
+    resetModalState()
   }
 
   const navigate = (dir: -1 | 1) => {
@@ -422,6 +623,28 @@ export default function BilansPage() {
     { label: "Mental", score: mentalScore, icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
   ]
 
+  /* ── Profile label helpers ── */
+  const shortActivityFreq = (v: string) => {
+    if (v.includes('Jamais')) return 'Jamais'
+    if (v.includes('régulièrement')) return 'Irrégulier'
+    if (v.includes('1 fois')) return '1×/semaine'
+    if (v.includes('2 fois')) return '2×/semaine'
+    if (v.includes('3 fois')) return '3×/semaine ou +'
+    return v
+  }
+  const shortDiet = (v: string) => {
+    if (v.startsWith('Omnivore')) return 'Omnivore'
+    if (v.includes('Intolérance')) return 'Intolérances'
+    if (v.includes('Autre')) return 'Régime spécifique'
+    return v
+  }
+  const shortEvoUsage = (v: string) => {
+    if (v.includes('programme principal')) return 'Programme principal'
+    if (v.includes('compléter')) return 'En complément'
+    if (v.includes('questions')) return 'Questions longévité'
+    return v
+  }
+
   /* ── Active report for display ── */
   const activeReport = useMemo(() => {
     if (!expandedReport) return null
@@ -474,55 +697,114 @@ export default function BilansPage() {
           </nav>
           <div className="max-w-5xl mx-auto px-6 pt-10 pb-14">
             {/* greeting */}
-            <div className="flex items-center gap-2 mb-10">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#c9a96e]/90">{userName ? `Bonjour ${userName}` : "Ton espace sante"}</p>
+            <div className="flex items-center gap-2 mb-8">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#c9a96e]/90">{userName ? `Bonjour ${userName}` : "Ton espace santé"}</p>
               <span className="flex-1 h-px bg-white/[0.08]" />
               <span className="text-[12px] text-white/40 font-medium">{format(new Date(), "d MMMM yyyy", { locale: fr })}</span>
             </div>
-            {/* hero content: age bio left + score cards right */}
-            <div className="flex flex-col md:flex-row items-center md:items-end gap-10 md:gap-16">
-              {/* left: age biologique */}
-              <div className="shrink-0 relative">
-                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/40 mb-2">Age biologique</p>
-                <div className="flex items-baseline gap-3 relative">
-                  <span className="text-[112px] leading-none font-extrabold tracking-tighter text-white/10 select-none blur-[6px]">00.0</span>
-                  <span className="text-3xl font-semibold text-white/10 blur-[4px]">ans</span>
+
+            <div className="flex flex-row gap-4 lg:gap-10 items-start">
+              {/* ── Left: profile block ── */}
+              <div className="shrink-0 w-[38%] lg:w-[240px]">
+                {/* Ages side by side */}
+                <div className="flex items-start gap-2 lg:gap-5 mb-4 lg:mb-5">
+                  <div>
+                    <p className="text-[9px] lg:text-[10px] font-medium uppercase tracking-[0.15em] lg:tracking-[0.18em] text-white/30 mb-1 lg:mb-1.5">Âge réel</p>
+                    <div className="flex items-baseline gap-0.5 lg:gap-1">
+                      <span className="text-[28px] lg:text-[42px] leading-none font-extrabold text-white tracking-tight">{userAge ?? '—'}</span>
+                      {userAge && <span className="text-[11px] lg:text-base text-white/40 font-medium">ans</span>}
+                    </div>
+                  </div>
+                  <div className="w-px self-stretch bg-white/[0.08] mx-0.5 lg:mx-1" />
+                  <div>
+                    <p className="text-[9px] lg:text-[10px] font-medium uppercase tracking-[0.15em] lg:tracking-[0.18em] text-white/30 mb-1 lg:mb-1.5">Âge bio</p>
+                    <div className="flex items-baseline gap-0.5 lg:gap-1">
+                      <span className="text-[28px] lg:text-[42px] leading-none font-extrabold text-white/10 blur-[5px] select-none tracking-tight">00</span>
+                      <span className="text-[11px] lg:text-base text-white/10 blur-[4px]">ans</span>
+                    </div>
+                    <p className="text-[9px] lg:text-[10px] text-white/20 mt-0.5 lg:mt-1">Bientôt</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 mt-3">
-                  <span className="w-2 h-2 rounded-full bg-white/20" />
-                  <p className="text-[13px] text-white/30 font-medium">Bientôt disponible</p>
+
+                {/* Profile chips */}
+                <div className="space-y-1.5">
+                  {userActivityFreq && (
+                    <div className="flex items-center gap-1.5 lg:gap-2.5 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-white/[0.04] border border-white/[0.07]">
+                      <Activity className="w-3 h-3 lg:w-3.5 lg:h-3.5 shrink-0" style={{ color: '#3ECF8E' }} />
+                      <span className="text-[10px] lg:text-[11px] text-white/80 font-medium truncate">{shortActivityFreq(userActivityFreq)}</span>
+                    </div>
+                  )}
+                  {userDiet && (
+                    <div className="flex items-center gap-1.5 lg:gap-2.5 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-white/[0.04] border border-white/[0.07]">
+                      <Apple className="w-3 h-3 lg:w-3.5 lg:h-3.5 shrink-0" style={{ color: '#c9a96e' }} />
+                      <span className="text-[10px] lg:text-[11px] text-white/80 font-medium truncate">{shortDiet(userDiet)}</span>
+                    </div>
+                  )}
+                  {userEvoUsage && (
+                    <div className="flex items-center gap-1.5 lg:gap-2.5 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-white/[0.04] border border-white/[0.07]">
+                      <Zap className="w-3 h-3 lg:w-3.5 lg:h-3.5 shrink-0" style={{ color: '#a78bfa' }} />
+                      <span className="text-[10px] lg:text-[11px] text-white/80 font-medium truncate">{shortEvoUsage(userEvoUsage)}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* WhatsApp — masqué sur mobile */}
+                <div className="hidden sm:block mt-5">
+                  <a href="https://wa.me/message/QTBSFJSLI3PKN1" target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-[#25D366]/10 border border-[#25D366]/20 hover:bg-[#25D366]/20 transition-all group/wa">
+                    <div className="w-5 h-5 rounded-full bg-[#25D366] flex items-center justify-center shrink-0">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    </div>
+                    <p className="text-[11px] text-white/50 group-hover/wa:text-white/70 transition-colors"><span className="font-semibold text-white/70">Question ?</span> WhatsApp</p>
+                  </a>
                 </div>
               </div>
-              {/* right: 4 score cards */}
-              <div className="flex-1 w-full">
-                <div className="grid grid-cols-4 gap-3">
-                  {scoreCards.map((card, i) => (
-                    <div key={i} className={`${css.kpiCard} relative rounded-xl p-4 text-center overflow-hidden bg-white/[0.05] border border-white/[0.08]`}>
-                      <div className={css.kpiShimmer}><div /></div>
-                      <div className={`${css.kpiIcon} w-9 h-9 rounded-lg bg-white/[0.06] flex items-center justify-center mx-auto mb-2.5`} style={{ color: card.color }}>{card.icon}</div>
-                      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-white/35 mb-1.5">{card.label}</p>
-                      {card.score !== null ? (
-                        <div className="flex items-baseline justify-center gap-0.5">
-                          <span className={`${css.kpiValue} text-2xl font-bold text-white`}>{card.score}</span>
-                          <span className="text-[11px] text-white/25 font-medium">/100</span>
-                        </div>
-                      ) : (
-                        <span className="text-lg text-white/15 font-medium">—</span>
-                      )}
+
+              {/* ── Right: score cards ── */}
+              <div className="flex-1 min-w-0 flex flex-col gap-2 lg:gap-3">
+                {/* Nutrition — carte principale */}
+                <div
+                  className={`${css.kpiCard} relative rounded-xl p-3 lg:p-5 overflow-hidden border cursor-pointer`}
+                  style={{ background: nutritionScore !== null ? 'rgba(201,169,110,0.07)' : 'rgba(255,255,255,0.04)', borderColor: nutritionScore !== null ? 'rgba(201,169,110,0.22)' : 'rgba(255,255,255,0.08)' }}
+                  onClick={() => router.push('/onboarding/bilan-nutrition')}
+                >
+                  <div className={css.kpiShimmer}><div /></div>
+                  <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-4">
+                    <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
+                      <div className={`${css.kpiIcon} w-8 h-8 lg:w-11 lg:h-11 rounded-lg lg:rounded-xl flex items-center justify-center shrink-0`} style={{ background: 'rgba(201,169,110,0.12)', color: '#c9a96e' }}>
+                        <Apple className="w-4 h-4 lg:w-5 lg:h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] lg:text-[11px] font-medium uppercase tracking-[0.14em] text-white/35 mb-0.5 lg:mb-1">Nutrition</p>
+                        {nutritionScore !== null ? (
+                          <div className="flex items-baseline gap-1">
+                            <span className={`${css.kpiValue} text-2xl lg:text-3xl font-bold text-white`}>{nutritionScore}</span>
+                            <span className="text-xs lg:text-sm text-white/30">/100</span>
+                          </div>
+                        ) : (
+                          <p className="text-[12px] lg:text-[14px] text-white/55 font-medium leading-tight">Questionnaire<br className="lg:hidden" /> disponible</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="self-start lg:self-auto flex items-center gap-1 lg:gap-1.5 px-2.5 lg:px-3 py-1.5 rounded-lg text-[10px] lg:text-[11px] font-semibold transition-all" style={{ color: '#c9a96e', background: 'rgba(201,169,110,0.1)', border: '1px solid rgba(201,169,110,0.2)' }}>
+                      {nutritionScore !== null ? 'Rapport' : 'Commencer'}
+                      <ArrowRight className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3 autres cartes — toujours visibles, compactes sur mobile */}
+                <div className="grid grid-cols-3 gap-1.5 lg:gap-3">
+                  {scoreCards.filter(c => c.label !== "Nutrition").map((card, i) => (
+                    <div key={i} className={`${css.kpiCard} relative rounded-xl p-2 lg:p-3.5 text-center overflow-hidden border opacity-40`} style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}>
+                      <div className={`${css.kpiIcon} w-6 h-6 lg:w-8 lg:h-8 rounded-md lg:rounded-lg flex items-center justify-center mx-auto mb-1 lg:mb-2`} style={{ background: 'rgba(255,255,255,0.05)', color: card.color }}>
+                        <span className="scale-75 lg:scale-100">{card.icon}</span>
+                      </div>
+                      <p className="text-[9px] lg:text-[10px] font-medium uppercase tracking-[0.1em] lg:tracking-[0.12em] text-white/30 leading-tight">{card.label}</p>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
-            {/* WhatsApp coach button */}
-            <div className="mt-8">
-              <a href="https://wa.me/message/QTBSFJSLI3PKN1" target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#25D366]/10 border border-[#25D366]/20 hover:bg-[#25D366]/20 hover:border-[#25D366]/35 transition-all duration-300 group/wa">
-                <div className="w-7 h-7 rounded-full bg-[#25D366] flex items-center justify-center shrink-0">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                </div>
-                <p className="text-[12px] text-white/60 group-hover/wa:text-white/80 transition-colors"><span className="font-semibold text-white/80">Question ?</span> Tout passe par WhatsApp</p>
-              </a>
             </div>
           </div>
           {/* clean edge + glow */}
@@ -537,10 +819,11 @@ export default function BilansPage() {
 
         {/* ════════ BILANS ════════ */}
         <section id="bilans" className="scroll-mt-20">
-          <SectionHeader title="Tes bilans" subtitle="Complete tes bilans pour alimenter ton dashboard" gold />
+          <SectionHeader title="Tes bilans" subtitle="1 bilan disponible aujourd'hui — les autres arrivent bientôt" gold />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {bilanOptions.map(bilan => {
               const completed = bilan.score !== null
+              const isPriorityNutrition = bilan.bilanType === 'nutrition' && !completed && bilan.available
               // Compute progress % from localStorage for in-progress bilans
               // Only read localStorage after mount to avoid hydration mismatch
               let pct = completed ? 100 : 0
@@ -574,16 +857,22 @@ export default function BilansPage() {
                 }}
                   className={`relative rounded-xl border p-4 transition-all duration-300 flex flex-col items-center text-center group/bilan ${
                     bilan.available
-                      ? "bg-white hover:shadow-lg hover:-translate-y-1 cursor-pointer"
-                      : "bg-white hover:-translate-y-0.5 cursor-default"
+                      ? "bg-white hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+                      : "bg-[#f9f9f9] opacity-50 cursor-default"
                   }`}
-                  style={{ borderColor: bilan.available ? `${c}30` : `${c}20` }}>
+                  style={{ borderColor: bilan.available ? `${c}45` : '#e5e5e5' }}>
                   <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-xl" style={{ background: `linear-gradient(to right, transparent, ${c}${bilan.available ? '66' : '33'}, transparent)` }} />
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-all duration-300 group-hover/bilan:scale-110"
                     style={{ background: `${c}15`, color: c }}>
                     {bilan.icon}
                   </div>
                   <h3 className={`text-[13px] font-medium mb-1 leading-tight ${!bilan.available ? "text-[#1a1a1a]/60" : "text-[#1a1a1a]"}`}>{bilan.title}</h3>
+                  {isPriorityNutrition && (
+                    <span className="inline-flex items-center gap-1 mb-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#25D366]" />
+                      <span className="text-[10px] text-[#1a1a1a]/40">Disponible</span>
+                    </span>
+                  )}
                   {completed && bilan.score !== null && bilan.available ? (
                     <div className="flex flex-col items-center gap-1 mt-1">
                       <ScoreRing value={bilan.score} size={44} />
@@ -602,8 +891,16 @@ export default function BilansPage() {
                     </div>
                   ) : bilan.available ? (
                     <div className="flex flex-col items-center gap-1.5 mt-1">
-                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md" style={{ color: c, background: `${c}15` }}>{inProgress ? `${pct}% complété` : bilan.duration}</span>
-                      <span className="text-[11px] font-medium flex items-center gap-1 transition-colors" style={{ color: c }}>{inProgress ? 'Reprendre' : 'Decouvre ton score'} <ArrowRight className="w-3 h-3" /></span>
+                      <span
+                        className="text-[10px] font-semibold px-2.5 py-1 rounded-md"
+                        style={{ color: c, background: `${c}15` }}
+                      >
+                        {inProgress ? `${pct}% complété` : bilan.duration}
+                      </span>
+                      <span className="text-[11px] font-medium flex items-center gap-1 transition-colors" style={{ color: c }}>
+                        {inProgress ? 'Reprendre' : 'Decouvre ton score'}
+                        <ArrowRight className="w-3 h-3" />
+                      </span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-1.5 mt-2">
@@ -1085,6 +1382,47 @@ export default function BilansPage() {
           </div>
           {calendarError && <p className="text-xs text-red-500 bg-red-50/80 px-3 py-2 rounded-lg mb-4">{calendarError}</p>}
 
+          {/* ── Activity suggestion chips ── */}
+          {userWeeklyActivities.length > 0 && (
+            <div className="mb-5">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-[#1a1a1a]/30 font-semibold mb-2.5">
+                Tes activités &mdash; <span className="normal-case tracking-normal font-normal">glisse sur le planning ou tape pour ajouter</span>
+              </p>
+              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+                {userWeeklyActivities.map((activity, i) => (
+                  <div
+                    key={i}
+                    draggable
+                    onDragStart={e => {
+                      dragPayload.current = { kind: "chip", value: activity }
+                      e.dataTransfer.effectAllowed = "copy"
+                      e.dataTransfer.setData("application/evo-drag-kind", "chip")
+                      e.dataTransfer.setData("application/evo-chip", activity)
+                      e.dataTransfer.setData("text/plain", activity)
+                      dragId.current = null
+                    }}
+                    onDragEnd={clearDragState}
+                    onClick={() => {
+                      openCreateModal(new Date(currentDate), activity)
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-black/[0.06] text-[12px] font-medium text-[#1a1a1a]/60 cursor-grab active:cursor-grabbing whitespace-nowrap hover:border-[#c9a96e]/50 hover:text-[#1a1a1a] hover:shadow-sm transition-all shrink-0 select-none"
+                  >
+                    {activity.includes('Muscul') || activity.includes('Fitness') ? <Dumbbell className="w-3.5 h-3.5 shrink-0" /> :
+                     activity.includes('Running') || activity.includes('Trail') ? <Activity className="w-3.5 h-3.5 shrink-0" /> :
+                     activity.includes('Vélo') || activity.includes('Cycl') ? <Zap className="w-3.5 h-3.5 shrink-0" /> :
+                     activity.includes('Yoga') || activity.includes('Pilates') ? <Leaf className="w-3.5 h-3.5 shrink-0" /> :
+                     activity.includes('CrossFit') || activity.includes('HIIT') ? <Zap className="w-3.5 h-3.5 shrink-0" /> :
+                     activity.includes('Boxe') || activity.includes('Art') ? <Shield className="w-3.5 h-3.5 shrink-0" /> :
+                     activity.includes('Danse') ? <Sparkles className="w-3.5 h-3.5 shrink-0" /> :
+                     activity.includes('Randon') ? <Leaf className="w-3.5 h-3.5 shrink-0" /> :
+                     <Activity className="w-3.5 h-3.5 shrink-0" />}
+                    {activity}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* filter toggles */}
           <div className="flex items-center gap-3 mb-3">
             {([{ key: "evo" as const, label: "evo", color: "#3ECF8E" }, { key: "sport" as const, label: "Sport", color: "#c9a96e" }, { key: "google" as const, label: "Agenda", color: "#4285f4" }]).map(f => (
@@ -1135,12 +1473,14 @@ export default function BilansPage() {
                       <div key={i}
                         onDragOver={e => onDragOver(e, dayKey)} onDragLeave={onDragLeave} onDrop={e => onDrop(e, day)}
                         className={`relative border-r border-b border-black/[0.03] min-h-[56px] p-1 text-left group transition-all ${isToday(day) ? "bg-[#3ECF8E]/[0.05]" : ""} ${dragOverDay === dayKey ? "bg-[#3ECF8E]/[0.08]" : "hover:bg-[#3ECF8E]/[0.02]"}`}>
-                        <button onClick={() => setModal({ open: true, date: day })} className="w-full text-left">
+                        <button onClick={() => openCreateModal(day)} className="w-full text-left">
                           <span className={`text-[10px] font-medium ${isToday(day) ? "w-4.5 h-4.5 rounded-full bg-[#3ECF8E] text-white flex items-center justify-center text-[9px]" : "text-[#1a1a1a]/40"}`}>{format(day, "d")}</span>
                         </button>
                         <div className="mt-px space-y-px">
                           {ds.slice(0, 2).map(s => (
                             <div key={s.id} draggable={isDraggable(s)} onDragStart={e => isDraggable(s) && onDragStart(e, s.id)}
+                              onDragEnd={clearDragState}
+                              onClick={e => { e.stopPropagation(); if (isDraggable(s)) openEditModal(s) }}
                               className={`text-[8px] font-medium px-1 py-px rounded truncate ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${s.type === "evo" ? "bg-[#3ECF8E]/10 text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 text-[#1a73e8]" : "bg-[#c9a96e]/10 text-[#a08050]"}`}>{s.type === "google" ? "Occupé" : s.label}</div>
                           ))}
                           {ds.length > 2 && <div className="text-[8px] text-[#1a1a1a]/20">+{ds.length - 2}</div>}
@@ -1175,12 +1515,14 @@ export default function BilansPage() {
                           onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move" }}
                           onDrop={e => onDropTime(e, day)}>
                           {HOURS.map(h => <div key={h} className="absolute w-full border-b border-black/[0.03]" style={{ top: (h - 8) * H_PX, height: H_PX }} />)}
-                          <button className="absolute inset-0 w-full z-0 opacity-0" onClick={() => setModal({ open: true, date: day })} />
+                          <button className="absolute inset-0 w-full z-0 opacity-0" onClick={e => onTimeGridClick(e, day)} />
                           {ds.map(s => {
                             const top = sessionTop(s), height = sessionHeight(s)
                             const cls = s.type === "evo" ? "bg-[#3ECF8E]/15 border-l-2 border-l-[#3ECF8E] text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 border-l-2 border-l-[#4285f4] text-[#1a73e8]" : "bg-[#c9a96e]/12 border-l-2 border-l-[#c9a96e] text-[#a08050]"
                             return (
                               <div key={s.id} draggable={isDraggable(s)} onDragStart={e => isDraggable(s) && onDragStart(e, s.id)}
+                                onDragEnd={clearDragState}
+                                onClick={e => { e.stopPropagation(); if (isDraggable(s)) openEditModal(s) }}
                                 className={`absolute left-0.5 right-0.5 z-10 rounded px-1 py-px overflow-hidden transition-opacity group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : "cursor-default"} ${cls}`}
                                 style={{ top, height: Math.max(height, 18) }}>
                                 {isDraggable(s) && <GripVertical className="w-2.5 h-2.5 absolute top-0.5 right-0 opacity-0 group-hover/sess:opacity-40 text-current" />}
@@ -1213,12 +1555,14 @@ export default function BilansPage() {
                     if (top < 0 || top > HOURS.length * H_PX) return null
                     return <div className="absolute left-0 right-0 z-10 flex items-center" style={{ top }}><div className="w-2 h-2 rounded-full bg-[#ff4444]" /><div className="flex-1 h-px bg-[#ff4444]/50" /></div>
                   })()}
-                  <button className="absolute inset-0 w-full z-0 opacity-0" onClick={() => setModal({ open: true, date: currentDate })} />
+                  <button className="absolute inset-0 w-full z-0 opacity-0" onClick={e => onTimeGridClick(e, currentDate)} />
                   {sessionsOnDay(currentDate).map(s => {
                     const top = sessionTop(s), height = sessionHeight(s)
                     const cls = s.type === "evo" ? "bg-[#3ECF8E]/15 border-l-[3px] border-l-[#3ECF8E] text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 border-l-[3px] border-l-[#4285f4] text-[#1a73e8]" : "bg-[#c9a96e]/12 border-l-[3px] border-l-[#c9a96e] text-[#a08050]"
                     return (
                       <div key={s.id} draggable={isDraggable(s)} onDragStart={e => isDraggable(s) && onDragStart(e, s.id)}
+                        onDragEnd={clearDragState}
+                        onClick={e => { e.stopPropagation(); if (isDraggable(s)) openEditModal(s) }}
                         className={`absolute left-1 right-4 z-10 rounded-lg px-3 py-1 overflow-hidden group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${cls}`}
                         style={{ top, height: Math.max(height, 24) }}>
                         {isDraggable(s) && <GripVertical className="w-3 h-3 absolute top-1 right-1 opacity-0 group-hover/sess:opacity-40 text-current" />}
@@ -1248,7 +1592,7 @@ export default function BilansPage() {
               <p className="text-[15px] font-bold text-white leading-snug mb-2">La cle, c&apos;est de s&apos;y tenir.</p>
               <p className="text-[12px] text-white/50 leading-relaxed mb-5">Ton programme ne vaut que si tu le suis. Ajoute tes seances, on s&apos;occupe du reste.</p>
               <div className="flex flex-col gap-2 mb-5">
-                <button onClick={() => setModal({ open: true, date: new Date() })} className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl bg-white text-[#1a1a1a] text-[12px] font-semibold hover:shadow-lg transition-all">
+                <button onClick={() => openCreateModal(new Date())} className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl bg-white text-[#1a1a1a] text-[12px] font-semibold hover:shadow-lg transition-all">
                   <Plus className="w-3.5 h-3.5" /> Ajouter mes seances sport
                 </button>
                 <button disabled className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl bg-white/10 text-white/40 text-[12px] font-medium cursor-not-allowed border border-white/10">
@@ -1276,7 +1620,7 @@ export default function BilansPage() {
           <div className="bg-white rounded-xl border border-black/[0.04] p-5 mb-4 relative">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Scores par pilier — 6 mois</h3>
-              <span className="text-[9px] font-bold text-[#c9a96e] bg-[#c9a96e]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">Bientot — donnees fictives</span>
+              <span className="text-[9px] font-bold text-[#c9a96e] bg-[#c9a96e]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">Bientôt</span>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={progressData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -1362,28 +1706,50 @@ export default function BilansPage() {
       {/* ─── MODAL ─── */}
       {modal.open && modal.date && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setModal({ open: false, date: null })} />
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={resetModalState} />
           <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-[14px] font-medium text-[#1a1a1a]">Ajouter — {format(modal.date, "EEEE d MMMM", { locale: fr })}</h3>
-              <button onClick={() => setModal({ open: false, date: null })} className="w-6 h-6 rounded-md flex items-center justify-center text-[#1a1a1a]/25 hover:text-[#1a1a1a] hover:bg-[#f3f4f3] transition-colors"><X className="w-3.5 h-3.5" /></button>
+              <h3 className="text-[14px] font-medium text-[#1a1a1a]">{editingSessionId ? "Modifier" : "Ajouter"} — {format(modal.date, "EEEE d MMMM", { locale: fr })}</h3>
+              <button onClick={resetModalState} className="w-6 h-6 rounded-md flex items-center justify-center text-[#1a1a1a]/25 hover:text-[#1a1a1a] hover:bg-[#f3f4f3] transition-colors"><X className="w-3.5 h-3.5" /></button>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              {(["evo", "sport"] as const).map(type => (
-                <button key={type} onClick={() => setNewSession(s => ({ ...s, type }))} className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[13px] font-medium border transition-all ${newSession.type === type ? type === "evo" ? "bg-[#3ECF8E]/8 border-[#3ECF8E]/30 text-[#1B9C6E]" : "bg-[#c9a96e]/8 border-[#c9a96e]/30 text-[#a08050]" : "border-black/[0.06] text-[#1a1a1a]/35"}`}>
-                  {type === "evo" ? <><Dumbbell className="w-3.5 h-3.5" /> evo</> : <><Activity className="w-3.5 h-3.5" /> Sport</>}
-                </button>
-              ))}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#c9a96e]/06 border border-[#c9a96e]/20">
+              <Activity className="w-3.5 h-3.5 text-[#a08050]" />
+              <span className="text-[12px] font-medium text-[#a08050]">Séance sport</span>
+              <span className="ml-auto text-[10px] text-[#1a1a1a]/25">Séances evo — bientôt</span>
             </div>
-            <input type="text" placeholder={newSession.type === "evo" ? "ex. Mobilite evo" : "ex. Run 5km"} value={newSession.label} onChange={e => setNewSession(s => ({ ...s, label: e.target.value }))} className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40 transition-colors placeholder:text-[#1a1a1a]/20" />
+            <input type="text" placeholder="ex. Run 5km, Vélo, Muscu…" value={newSession.label} onChange={e => setNewSession(s => ({ ...s, label: e.target.value }))} className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#c9a96e]/40 transition-colors placeholder:text-[#1a1a1a]/20" />
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-[11px] text-[#1a1a1a]/30 shrink-0"><Calendar className="w-3 h-3" /> jour</div>
+              <input
+                type="date"
+                value={format(modal.date, "yyyy-MM-dd")}
+                onChange={e => updateModalDate(e.target.value)}
+                className="flex-1 px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#c9a96e]/40"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-[11px] text-[#1a1a1a]/30 shrink-0"><Clock className="w-3 h-3" /> début</div>
+              <input type="time" value={newSession.time} onChange={e => setNewSession(s => ({ ...s, time: e.target.value }))} className="flex-1 px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#c9a96e]/40" />
+            </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 text-[11px] text-[#1a1a1a]/30 shrink-0"><Timer className="w-3 h-3" /> min</div>
               <input type="number" min={5} max={180} step={5} value={newSession.duration} onChange={e => setNewSession(s => ({ ...s, duration: Number(e.target.value) }))} className="flex-1 px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40" />
             </div>
             <textarea placeholder="Notes (optionnel)" value={newSession.notes} onChange={e => setNewSession(s => ({ ...s, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40 resize-none placeholder:text-[#1a1a1a]/20" />
             <div className="flex gap-2 pt-1">
-              <button onClick={() => setModal({ open: false, date: null })} className="flex-1 py-2.5 rounded-lg border border-black/[0.06] text-[13px] text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors">Annuler</button>
-              <button onClick={addSessionHandler} disabled={!newSession.label} className="flex-1 py-2.5 rounded-lg bg-[#1a1a1a] text-white text-[13px] font-medium hover:bg-[#333] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">Ajouter</button>
+              {editingSessionId && (
+                <button
+                  onClick={() => {
+                    setSessions(prev => prev.filter(session => session.id !== editingSessionId))
+                    resetModalState()
+                  }}
+                  className="py-2.5 px-3 rounded-lg border border-red-200 text-[13px] text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  Supprimer
+                </button>
+              )}
+              <button onClick={resetModalState} className="flex-1 py-2.5 rounded-lg border border-black/[0.06] text-[13px] text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors">Annuler</button>
+              <button onClick={addSessionHandler} disabled={!newSession.label} className="flex-1 py-2.5 rounded-lg bg-[#1a1a1a] text-white text-[13px] font-medium hover:bg-[#333] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">{editingSessionId ? "Enregistrer" : "Ajouter"}</button>
             </div>
           </div>
         </div>

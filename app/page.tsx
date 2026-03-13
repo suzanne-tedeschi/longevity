@@ -6,6 +6,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 export default function Home() {
   const [mounted, setMounted] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isHandlingAuthRedirect, setIsHandlingAuthRedirect] = useState(false)
 
   /* Hero video crossfade */
   const [activeVideo, setActiveVideo] = useState(0)
@@ -21,26 +22,21 @@ export default function Home() {
   const [isTyping, setIsTyping] = useState(true)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctaSectionRef = useRef<HTMLDivElement>(null)
+  const vincentRef = useRef<HTMLDivElement>(null)
+  const [vincentVisible, setVincentVisible] = useState(false)
 
   const rotatingWords = ['en forme.', 'autonome.', 'sans douleur.', 'solide.', 'actif(ve).', 'ind\u00e9pendant(e).']
 
   useEffect(() => {
     setMounted(true)
 
-    async function handleOAuthCodeOnLanding() {
+    function handleOAuthCodeOnLanding() {
       if (typeof window === 'undefined') return
       const params = new URLSearchParams(window.location.search)
       const code = params.get('code')
       if (!code) return
 
-      if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (!error) {
-          window.location.replace('/onboarding/bilans')
-          return
-        }
-      }
-
+      setIsHandlingAuthRedirect(true)
       if (!params.get('next')) {
         params.set('next', '/onboarding/bilans')
       }
@@ -49,6 +45,12 @@ export default function Home() {
 
     handleOAuthCodeOnLanding()
   }, [])
+
+  if (isHandlingAuthRedirect) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a]" />
+    )
+  }
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return
@@ -77,6 +79,18 @@ export default function Home() {
     })
 
     return () => subscription.unsubscribe()
+  }, [])
+
+  /* Vincent section scroll reveal */
+  useEffect(() => {
+    const el = vincentRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVincentVisible(true); observer.disconnect() } },
+      { threshold: 0.15 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [])
 
   /* Animated fitness silhouettes on canvas */
@@ -369,22 +383,109 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-20 md:py-28 px-6 bg-[#f5f3ef] text-[#1a1a1a]">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-[2.75rem] font-bold leading-tight mb-5">L&rsquo;industrie fitness optimise pour 12&nbsp;semaines.<br /><span style={{ color: '#c9a96e' }}>Nous, pour 12&nbsp;d&eacute;cennies.</span></h2>
-            <p className="text-[#1a1a1a]/45 text-base max-w-2xl mx-auto leading-relaxed mb-4">L&rsquo;entra&icirc;nement long&eacute;vit&eacute;, ce n&rsquo;est pas se pr&eacute;parer pour l&rsquo;&eacute;t&eacute;. C&rsquo;est construire la force, la mobilit&eacute; et la sant&eacute; m&eacute;tabolique qui permettent de vivre pleinement &agrave; 40, 60, 80&nbsp;ans et au-del&agrave;.</p>
-            <p className="text-[#1a1a1a]/45 text-base max-w-2xl mx-auto leading-relaxed">Chaque programme evo est con&ccedil;u par un expert en long&eacute;vit&eacute;. Pas g&eacute;n&eacute;r&eacute; par une IA. Pas copi&eacute;-coll&eacute; d&rsquo;internet. Construit par quelqu&rsquo;un qui comprend comment le corps vieillit &mdash; et comment l&rsquo;entra&icirc;nement peut ralentir ce processus.</p>
-          </div>
-          <div className="flex items-center gap-4 max-w-md mx-auto mb-16 px-6 py-5 rounded-2xl bg-white/60 border border-[#e0ddd7]">
-            <div className="w-11 h-11 rounded-full bg-[#e8e5df] flex items-center justify-center flex-shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a08050" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+      <section ref={vincentRef} className="py-24 md:py-32 bg-[#f5f3ef] text-[#1a1a1a] overflow-hidden">
+        <div className="max-w-5xl mx-auto px-6">
+
+          <div className="flex flex-col md:flex-row gap-12 md:gap-16 items-stretch">
+
+            {/* Photo — editorial, full height */}
+            <div
+              className="md:w-[30%] shrink-0"
+              style={{
+                transition: 'opacity 0.9s ease, transform 0.9s ease',
+                opacity: vincentVisible ? 1 : 0,
+                transform: vincentVisible ? 'translateX(0)' : 'translateX(-36px)',
+              }}
+            >
+              <div className="h-[320px] md:h-[400px] rounded-2xl overflow-hidden relative bg-[#e3dfd8]">
+                <img src="/images/Vincent.png" alt="Vincent" className="w-full h-full object-cover object-top" />
+                <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#c9a96e]/25 to-transparent pointer-events-none" />
+              </div>
             </div>
-            <div><p className="font-semibold text-sm">Vincent, ton coach</p><p className="text-[#1a1a1a]/40 text-xs">Kin&eacute;sith&eacute;rapeute &amp; pr&eacute;parateur physique &mdash; il con&ccedil;oit ton programme et t&rsquo;accompagne personnellement.</p></div>
+
+            {/* Texte — editorial */}
+            <div className="flex-1 flex flex-col justify-center">
+
+              <p
+                className="text-[10px] uppercase tracking-[0.35em] font-semibold mb-5"
+                style={{
+                  color: '#c9a96e',
+                  transition: 'opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s',
+                  opacity: vincentVisible ? 1 : 0,
+                  transform: vincentVisible ? 'translateY(0)' : 'translateY(14px)',
+                }}
+              >
+                L&rsquo;expertise derri&egrave;re evo
+              </p>
+
+              <h2
+                className="text-[2.4rem] md:text-[3rem] font-black leading-[1.08] tracking-tight mb-8"
+                style={{
+                  transition: 'opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s',
+                  opacity: vincentVisible ? 1 : 0,
+                  transform: vincentVisible ? 'translateY(0)' : 'translateY(14px)',
+                }}
+              >
+                L&rsquo;industrie fitness<br />optimise pour 12&nbsp;semaines.
+                <br />
+                <span style={{ color: '#c9a96e' }}>Nous, pour 12&nbsp;d&eacute;cennies.</span>
+              </h2>
+
+              <div
+                className="flex items-center gap-3 mb-8"
+                style={{
+                  transition: 'opacity 0.6s ease 0.4s',
+                  opacity: vincentVisible ? 1 : 0,
+                }}
+              >
+                <div className="w-8 h-px bg-[#c9a96e]" />
+                <div className="h-px flex-1 bg-[#1a1a1a]/10" />
+              </div>
+
+              <div
+                style={{
+                  transition: 'opacity 0.6s ease 0.45s, transform 0.6s ease 0.45s',
+                  opacity: vincentVisible ? 1 : 0,
+                  transform: vincentVisible ? 'translateY(0)' : 'translateY(14px)',
+                }}
+              >
+                <p className="text-[3rem] md:text-[3.5rem] font-black tracking-tight leading-none mb-1">Vincent</p>
+                <p className="text-[0.72rem] text-[#1a1a1a]/35 uppercase tracking-[0.25em] mb-7">Ton coach</p>
+              </div>
+
+              <div
+                className="space-y-1.5 mb-8 text-[0.875rem] text-[#1a1a1a]/50 leading-relaxed"
+                style={{
+                  transition: 'opacity 0.6s ease 0.55s, transform 0.6s ease 0.55s',
+                  opacity: vincentVisible ? 1 : 0,
+                  transform: vincentVisible ? 'translateY(0)' : 'translateY(14px)',
+                }}
+              >
+                <p>Expert &amp; professeur-chercheur en <span className="text-[#1a1a1a]/80 font-semibold">sciences du vieillissement</span></p>
+                <p>Coach expert en <span className="text-[#1a1a1a]/80 font-semibold">prophylaxie</span> &mdash; pr&eacute;vention des blessures sur le long terme</p>
+                <p>Conception &amp; <span className="text-[#1a1a1a]/80 font-semibold">accompagnement personnalis&eacute;</span> de chaque programme</p>
+              </div>
+
+              <div
+                className="border-l-[3px] border-[#c9a96e]/35 pl-5"
+                style={{
+                  transition: 'opacity 0.6s ease 0.65s, transform 0.6s ease 0.65s',
+                  opacity: vincentVisible ? 1 : 0,
+                  transform: vincentVisible ? 'translateY(0)' : 'translateY(14px)',
+                }}
+              >
+                <p className="text-[0.83rem] text-[#1a1a1a]/38 italic leading-relaxed">
+                  &ldquo;Pas g&eacute;n&eacute;r&eacute; par une IA, pas copi&eacute;-coll&eacute; d&rsquo;internet. Construit par quelqu&rsquo;un qui comprend comment le corps vieillit &mdash; et comment ralentir ce processus.&rdquo;
+                </p>
+              </div>
+
+            </div>
           </div>
-          <div className="grid grid-cols-3 gap-8 text-center pt-14 border-t border-[#e0ddd7]">
+
+          <div className="grid grid-cols-3 gap-8 text-center pt-14 mt-16 border-t border-[#e0ddd7]">
             {stats.map((s, i) => (<div key={i}><p className="text-3xl md:text-4xl font-bold mb-1" style={{ color: '#c9a96e' }}>{s.value}</p><p className="text-[#1a1a1a]/55 text-[10px] font-semibold uppercase tracking-[0.15em]">{s.label}</p><p className="text-[#1a1a1a]/30 text-[10px] mt-0.5">{s.sub}</p></div>))}
           </div>
+
         </div>
       </section>
 

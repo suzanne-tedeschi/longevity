@@ -3,9 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { supabase, isSupabaseConfigured, ensureProfile } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured, ensureProfile, upsertProfile } from '@/lib/supabase'
 
 type AuthMode = 'login' | 'signup'
+
+const appUrl =
+  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || null
 
 export default function LoginPage() {
   const router = useRouter()
@@ -59,16 +62,15 @@ export default function LoginPage() {
       },
     })
 
-    await supabase.from('profiles').upsert(
-      {
-        id: user.id,
-        first_name: firstNameFromPending || (user.user_metadata?.first_name as string) || '',
-        age: Number.isFinite(ageNumber) ? ageNumber : null,
-        height: Number.isFinite(heightNumber) ? heightNumber : null,
-        weight: Number.isFinite(weightNumber) ? weightNumber : null,
-      },
-      { onConflict: 'id' }
-    )
+    await upsertProfile({
+      id: user.id,
+      first_name: firstNameFromPending || (user.user_metadata?.first_name as string) || '',
+      age: Number.isFinite(ageNumber) ? ageNumber : null,
+      height: Number.isFinite(heightNumber) ? heightNumber : null,
+      weight: Number.isFinite(weightNumber) ? weightNumber : null,
+      onboarding_data: payload as Record<string, unknown>,
+      onboarding_completed_at: payload.completedAt,
+    })
 
     if (firstNameFromPending) {
       localStorage.setItem('evo_user_name', firstNameFromPending)
@@ -160,12 +162,12 @@ export default function LoginPage() {
       const {
         data: { session },
       } = await supabase.auth.getSession()
-      const appliedPending = session?.user ? await applyPendingOnboarding(session.user) : false
-      const completed = Boolean(session?.user?.user_metadata?.evo_onboarding_completed)
       if (mode === 'login') {
         router.push('/onboarding/bilans')
       } else {
-        router.push(appliedPending || completed ? '/onboarding/bilans' : '/onboarding/profil')
+        // Signup succeeded — always go to bilans. Apply pending onboarding data if there's a session.
+        if (session?.user) await applyPendingOnboarding(session.user)
+        router.push('/onboarding/bilans')
       }
     } catch {
       setErrorMsg('Une erreur est survenue. Réessayez.')
@@ -181,10 +183,11 @@ export default function LoginPage() {
     setLoading(true)
     setErrorMsg('')
     const nextPath = mode === 'login' ? '/onboarding/bilans' : '/onboarding/login?mode=signup'
+    const redirectBase = appUrl || window.location.origin
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+        redirectTo: `${redirectBase}/auth/callback?next=${encodeURIComponent(nextPath)}`,
       },
     })
     if (error) {
