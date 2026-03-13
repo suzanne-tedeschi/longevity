@@ -294,18 +294,17 @@ const bonusReport: SectionReport = {
 
 export const allSectionReports: SectionReport[] = [
   // Digestif
-  refluxReport,
-  douleursReport,
-  indigestionReport,
-  diarrheeReport,
-  constipationReport,
-  // Alimentaire
-  habitudesReport,
-  macroReport,
-  microReport,
-  ultraTransReport,
-  inflammatoireReport,
-  bonusReport,
+    refluxReport,
+    douleursReport,
+    indigestionReport,
+    diarrheeReport,
+    constipationReport,
+    habitudesReport,
+    macroReport,
+    microReport,
+    ultraTransReport,
+    inflammatoireReport,
+    bonusReport,
 ]
 
 /** Lookup helper */
