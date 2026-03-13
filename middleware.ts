@@ -2,6 +2,19 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+  const oauthCode = request.nextUrl.searchParams.get('code')
+
+  if (oauthCode && pathname !== '/auth/callback') {
+    const callbackUrl = request.nextUrl.clone()
+    callbackUrl.pathname = '/auth/callback'
+    callbackUrl.searchParams.set('code', oauthCode)
+    if (!callbackUrl.searchParams.get('next')) {
+      callbackUrl.searchParams.set('next', '/onboarding/bilans')
+    }
+    return NextResponse.redirect(callbackUrl)
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -31,7 +44,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const pathname = request.nextUrl.pathname
   const isBilansRoute = pathname.startsWith('/onboarding/bilans')
   const isProfilRoute = pathname.startsWith('/onboarding/profil')
   const isOnboardingDone = Boolean(user?.user_metadata?.evo_onboarding_completed)
