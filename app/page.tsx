@@ -46,12 +46,6 @@ export default function Home() {
     handleOAuthCodeOnLanding()
   }, [])
 
-  if (isHandlingAuthRedirect) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a]" />
-    )
-  }
-
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return
 
@@ -292,6 +286,10 @@ export default function Home() {
     { value: '2\u00a0Md+', label: "d\u2019utilisateurs WhatsApp", sub: 'dans le monde' },
     { value: '80\u00a0%', label: 'abandonnent les apps fitness', sub: 'dans les 30 premiers jours' },
   ]
+
+  if (isHandlingAuthRedirect) {
+    return <div className="min-h-screen bg-[#0a0a0a]" />
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-amber-500/20">
