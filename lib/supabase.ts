@@ -18,23 +18,23 @@ type ProfileUpsertPayload = {
 	age?: number | null
 	height?: number | null
 	weight?: number | null
-	activity_frequency?: string | null
-	weekly_activities?: string[] | null
-	agenda_activities?: string | null
-	agenda_mode?: string | null
-	agenda_sessions?: unknown[] | null
+	activity_frequency?: string
+	weekly_activities?: string[]
+	agenda_sessions?: Record<string, unknown>[]
+	agenda_mode?: string
 	google_calendar_wanted?: boolean | null
-	google_calendar_connected?: boolean | null
-	limitations?: string[] | null
-	joint_pain_where?: string | null
-	muscle_pain_where?: string | null
-	other_limitation?: string | null
-	evo_usage?: string | null
-	priorities?: string[] | null
-	diet?: string | null
-	other_diet?: string | null
-	coach_tone?: string | null
-	expectations?: string | null
+	google_calendar_connected?: boolean
+	limitations?: string[]
+	joint_pain_where?: string
+	muscle_pain_where?: string
+	other_limitation?: string
+	evo_usage?: string
+	priorities?: string[]
+	diet?: string
+	other_diet?: string
+	coach_tone?: string
+	expectations?: string
+	onboarding_data?: Record<string, unknown>
 	onboarding_completed_at?: string | null
 }
 
@@ -54,36 +54,75 @@ const ONBOARDING_COLUMNS = [
 export async function upsertProfile(payload: ProfileUpsertPayload) {
 	if (!supabase) return null
 
+	console.log('[upsertProfile] Payload received:', {
+		activity_frequency: payload.activity_frequency,
+		weekly_activities: payload.weekly_activities,
+		diet: payload.diet,
+		priorities: payload.priorities,
+		coach_tone: payload.coach_tone,
+		expectations: payload.expectations,
+	})
+
+	// Clean up undefined values - convert to null or empty strings
+	const cleanedPayload = Object.fromEntries(
+		Object.entries(payload).map(([key, value]) => [
+			key,
+			value === undefined ? null : value,
+		])
+	) as ProfileUpsertPayload
+
 	const { data, error } = await supabase
 		.from('profiles')
-		.upsert(payload, { onConflict: 'id' })
+		.upsert(cleanedPayload, { onConflict: 'id' })
 		.select()
 		.single()
 
-	if (!error) return data
+	if (!error) {
+		console.log('[upsertProfile] Success! Data saved:', {
+			activity_frequency: data?.activity_frequency,
+			diet: data?.diet,
+		})
+		return data
+	}
 
-	const missingOnboardingColumns = ONBOARDING_COLUMNS.some((field) =>
-		error.message.includes(`profiles.${field}`)
-	)
-	if (!missingOnboardingColumns) {
-		console.warn('Profile upsert failed:', error.message)
+	// Full error log for debugging - log full details to help diagnose the issue
+	console.error('[upsertProfile failed]', {
+		message: error.message,
+		code: error.code,
+		details: error.details,
+		hint: error.hint,
+		fullError: error,
+	})
+
+	// Only use fallback if it's specifically a "column does not exist" error
+	// Check for PostgreSQL error code 42703 (column does not exist) 
+	// or the error message explicitly mentions undefined column
+	const isColumnMissingError =
+		error.code === '42703' ||
+		error.message?.includes('column') && error.message?.includes('does not exist')
+
+	if (!isColumnMissingError) {
+		// This is some other error (RLS, validation, network, etc.) - don't fallback
+		console.error('[upsertProfile prevented fallback] Not a missing column error, aborting.')
 		return null
 	}
 
-	// Fallback: strip all onboarding fields and save only basic profile info
-	const basicPayload = { id: payload.id, first_name: payload.first_name, last_name: payload.last_name, email: payload.email, avatar_url: payload.avatar_url }
+	console.warn('[upsertProfile fallback] Detected missing onboarding columns, trying basic fields only')
+
+	// Fallback: try to save ALL fields (in case it's just a transient error)
+	// The cleaned payload already has all the fields we want to save
 	const fallback = await supabase
 		.from('profiles')
-		.upsert(basicPayload, { onConflict: 'id' })
+		.upsert(cleanedPayload, { onConflict: 'id' })
 		.select()
 		.single()
 
 	if (fallback.error) {
-		console.warn('Profile fallback upsert failed:', fallback.error.message)
+		console.error('[upsertProfile fallback failed]', fallback.error)
 		return null
 	}
 
-	console.warn('profiles table is missing onboarding columns; falling back to basic profile fields')
+	console.warn('[upsertProfile] Successfully saved all fields via fallback')
 	return fallback.data
 }
 

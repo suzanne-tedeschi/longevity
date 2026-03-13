@@ -80,6 +80,15 @@
   .floating-element {
     animation: float 6s ease-in-out infinite;
   }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes float {
@@ -96,4 +105,13 @@
     opacity: 0.9;
     transform: scale(1.02);
   }
+}
+
+@keyframes demoDragCursor {
+  0%   { transform: translate(20px, 4px); opacity: 0; }
+  8%   { transform: translate(20px, 4px); opacity: 1; }
+  28%  { transform: translate(20px, 4px); opacity: 1; }
+  65%  { transform: translate(110px, 138px); opacity: 1; }
+  78%  { transform: translate(110px, 138px); opacity: 0.4; }
+  100% { transform: translate(110px, 138px); opacity: 0; }
 }

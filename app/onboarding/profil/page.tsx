@@ -39,7 +39,6 @@ type StepId =
   | 'activityFrequency'
   | 'weeklyActivities'
   | 'agendaActivities'
-  | 'calendar'
   | 'limitations'
   | 'usage'
   | 'priorities'
@@ -56,7 +55,6 @@ const steps: { id: StepId; label: string }[] = [
   { id: 'activityFrequency', label: 'Fréquence sport' },
   { id: 'weeklyActivities', label: 'Activités' },
   { id: 'agendaActivities', label: 'Agenda' },
-  { id: 'calendar', label: 'Google Agenda' },
   { id: 'limitations', label: 'Limitations' },
   { id: 'usage', label: 'Usage evo' },
   { id: 'priorities', label: 'Priorités' },
@@ -188,12 +186,12 @@ export default function ProfilPage() {
   const [weeklyActivities, setWeeklyActivities] = useState<string[]>([])
   const [agendaSessions, setAgendaSessions] = useState<PlanningSession[]>([])
   const [agendaMode, setAgendaMode] = useState<AgendaMode>('')
-  const [googleCalendarWanted, setGoogleCalendarWanted] = useState<boolean | null>(null)
   const [limitations, setLimitations] = useState<string[]>([])
   const [jointPainWhere, setJointPainWhere] = useState('')
   const [musclePainWhere, setMusclePainWhere] = useState('')
   const [otherLimitation, setOtherLimitation] = useState('')
-  const [evoUsage, setEvoUsage] = useState('')
+  const [otherActivity, setOtherActivity] = useState('')
+  const [evoUsage, setEvoUsage] = useState<string[]>([])
   const [priorities, setPriorities] = useState<string[]>(longevityLevers)
   const [diet, setDiet] = useState('')
   const [otherDiet, setOtherDiet] = useState('')
@@ -201,12 +199,6 @@ export default function ProfilPage() {
   const [expectations, setExpectations] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const [calendarConnected, setCalendarConnected] = useState(false)
-  const [calendarEmail, setCalendarEmail] = useState<string | null>(null)
-  const [calendarLastSyncAt, setCalendarLastSyncAt] = useState<string | null>(null)
-  const [calendarLoading, setCalendarLoading] = useState(true)
-  const [calendarWorking, setCalendarWorking] = useState(false)
-  const [calendarError, setCalendarError] = useState<string | null>(null)
 
   const [calView, setCalView] = useState<CalView>('week')
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -216,6 +208,11 @@ export default function ProfilPage() {
   const [dragOverDay, setDragOverDay] = useState<string | null>(null)
   const dragId = useRef<string | null>(null)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const dragPriorityFrom = useRef<number | null>(null)
+  const [dragOverPriorityIdx, setDragOverPriorityIdx] = useState<number | null>(null)
+  const touchDragPriorityFrom = useRef<number | null>(null)
+  const touchDragSessionRef = useRef<{ id: string; startX: number; startY: number } | null>(null)
+  const touchDragChipRef = useRef<string | null>(null)
 
   const agendaActivities = useMemo(() => {
     if (agendaSessions.length === 0) return ''
@@ -278,12 +275,12 @@ export default function ProfilPage() {
               : []
           )
               setAgendaMode(data.agendaMode === 'later' || data.agendaMode === 'none' ? data.agendaMode : '')
-          setGoogleCalendarWanted(data.googleCalendarWanted ?? null)
           setLimitations(Array.isArray(data.limitations) ? data.limitations : [])
           setJointPainWhere(data.jointPainWhere ?? '')
           setMusclePainWhere(data.musclePainWhere ?? '')
           setOtherLimitation(data.otherLimitation ?? '')
-          setEvoUsage(data.evoUsage ?? '')
+          setOtherActivity(data.otherActivity ?? '')
+          setEvoUsage(Array.isArray(data.evoUsage) ? data.evoUsage : data.evoUsage ? [data.evoUsage] : [])
           if (Array.isArray(data.priorities) && data.priorities.length === 4) {
             const isOldDefault = data.priorities.every((value: string, index: number) => value === oldLongevityLevers[index])
             setPriorities(isOldDefault ? longevityLevers : data.priorities)
@@ -311,30 +308,23 @@ export default function ProfilPage() {
         }
       }
 
-      if (session?.access_token) {
-        try {
-          const response = await fetch('/api/calendar/google/status', {
-            headers: { Authorization: `Bearer ${session.access_token}` },
-          })
-          const body = (await response.json()) as {
-            connected?: boolean
-            email?: string | null
-            lastSyncAt?: string | null
-          }
-          if (response.ok) {
-            setCalendarConnected(Boolean(body.connected))
-            setCalendarEmail(body.email ?? null)
-            setCalendarLastSyncAt(body.lastSyncAt ?? null)
-          }
-        } finally {
-          setCalendarLoading(false)
-        }
-      } else {
-        setCalendarLoading(false)
-      }
+      // Initialize history state for step 0 so browser back works correctly
+      window.history.replaceState({ step: 0 }, '')
     }
 
     init()
+  }, [])
+
+  // Listen to browser back/forward buttons to navigate between steps
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const stepFromState = e.state?.step
+      if (typeof stepFromState === 'number') {
+        setStep(stepFromState)
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   useEffect(() => {
@@ -353,11 +343,11 @@ export default function ProfilPage() {
           ...session,
           date: session.date.toISOString(),
         })),
-        googleCalendarWanted,
         limitations,
         jointPainWhere,
         musclePainWhere,
         otherLimitation,
+        otherActivity,
         evoUsage,
         priorities,
         diet,
@@ -376,11 +366,11 @@ export default function ProfilPage() {
     agendaActivities,
     agendaMode,
     agendaSessions,
-    googleCalendarWanted,
     limitations,
     jointPainWhere,
     musclePainWhere,
     otherLimitation,
+    otherActivity,
     evoUsage,
     priorities,
     diet,
@@ -400,6 +390,7 @@ export default function ProfilPage() {
       )
     )
   }, [agendaSessions])
+
 
   const toggleLimitation = (value: string) => {
     setLimitations(prev => {
@@ -438,9 +429,22 @@ export default function ProfilPage() {
     setDragOverDay(null)
   }, [])
 
+  const openSessionFromActivity = useCallback((label: string, date: Date, timeStr = '09:00') => {
+    setEditingSessionId(null)
+    setNewSession({ label, duration: 60, notes: '', time: timeStr, dayOfWeek: date.getDay(), isWeekly: false })
+    setModal({ open: true, date })
+  }, [])
+
   const onDrop = useCallback((e: React.DragEvent, targetDate: Date) => {
     e.preventDefault()
     setDragOverDay(null)
+    const activityLabel = e.dataTransfer.getData('activity-label')
+    if (activityLabel) {
+      const date = new Date(targetDate)
+      date.setHours(9, 0, 0, 0)
+      openSessionFromActivity(activityLabel, date)
+      return
+    }
     const sessionId = dragId.current || e.dataTransfer.getData('text/plain')
     if (!sessionId) return
 
@@ -459,6 +463,19 @@ export default function ProfilPage() {
     e.preventDefault()
     e.stopPropagation()
     setDragOverDay(null)
+    const activityLabel = e.dataTransfer.getData('activity-label')
+    if (activityLabel) {
+      const rect = e.currentTarget.getBoundingClientRect()
+      const y = e.clientY - rect.top
+      const rawHours = 8 + y / H_PX
+      const hour = Math.max(8, Math.min(20, Math.floor(rawHours)))
+      const minutes = Math.min(45, Math.round(((rawHours - Math.floor(rawHours)) * 60) / 15) * 15)
+      const date = new Date(targetDate)
+      date.setHours(hour, minutes, 0, 0)
+      const timeStr = `${String(hour).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+      openSessionFromActivity(activityLabel, date, timeStr)
+      return
+    }
     const sessionId = dragId.current || e.dataTransfer.getData('text/plain')
     if (!sessionId) return
 
@@ -632,11 +649,10 @@ export default function ProfilPage() {
       case 'activityFrequency':
         return Boolean(activityFrequency)
       case 'weeklyActivities':
+        if (weeklyActivities.includes('Autre') && !otherActivity.trim()) return false
         return weeklyActivities.length > 0
       case 'agendaActivities':
         return agendaSessions.length > 0 || agendaMode !== ''
-      case 'calendar':
-        return googleCalendarWanted !== null
       case 'limitations':
         if (limitations.length === 0) return false
         if (limitations.includes('Douleurs articulaires') && !jointPainWhere.trim()) return false
@@ -644,7 +660,7 @@ export default function ProfilPage() {
         if (limitations.includes('Autre') && !otherLimitation.trim()) return false
         return true
       case 'usage':
-        return Boolean(evoUsage)
+        return evoUsage.length > 0
       case 'priorities':
         return priorities.length === 4
       case 'diet':
@@ -662,79 +678,9 @@ export default function ProfilPage() {
   const chooseSingleAndNext = <T,>(setter: (value: T) => void, value: T) => {
     setter(value)
     if (step < steps.length - 1) {
-      setStep((prev) => prev + 1)
-    }
-  }
-
-  const handleConnectCalendar = async () => {
-    try {
-      setCalendarError(null)
-      setCalendarWorking(true)
-      if (!isSupabaseConfigured || !supabase) {
-        setCalendarError('Service indisponible pour connecter Google Agenda.')
-        return
-      }
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (!session?.access_token) {
-        router.push('/onboarding/login?mode=signup')
-        return
-      }
-
-      const response = await fetch('/api/calendar/google/connect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ next: '/onboarding/profil' }),
-      })
-
-      const body = (await response.json()) as { url?: string; error?: string }
-      if (!response.ok || !body.url) {
-        setCalendarError(body.error || 'Connexion Google impossible.')
-        return
-      }
-      window.location.href = body.url
-    } catch {
-      setCalendarError('Connexion Google impossible.')
-    } finally {
-      setCalendarWorking(false)
-    }
-  }
-
-  const handleSyncCalendar = async () => {
-    try {
-      setCalendarError(null)
-      setCalendarWorking(true)
-      if (!isSupabaseConfigured || !supabase) {
-        setCalendarError('Service indisponible pour synchroniser Google Agenda.')
-        return
-      }
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (!session?.access_token) {
-        router.push('/onboarding/login?mode=signup')
-        return
-      }
-
-      const response = await fetch('/api/calendar/google/sync', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      const body = (await response.json()) as { error?: string }
-      if (!response.ok) {
-        setCalendarError(body.error || 'Synchronisation impossible.')
-        return
-      }
-      setCalendarLastSyncAt(new Date().toISOString())
-      setCalendarConnected(true)
-    } catch {
-      setCalendarError('Synchronisation impossible.')
-    } finally {
-      setCalendarWorking(false)
+      const nextStep = step + 1
+      window.history.pushState({ step: nextStep }, '')
+      setStep(nextStep)
     }
   }
 
@@ -746,14 +692,13 @@ export default function ProfilPage() {
       weight: Number(weight),
       activityFrequency,
       weeklyActivities,
+      otherActivity: otherActivity.trim(),
       agendaActivities,
         agendaMode,
       agendaSessions: agendaSessions.map((session) => ({
         ...session,
         date: session.date.toISOString(),
       })),
-      googleCalendarWanted,
-      googleCalendarConnected: calendarConnected,
       limitations,
       jointPainWhere: jointPainWhere.trim(),
       musclePainWhere: musclePainWhere.trim(),
@@ -794,7 +739,9 @@ export default function ProfilPage() {
         },
       })
 
-      await upsertProfile({
+      console.log('[finishOnboarding] About to upsert profile...')
+
+      const profileResult = await upsertProfile({
         id: session.user.id,
         first_name: firstName.trim() || session.user.user_metadata?.first_name || '',
         age: Number(age),
@@ -802,28 +749,35 @@ export default function ProfilPage() {
         weight: Number(weight),
         activity_frequency: activityFrequency,
         weekly_activities: weeklyActivities,
-        agenda_activities: agendaActivities,
+        agenda_sessions: agendaSessions.map((session) => ({
+          ...session,
+          date: session.date.toISOString(),
+        })),
         agenda_mode: agendaMode,
-        agenda_sessions: agendaSessions.map((s) => ({ ...s, date: s.date.toISOString() })),
-        google_calendar_wanted: googleCalendarWanted,
-        google_calendar_connected: calendarConnected,
         limitations,
         joint_pain_where: jointPainWhere.trim(),
         muscle_pain_where: musclePainWhere.trim(),
         other_limitation: otherLimitation.trim(),
-        evo_usage: evoUsage,
+        evo_usage: evoUsage.join(', '),
         priorities,
         diet,
         other_diet: otherDiet.trim(),
         coach_tone: coachTone,
         expectations: expectations.trim(),
+        onboarding_data: payload,
         onboarding_completed_at: payload.completedAt,
       })
+
+      if (!profileResult) {
+        console.error('Failed to save profile to database. Data may be in localStorage/auth metadata only.')
+      }
 
       localStorage.setItem('evo_onboarding_completed', 'true')
       localStorage.removeItem('evo_onboarding_data')
 
       router.push('/onboarding/bilans')
+    } catch (error) {
+      console.error('Error during onboarding finish:', error)
     } finally {
       setSaving(false)
     }
@@ -832,14 +786,16 @@ export default function ProfilPage() {
   const handleNext = async () => {
     if (!canContinue()) return
     if (step < steps.length - 1) {
-      setStep(prev => prev + 1)
+      const nextStep = step + 1
+      window.history.pushState({ step: nextStep }, '')
+      setStep(nextStep)
       return
     }
     await finishOnboarding()
   }
 
   const handleBack = () => {
-    if (step > 0) setStep(prev => prev - 1)
+    if (step > 0) window.history.back()
     else router.push('/')
   }
 
@@ -960,6 +916,15 @@ export default function ProfilPage() {
                   </button>
                 ))}
               </div>
+              {weeklyActivities.includes('Autre') && (
+                <input
+                  autoFocus
+                  value={otherActivity}
+                  onChange={(e) => setOtherActivity(e.target.value)}
+                  placeholder="Précisez votre sport"
+                  className="mt-3 w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm outline-none focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)] transition-all"
+                />
+              )}
             </div>
           )}
 
@@ -971,19 +936,76 @@ export default function ProfilPage() {
               <div className="grid sm:grid-cols-2 gap-2 mb-4">
                 <button
                   type="button"
-                  onClick={() => setAgendaMode('later')}
+                  onClick={() => { setAgendaMode('later'); const ns = step + 1; window.history.pushState({ step: ns }, ''); setStep(ns) }}
                   className={`${cardClass} ${agendaMode === 'later' ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                 >
-                  J&apos;ai des activités régulières mais je veux les configurer plus tard
+                  <span className="text-xs text-[#1a1a1a]/70">J&apos;ai des activités régulières mais je veux les configurer plus tard</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setAgendaMode('none')}
+                  onClick={() => { setAgendaMode('none'); const ns = step + 1; window.history.pushState({ step: ns }, ''); setStep(ns) }}
                   className={`${cardClass} ${agendaMode === 'none' ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                 >
-                  Je n&apos;ai pas d&apos;activité à horaires réguliers
+                  <span className="text-xs text-[#1a1a1a]/70">Je n&apos;ai pas d&apos;activité à horaires réguliers</span>
                 </button>
               </div>
+
+              {weeklyActivities.length > 0 && (
+                <div className="relative mb-4">
+                  <p className="text-[11px] font-medium text-[#1a1a1a]/35 mb-2">Vos activités — glissez-les sur le calendrier&nbsp;↓</p>
+                  <div className="relative flex flex-wrap gap-2">
+                    {weeklyActivities.map((activity) => {
+                      const label = activity === 'Autre' && otherActivity ? otherActivity : activity
+                      return (
+                        <div
+                          key={activity}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('activity-label', label)
+                            e.dataTransfer.effectAllowed = 'all'
+                          }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation()
+                            touchDragChipRef.current = label
+                          }}
+                          onTouchMove={(e) => {
+                            if (!touchDragChipRef.current) return
+                            e.preventDefault()
+                            const touch = e.touches[0]
+                            const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                            const dayCell = el?.closest('[data-day-key]')
+                            setDragOverDay(dayCell ? dayCell.getAttribute('data-day-key') : null)
+                          }}
+                          onTouchEnd={(e) => {
+                            if (!touchDragChipRef.current) return
+                            const touch = e.changedTouches[0]
+                            const dayCell = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-day-key]')
+                            const targetDayKey = dayCell?.getAttribute('data-day-key')
+                            if (targetDayKey) {
+                              const date = new Date(targetDayKey)
+                              date.setHours(9, 0, 0, 0)
+                              openSessionFromActivity(touchDragChipRef.current, date)
+                            }
+                            setDragOverDay(null)
+                            touchDragChipRef.current = null
+                          }}
+                          style={{ touchAction: 'none' }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#c9a96e]/12 border border-[#c9a96e]/30 text-[#a08050] text-xs font-medium cursor-grab active:cursor-grabbing select-none"
+                        >
+                          <GripVertical className="w-3 h-3 opacity-40" />
+                          {label}
+                        </div>
+                      )
+                    })}
+                    <div
+                      className="pointer-events-none absolute z-20 top-0 left-0 text-xl select-none leading-none"
+                      style={{ animation: 'demoDragCursor 2.8s ease-in-out 0.6s 3 both' }}
+                    >
+                      ✋
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div
                 className="bg-white rounded-xl border border-black/[0.06] overflow-hidden"
@@ -1039,6 +1061,7 @@ export default function ProfilPage() {
                         return (
                           <div
                             key={i}
+                            data-day-key={dayKey}
                             onDragOver={(e) => onDragOver(e, dayKey)}
                             onDragLeave={onDragLeave}
                             onDrop={(e) => onDrop(e, day)}
@@ -1058,6 +1081,40 @@ export default function ProfilPage() {
                                   draggable
                                   onDragStart={(e) => onDragStart(e, session.id)}
                                   onClick={() => openEditSessionModal(session)}
+                                  onTouchStart={(e) => {
+                                    e.stopPropagation()
+                                    touchDragSessionRef.current = { id: session.sourceId, startX: e.touches[0].clientX, startY: e.touches[0].clientY }
+                                  }}
+                                  onTouchMove={(e) => {
+                                    if (!touchDragSessionRef.current) return
+                                    const touch = e.touches[0]
+                                    const dx = Math.abs(touch.clientX - touchDragSessionRef.current.startX)
+                                    const dy = Math.abs(touch.clientY - touchDragSessionRef.current.startY)
+                                    if (dx < 8 && dy < 8) return
+                                    e.preventDefault()
+                                    const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                                    const dayCell = el?.closest('[data-day-key]')
+                                    setDragOverDay(dayCell ? dayCell.getAttribute('data-day-key') : null)
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    if (!touchDragSessionRef.current) return
+                                    const touch = e.changedTouches[0]
+                                    const dayCell = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-day-key]')
+                                    const targetDayKey = dayCell?.getAttribute('data-day-key')
+                                    if (targetDayKey) {
+                                      const targetDate = new Date(targetDayKey)
+                                      const srcId = touchDragSessionRef.current.id
+                                      setAgendaSessions(prev => prev.map(s => {
+                                        if (s.id !== srcId) return s
+                                        const nextDate = new Date(targetDate)
+                                        nextDate.setHours(getHours(s.date), getMinutes(s.date), 0, 0)
+                                        return { ...s, date: nextDate }
+                                      }))
+                                    }
+                                    setDragOverDay(null)
+                                    touchDragSessionRef.current = null
+                                  }}
+                                  style={{ touchAction: 'none' }}
                                   className="text-[8px] font-medium px-1 py-px rounded truncate cursor-grab active:cursor-grabbing bg-[#c9a96e]/10 text-[#a08050]"
                                 >
                                   {session.label}{session.isWeekly ? ' · hebdo' : ''}
@@ -1296,49 +1353,6 @@ export default function ProfilPage() {
             </div>
           )}
 
-          {current.id === 'calendar' && (
-            <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Voulez-vous connecter votre Google Agenda ? (optionnel)</h2>
-              <div className="grid sm:grid-cols-2 gap-2 mb-4">
-                <button onClick={() => chooseSingleAndNext(setGoogleCalendarWanted, true)} className={`${cardClass} ${googleCalendarWanted === true ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}>Oui, je veux connecter</button>
-                <button onClick={() => chooseSingleAndNext(setGoogleCalendarWanted, false)} className={`${cardClass} ${googleCalendarWanted === false ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}>Non, plus tard</button>
-              </div>
-
-              <div className="rounded-xl border border-[#1a1a1a]/[0.08] bg-[#FAF8F5] p-4">
-                <p className="text-sm font-semibold text-[#1a1a1a] mb-1">Statut actuel</p>
-                <p className="text-xs text-[#1a1a1a]/45">
-                  {calendarLoading ? 'Chargement...' : calendarConnected ? 'Google Agenda connecté' : 'Non connecté'}
-                  {calendarEmail ? ` · ${calendarEmail}` : ''}
-                </p>
-                {calendarLastSyncAt && (
-                  <p className="text-xs text-[#1a1a1a]/35 mt-1">Dernière sync : {new Date(calendarLastSyncAt).toLocaleString('fr-FR')}</p>
-                )}
-                {calendarError && <p className="text-xs text-red-500 mt-2">{calendarError}</p>}
-
-                <div className="flex flex-wrap gap-2 mt-3">
-                  <button
-                    type="button"
-                    onClick={handleConnectCalendar}
-                    disabled={calendarWorking || calendarLoading}
-                    className="px-3 py-2 rounded-lg text-xs font-semibold border border-[#1a1a1a]/[0.12] hover:border-[#25D366]/40"
-                  >
-                    {calendarConnected ? 'Reconnecter Google' : 'Connecter Google'}
-                  </button>
-                  {calendarConnected && (
-                    <button
-                      type="button"
-                      onClick={handleSyncCalendar}
-                      disabled={calendarWorking}
-                      className="px-3 py-2 rounded-lg text-xs font-semibold bg-[#25D366] text-white"
-                    >
-                      Actualiser
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
           {current.id === 'limitations' && (
             <div>
               <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Avez-vous actuellement des limitations physiques ?</h2>
@@ -1346,7 +1360,7 @@ export default function ProfilPage() {
                 {['Douleurs articulaires', 'Douleurs musculaires', 'Autre', 'Aucune'].map(option => (
                   <button
                     key={option}
-                    onClick={() => toggleLimitation(option)}
+                    onClick={() => { toggleLimitation(option); if (option === 'Aucune') { const ns = step + 1; window.history.pushState({ step: ns }, ''); setStep(ns) } }}
                     className={`${cardClass} ${limitations.includes(option) ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                   >
                     {option}
@@ -1388,8 +1402,8 @@ export default function ProfilPage() {
                 {usageOptions.map(option => (
                   <button
                     key={option}
-                    onClick={() => chooseSingleAndNext(setEvoUsage, option)}
-                    className={`${cardClass} ${evoUsage === option ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
+                    onClick={() => setEvoUsage(prev => prev.includes(option) ? prev.filter(v => v !== option) : [...prev, option])}
+                    className={`${cardClass} ${evoUsage.includes(option) ? 'border-[#25D366] bg-[#25D366]/10' : ''}`}
                   >
                     {option}
                   </button>
@@ -1401,30 +1415,56 @@ export default function ProfilPage() {
           {current.id === 'priorities' && (
             <div>
               <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Classez ces 4 leviers de longévité par priorité</h2>
-              <p className="text-sm text-[#1a1a1a]/45 mb-3">Du plus important au moins important pour vous.</p>
+              <p className="text-sm text-[#1a1a1a]/45 mb-3">Glissez pour réorganiser, du plus important au moins important.</p>
               <div className="space-y-2">
                 {priorities.map((item, idx) => (
-                  <div key={item} className="rounded-xl border border-[#1a1a1a]/[0.1] bg-white px-3 py-2 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#25D366]">#{idx + 1}</span>
-                      <span className="text-sm text-[#1a1a1a]">{item}</span>
-                    </div>
-                    <div className="flex gap-1">
-                      <button
-                        disabled={idx === 0}
-                        onClick={() => setPriorities(prev => reorder(prev, idx, idx - 1))}
-                        className="px-2 py-1 text-xs rounded border border-[#1a1a1a]/[0.12] disabled:opacity-30"
-                      >
-                        ↑
-                      </button>
-                      <button
-                        disabled={idx === priorities.length - 1}
-                        onClick={() => setPriorities(prev => reorder(prev, idx, idx + 1))}
-                        className="px-2 py-1 text-xs rounded border border-[#1a1a1a]/[0.12] disabled:opacity-30"
-                      >
-                        ↓
-                      </button>
-                    </div>
+                  <div
+                    key={item}
+                    data-priority-idx={idx}
+                    draggable
+                    onDragStart={() => { dragPriorityFrom.current = idx }}
+                    onDragOver={(e) => { e.preventDefault(); setDragOverPriorityIdx(idx) }}
+                    onDragLeave={() => setDragOverPriorityIdx(null)}
+                    onDrop={() => {
+                      if (dragPriorityFrom.current !== null && dragPriorityFrom.current !== idx) {
+                        setPriorities(prev => reorder(prev, dragPriorityFrom.current!, idx))
+                      }
+                      dragPriorityFrom.current = null
+                      setDragOverPriorityIdx(null)
+                    }}
+                    onDragEnd={() => { dragPriorityFrom.current = null; setDragOverPriorityIdx(null) }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation()
+                      touchDragPriorityFrom.current = idx
+                    }}
+                    onTouchMove={(e) => {
+                      if (touchDragPriorityFrom.current === null) return
+                      e.preventDefault()
+                      const touch = e.touches[0]
+                      const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                      const priorityEl = el?.closest('[data-priority-idx]')
+                      if (priorityEl) {
+                        const targetIdx = parseInt(priorityEl.getAttribute('data-priority-idx') || '-1')
+                        if (targetIdx >= 0) setDragOverPriorityIdx(targetIdx)
+                      }
+                    }}
+                    onTouchEnd={() => {
+                      if (touchDragPriorityFrom.current !== null && dragOverPriorityIdx !== null && touchDragPriorityFrom.current !== dragOverPriorityIdx) {
+                        setPriorities(prev => reorder(prev, touchDragPriorityFrom.current!, dragOverPriorityIdx))
+                      }
+                      touchDragPriorityFrom.current = null
+                      setDragOverPriorityIdx(null)
+                    }}
+                    style={{ touchAction: 'none' }}
+                    className={`rounded-xl border bg-white px-3 py-2.5 flex items-center gap-3 cursor-grab active:cursor-grabbing transition-all select-none ${
+                      dragOverPriorityIdx === idx
+                        ? 'border-[#25D366]/60 bg-[#25D366]/5 shadow-md scale-[1.02]'
+                        : 'border-[#1a1a1a]/[0.1]'
+                    }`}
+                  >
+                    <GripVertical className="w-4 h-4 text-[#1a1a1a]/20 shrink-0" />
+                    <span className="text-xs font-bold text-[#25D366] w-5 shrink-0">#{idx + 1}</span>
+                    <span className="text-sm text-[#1a1a1a]">{item}</span>
                   </div>
                 ))}
               </div>

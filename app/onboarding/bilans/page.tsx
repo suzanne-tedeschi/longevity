@@ -21,7 +21,7 @@ import {
   Activity, Moon, Apple, Brain, Dumbbell, Heart, RefreshCw, Plus, X,
   Timer, Zap, Shield, Leaf, Microscope, Lightbulb, ArrowRight, GripVertical,
   Dna, Clock, Wind, Recycle, Bug, Radio, Sprout, Ban, LayoutGrid, Columns3, CalendarDays,
-  MessageCircle, CheckCircle, AlertTriangle, LogOut, Sparkles,
+  MessageCircle, CheckCircle, AlertTriangle, LogOut, Sparkles, Repeat,
 } from "lucide-react"
 import css from "./bilans.module.css"
 
@@ -33,6 +33,7 @@ interface Session {
   label: string
   duration: number
   notes?: string
+  isWeekly?: boolean
 }
 
 interface StoredSession {
@@ -42,6 +43,7 @@ interface StoredSession {
   label: string
   duration: number
   notes?: string
+  isWeekly?: boolean
 }
 type CalView = "week" | "month" | "day"
 
@@ -68,12 +70,12 @@ const bilanOptionsDefs: { id: string; bilanType: string; title: string; descript
   { id: "condition-physique", bilanType: "mobilite", title: "Condition physique", description: "43 tests — mobilite, force, equilibre, souplesse.", duration: "15 min", available: false, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
   { id: "nutrition", bilanType: "nutrition", title: "Nutrition", description: "Troubles digestifs & habitudes alimentaires.", duration: "12 min", available: true, href: "/onboarding/bilan-nutrition", icon: <Apple className="w-5 h-5" />, color: "#c9a96e" },
   { id: "sommeil", bilanType: "sommeil", title: "Sommeil", description: "Qualite & recuperation nocturne.", duration: "10 min", available: false, href: "/onboarding/bilan-sommeil", icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
-  { id: "mental", bilanType: "mental", title: "Sante mentale", description: "Emotions, stress, resilience — 2 questionnaires.", duration: "25 min", available: false, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
+  { id: "mental", bilanType: "mental", title: "Santé mentale", description: "Emotions, stress, resilience — 2 questionnaires.", duration: "25 min", available: false, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
 ]
 
 /* Hidden defs for report lookup (emotionnel + stress saved separately in DB) */
 const subBilanDefs = [
-  { id: "emotionnel", bilanType: "emotionnel", title: "Sante emotionnelle", color: "#ff6b6b", icon: <Heart className="w-5 h-5" /> },
+  { id: "emotionnel", bilanType: "emotionnel", title: "Santé émotionnelle", color: "#ff6b6b", icon: <Heart className="w-5 h-5" /> },
   { id: "stress", bilanType: "stress", title: "Gestion du stress", color: "#60a5fa", icon: <Wind className="w-5 h-5" /> },
 ]
 
@@ -181,7 +183,7 @@ export default function BilansPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [modal, setModal] = useState<{ open: boolean; date: Date | null }>({ open: false, date: null })
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
-  const [newSession, setNewSession] = useState({ type: "sport" as "evo" | "sport", label: "", duration: 45, notes: "", time: "09:00" })
+  const [newSession, setNewSession] = useState({ type: "sport" as "evo" | "sport", label: "", duration: 45, notes: "", time: "09:00", isWeekly: false })
   const [calendarConnected, setCalendarConnected] = useState(false)
   const [calendarEmail, setCalendarEmail] = useState<string | null>(null)
   const [calendarLoading, setCalendarLoading] = useState(true)
@@ -207,6 +209,8 @@ export default function BilansPage() {
   const dragPayload = useRef<{ kind: "chip" | "session"; value: string } | null>(null)
   const [dragOverDay, setDragOverDay] = useState<string | null>(null)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const touchDragSessionRef = useRef<{ id: string; startX: number; startY: number } | null>(null)
+  const touchDragChipRef = useRef<string | null>(null)
 
   const addSessionAtDate = useCallback((date: Date, label: string, type: "evo" | "sport" = "sport") => {
     setSessions(prev => [
@@ -246,7 +250,7 @@ export default function BilansPage() {
   const resetModalState = useCallback(() => {
     setModal({ open: false, date: null })
     setEditingSessionId(null)
-    setNewSession({ type: "sport", label: "", duration: 45, notes: "", time: "09:00" })
+    setNewSession({ type: "sport", label: "", duration: 45, notes: "", time: "09:00", isWeekly: false })
   }, [])
 
   const openCreateModal = useCallback((date: Date, label = "") => {
@@ -259,6 +263,7 @@ export default function BilansPage() {
       duration: 45,
       notes: "",
       time: hasExplicitTime ? format(nextDate, "HH:mm") : "09:00",
+      isWeekly: false,
     })
     setModal({ open: true, date: nextDate })
   }, [])
@@ -272,6 +277,7 @@ export default function BilansPage() {
       duration: session.duration,
       notes: session.notes || "",
       time: format(session.date, "HH:mm"),
+      isWeekly: session.isWeekly ?? false,
     })
     setModal({ open: true, date: new Date(session.date) })
   }, [])
@@ -330,8 +336,8 @@ export default function BilansPage() {
     const chipLabel = getDraggedChipLabel(e)
     if (chipLabel) {
       const nd = new Date(targetDate); nd.setHours(9, 0, 0, 0)
-      addSessionAtDate(nd, chipLabel, "sport")
       clearDragState()
+      openCreateModal(nd, chipLabel)
       return
     }
     const sid = getDraggedSessionId(e)
@@ -343,7 +349,7 @@ export default function BilansPage() {
       return { ...s, date: nd }
     }))
     clearDragState()
-  }, [addSessionAtDate, clearDragState, getDraggedChipLabel, getDraggedSessionId])
+  }, [openCreateModal, clearDragState, getDraggedChipLabel, getDraggedSessionId])
 
   /* drop with hour calculation from Y position */
   const onDropTime = useCallback((e: React.DragEvent, targetDate: Date) => {
@@ -359,8 +365,8 @@ export default function BilansPage() {
     const chipLabel = getDraggedChipLabel(e)
     if (chipLabel) {
       const nd = new Date(targetDate); nd.setHours(h, m, 0, 0)
-      addSessionAtDate(nd, chipLabel, "sport")
       clearDragState()
+      openCreateModal(nd, chipLabel)
       return
     }
     const sid = getDraggedSessionId(e)
@@ -372,7 +378,7 @@ export default function BilansPage() {
       return { ...s, date: nd }
     }))
     clearDragState()
-  }, [addSessionAtDate, clearDragState, getDraggedChipLabel, getDraggedSessionId])
+  }, [openCreateModal, clearDragState, getDraggedChipLabel, getDraggedSessionId])
 
   /* ── google calendar ── */
   const fetchGoogleEvents = async (d: Date, forceSync = false) => {
@@ -548,11 +554,31 @@ export default function BilansPage() {
     const [hours, minutes] = newSession.time.split(":").map(Number)
     d.setHours(Number.isFinite(hours) ? hours : 9, Number.isFinite(minutes) ? minutes : 0, 0, 0)
     if (editingSessionId) {
-      setSessions(prev => prev.map(session =>
-        session.id === editingSessionId
-          ? { ...session, date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }
-          : session
-      ))
+      const base = { type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }
+      setSessions(prev => {
+        const updated = prev.map(session =>
+          session.id === editingSessionId
+            ? { ...session, ...base, date: d, isWeekly: newSession.isWeekly }
+            : session
+        )
+        if (!newSession.isWeekly) return updated
+        const now = Date.now()
+        const extra = Array.from({ length: 11 }, (_, i) => {
+          const nd = new Date(d); nd.setDate(nd.getDate() + (i + 1) * 7)
+          return { ...base, id: `${now}-${i}`, date: nd, isWeekly: true as const }
+        })
+        return [...updated, ...extra]
+      })
+    } else if (newSession.isWeekly) {
+      const base = { type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes, isWeekly: true as const }
+      const now = Date.now()
+      setSessions(prev => [
+        ...prev,
+        ...Array.from({ length: 12 }, (_, i) => {
+          const nd = new Date(d); nd.setDate(nd.getDate() + i * 7)
+          return { ...base, id: `${now}-${i}`, date: nd }
+        }),
+      ])
     } else {
       setSessions(prev => [...prev, { id: Date.now().toString(), date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }])
     }
@@ -568,7 +594,6 @@ export default function BilansPage() {
   const calTitle = calView === "month" ? format(currentDate, "MMMM yyyy", { locale: fr }) : calView === "week" ? `${format(weekStart, "d MMM", { locale: fr })} — ${format(addDays(weekStart, 6), "d MMM yyyy", { locale: fr })}` : format(currentDate, "EEEE d MMMM yyyy", { locale: fr })
 
   const last = progressData[progressData.length - 1]
-  const globalScore = Math.round((last.renforcement + last.cardio + last.sommeil + last.nutrition + last.mental) / 5)
   const sessionTop = (s: Session) => Math.max(0, (getHours(s.date) - 8 + getMinutes(s.date) / 60) * H_PX)
   const sessionHeight = (s: Session) => Math.max(18, (s.duration / 60) * H_PX)
   const isDraggable = (s: Session) => s.type !== "google" // only local sessions
@@ -609,6 +634,11 @@ export default function BilansPage() {
       }
     })
   }, [bilanResults])
+
+  /* ── Calculate completion percentage instead of score average ── */
+  const completedBilans = bilanOptions.filter(b => b.score !== null).length
+  const totalBilans = bilanOptions.length
+  const globalScore = totalBilans > 0 ? Math.round((completedBilans / totalBilans) * 100) : 0
 
   /* ── Score cards (fed by bilans) ── */
   const mobiliteScore = bilanResults.find(r => r.bilan_type === "mobilite")?.global_score ?? null
@@ -672,18 +702,30 @@ export default function BilansPage() {
           {/* subtle noise texture */}
           <div className="absolute inset-0 pointer-events-none opacity-[0.015]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
           {/* ─── nav inside hero ─── */}
-          <nav className="sticky top-0 z-30 bg-black/40 backdrop-blur-2xl border-b border-white/[0.06]">
-            <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-              <Link href="/" className="text-xl font-light tracking-wide text-white/80">evo</Link>
-              <div className="flex items-center gap-0.5 bg-white/[0.06] rounded-lg p-0.5">
+          <nav className="sticky top-0 z-30 border-b border-white/[0.06] bg-black/40 backdrop-blur-2xl">
+            <div className="max-w-5xl mx-auto px-4 py-3 sm:px-6 sm:h-14 sm:py-0 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center justify-between gap-3">
+                <Link href="/" className="text-xl font-light tracking-wide text-white/80">evo</Link>
+                <div className="flex items-center gap-2 sm:hidden">
+                  <ScoreRing value={globalScore} size={38} />
+                  <button
+                    onClick={async () => { await supabase?.auth.signOut(); router.replace('/') }}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/[0.08] transition-all"
+                    title="Se déconnecter"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar bg-white/[0.06] rounded-lg p-0.5">
                 {sections.map(s => (
                   <a key={s.id} href={`#${s.id}`} onClick={e => { e.preventDefault(); document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" }) }}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-[13px] font-medium transition-all text-white/35 hover:text-white hover:bg-white/[0.08]">
-                    {s.icon}<span className="hidden sm:inline">{s.label}</span>
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] sm:text-[13px] font-medium transition-all text-white/45 hover:text-white hover:bg-white/[0.08]">
+                    {s.icon}<span>{s.label}</span>
                   </a>
                 ))}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
                 <ScoreRing value={globalScore} size={40} />
                 <button
                   onClick={async () => { await supabase?.auth.signOut(); router.replace('/') }}
@@ -695,67 +737,70 @@ export default function BilansPage() {
               </div>
             </div>
           </nav>
-          <div className="max-w-5xl mx-auto px-6 pt-10 pb-14">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-14">
             {/* greeting */}
-            <div className="flex items-center gap-2 mb-8">
+            <div className="flex flex-col gap-1 mb-6 sm:mb-8 sm:flex-row sm:items-center text-center sm:text-left items-center sm:items-stretch">
               <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#c9a96e]/90">{userName ? `Bonjour ${userName}` : "Ton espace santé"}</p>
-              <span className="flex-1 h-px bg-white/[0.08]" />
+              <span className="hidden sm:block flex-1 h-px bg-white/[0.08]" />
               <span className="text-[12px] text-white/40 font-medium">{format(new Date(), "d MMMM yyyy", { locale: fr })}</span>
             </div>
 
-            <div className="flex flex-row gap-4 lg:gap-10 items-start">
+            <div className="flex flex-col gap-5 lg:flex-row lg:gap-10 lg:items-stretch">
               {/* ── Left: profile block ── */}
-              <div className="shrink-0 w-[38%] lg:w-[240px]">
-                {/* Ages side by side */}
-                <div className="flex items-start gap-2 lg:gap-5 mb-4 lg:mb-5">
-                  <div>
-                    <p className="text-[9px] lg:text-[10px] font-medium uppercase tracking-[0.15em] lg:tracking-[0.18em] text-white/30 mb-1 lg:mb-1.5">Âge réel</p>
-                    <div className="flex items-baseline gap-0.5 lg:gap-1">
-                      <span className="text-[28px] lg:text-[42px] leading-none font-extrabold text-white tracking-tight">{userAge ?? '—'}</span>
-                      {userAge && <span className="text-[11px] lg:text-base text-white/40 font-medium">ans</span>}
+              <div className="shrink-0 w-full lg:w-[240px] rounded-2xl border border-white/[0.08] bg-white/[0.04] p-5 sm:p-5 lg:border-0 lg:bg-transparent lg:p-0 flex flex-col items-center lg:items-start">
+                {/* Ages side by side — big & centered on mobile */}
+                <div className="flex items-start gap-6 sm:gap-5 mb-6 justify-center lg:justify-start">
+                  <div className="text-center lg:text-left">
+                    <p className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.18em] text-white/30 mb-2">Âge réel</p>
+                    <div className="flex items-baseline gap-1 justify-center lg:justify-start">
+                      <span className="text-[64px] sm:text-[56px] lg:text-[42px] leading-none font-extrabold text-white tracking-tight">{userAge ?? '—'}</span>
+                      {userAge && <span className="text-[18px] sm:text-[16px] lg:text-base text-white/40 font-medium">ans</span>}
                     </div>
                   </div>
-                  <div className="w-px self-stretch bg-white/[0.08] mx-0.5 lg:mx-1" />
-                  <div>
-                    <p className="text-[9px] lg:text-[10px] font-medium uppercase tracking-[0.15em] lg:tracking-[0.18em] text-white/30 mb-1 lg:mb-1.5">Âge bio</p>
-                    <div className="flex items-baseline gap-0.5 lg:gap-1">
-                      <span className="text-[28px] lg:text-[42px] leading-none font-extrabold text-white/10 blur-[5px] select-none tracking-tight">00</span>
-                      <span className="text-[11px] lg:text-base text-white/10 blur-[4px]">ans</span>
+                  <div className="w-px self-stretch bg-white/[0.08] mx-1" />
+                  <div className="text-center lg:text-left">
+                    <p className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.18em] text-white/30 mb-2">Âge biologique</p>
+                    <div className="flex items-baseline gap-1 justify-center lg:justify-start">
+                      <span className="text-[64px] sm:text-[56px] lg:text-[42px] leading-none font-extrabold text-white/10 blur-[5px] select-none tracking-tight">00</span>
+                      <span className="text-[18px] sm:text-[16px] lg:text-base text-white/10 blur-[4px]">ans</span>
                     </div>
-                    <p className="text-[9px] lg:text-[10px] text-white/20 mt-0.5 lg:mt-1">Bientôt</p>
+                    <span className="inline-block mt-2 text-[10px] font-semibold uppercase tracking-wider text-[#c9a96e] bg-[#c9a96e]/10 border border-[#c9a96e]/20 px-2 py-0.5 rounded-md">Bientôt dispo</span>
                   </div>
                 </div>
 
                 {/* Profile chips */}
-                <div className="space-y-1.5">
+                <div className="space-y-2 w-full">
                   {userActivityFreq && (
-                    <div className="flex items-center gap-1.5 lg:gap-2.5 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-white/[0.04] border border-white/[0.07]">
-                      <Activity className="w-3 h-3 lg:w-3.5 lg:h-3.5 shrink-0" style={{ color: '#3ECF8E' }} />
-                      <span className="text-[10px] lg:text-[11px] text-white/80 font-medium truncate">{shortActivityFreq(userActivityFreq)}</span>
+                    <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.07]">
+                      <Activity className="w-4 h-4 shrink-0" style={{ color: '#3ECF8E' }} />
+                      <span className="text-[12px] text-white/80 font-medium truncate">{shortActivityFreq(userActivityFreq)}</span>
                     </div>
                   )}
                   {userDiet && (
-                    <div className="flex items-center gap-1.5 lg:gap-2.5 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-white/[0.04] border border-white/[0.07]">
-                      <Apple className="w-3 h-3 lg:w-3.5 lg:h-3.5 shrink-0" style={{ color: '#c9a96e' }} />
-                      <span className="text-[10px] lg:text-[11px] text-white/80 font-medium truncate">{shortDiet(userDiet)}</span>
+                    <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.07]">
+                      <Apple className="w-4 h-4 shrink-0" style={{ color: '#c9a96e' }} />
+                      <span className="text-[12px] text-white/80 font-medium truncate">{shortDiet(userDiet)}</span>
                     </div>
                   )}
                   {userEvoUsage && (
-                    <div className="flex items-center gap-1.5 lg:gap-2.5 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-white/[0.04] border border-white/[0.07]">
-                      <Zap className="w-3 h-3 lg:w-3.5 lg:h-3.5 shrink-0" style={{ color: '#a78bfa' }} />
-                      <span className="text-[10px] lg:text-[11px] text-white/80 font-medium truncate">{shortEvoUsage(userEvoUsage)}</span>
+                    <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.07]">
+                      <Zap className="w-4 h-4 shrink-0" style={{ color: '#a78bfa' }} />
+                      <span className="text-[12px] text-white/80 font-medium truncate">{shortEvoUsage(userEvoUsage)}</span>
                     </div>
                   )}
                 </div>
 
-                {/* WhatsApp — masqué sur mobile */}
-                <div className="hidden sm:block mt-5">
+                {/* WhatsApp CTA — gros bouton sur mobile */}
+                <div className="mt-5 w-full">
                   <a href="https://wa.me/message/QTBSFJSLI3PKN1" target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-[#25D366]/10 border border-[#25D366]/20 hover:bg-[#25D366]/20 transition-all group/wa">
-                    <div className="w-5 h-5 rounded-full bg-[#25D366] flex items-center justify-center shrink-0">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    className="flex w-full items-center justify-center gap-3 px-4 py-4 lg:py-2.5 lg:px-3 rounded-2xl lg:rounded-full bg-[#25D366]/15 border border-[#25D366]/30 hover:bg-[#25D366]/25 active:scale-[0.98] transition-all group/wa">
+                    <div className="w-9 h-9 lg:w-5 lg:h-5 rounded-full bg-[#25D366] flex items-center justify-center shrink-0">
+                      <svg width="16" height="16" className="lg:w-[10px] lg:h-[10px]" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                     </div>
-                    <p className="text-[11px] text-white/50 group-hover/wa:text-white/70 transition-colors"><span className="font-semibold text-white/70">Question ?</span> WhatsApp</p>
+                    <div className="text-left">
+                      <p className="text-[15px] lg:text-[12px] font-bold text-white/90 group-hover/wa:text-white transition-colors leading-tight">Une question ?</p>
+                      <p className="text-[12px] lg:hidden text-[#25D366]/80 font-medium">Contacte-nous sur WhatsApp</p>
+                    </div>
                   </a>
                 </div>
               </div>
@@ -764,43 +809,46 @@ export default function BilansPage() {
               <div className="flex-1 min-w-0 flex flex-col gap-2 lg:gap-3">
                 {/* Nutrition — carte principale */}
                 <div
-                  className={`${css.kpiCard} relative rounded-xl p-3 lg:p-5 overflow-hidden border cursor-pointer`}
+                  className={`${css.kpiCard} relative rounded-2xl p-4 sm:p-5 overflow-hidden border cursor-pointer lg:flex-1`}
                   style={{ background: nutritionScore !== null ? 'rgba(201,169,110,0.07)' : 'rgba(255,255,255,0.04)', borderColor: nutritionScore !== null ? 'rgba(201,169,110,0.22)' : 'rgba(255,255,255,0.08)' }}
                   onClick={() => router.push('/onboarding/bilan-nutrition')}
                 >
                   <div className={css.kpiShimmer}><div /></div>
-                  <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-4">
-                    <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
-                      <div className={`${css.kpiIcon} w-8 h-8 lg:w-11 lg:h-11 rounded-lg lg:rounded-xl flex items-center justify-center shrink-0`} style={{ background: 'rgba(201,169,110,0.12)', color: '#c9a96e' }}>
-                        <Apple className="w-4 h-4 lg:w-5 lg:h-5" />
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-4 lg:h-full lg:items-center">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                      <div className={`${css.kpiIcon} w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0`} style={{ background: 'rgba(201,169,110,0.12)', color: '#c9a96e' }}>
+                        <Apple className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] lg:text-[11px] font-medium uppercase tracking-[0.14em] text-white/35 mb-0.5 lg:mb-1">Nutrition</p>
+                        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/35 mb-1">Nutrition</p>
                         {nutritionScore !== null ? (
                           <div className="flex items-baseline gap-1">
-                            <span className={`${css.kpiValue} text-2xl lg:text-3xl font-bold text-white`}>{nutritionScore}</span>
-                            <span className="text-xs lg:text-sm text-white/30">/100</span>
+                            <span className={`${css.kpiValue} text-4xl sm:text-3xl font-bold text-white`}>{nutritionScore}</span>
+                            <span className="text-sm text-white/30">/100</span>
                           </div>
                         ) : (
-                          <p className="text-[12px] lg:text-[14px] text-white/55 font-medium leading-tight">Questionnaire<br className="lg:hidden" /> disponible</p>
+                          <p className="text-[15px] sm:text-[14px] text-white/70 font-medium leading-tight">Questionnaire disponible</p>
                         )}
                       </div>
                     </div>
-                    <div className="self-start lg:self-auto flex items-center gap-1 lg:gap-1.5 px-2.5 lg:px-3 py-1.5 rounded-lg text-[10px] lg:text-[11px] font-semibold transition-all" style={{ color: '#c9a96e', background: 'rgba(201,169,110,0.1)', border: '1px solid rgba(201,169,110,0.2)' }}>
+                    <div className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all" style={{ color: '#c9a96e', background: 'rgba(201,169,110,0.1)', border: '1px solid rgba(201,169,110,0.2)' }}>
                       {nutritionScore !== null ? 'Rapport' : 'Commencer'}
-                      <ArrowRight className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </div>
                   </div>
                 </div>
 
                 {/* 3 autres cartes — toujours visibles, compactes sur mobile */}
-                <div className="grid grid-cols-3 gap-1.5 lg:gap-3">
+                <div className="grid grid-cols-3 gap-2 lg:gap-3 lg:grid-cols-3">
                   {scoreCards.filter(c => c.label !== "Nutrition").map((card, i) => (
-                    <div key={i} className={`${css.kpiCard} relative rounded-xl p-2 lg:p-3.5 text-center overflow-hidden border opacity-40`} style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}>
-                      <div className={`${css.kpiIcon} w-6 h-6 lg:w-8 lg:h-8 rounded-md lg:rounded-lg flex items-center justify-center mx-auto mb-1 lg:mb-2`} style={{ background: 'rgba(255,255,255,0.05)', color: card.color }}>
-                        <span className="scale-75 lg:scale-100">{card.icon}</span>
+                    <div key={i} className={`${css.kpiCard} relative rounded-2xl p-3 lg:p-3.5 text-center overflow-hidden border`} style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
+                      <div className={`${css.kpiIcon} w-8 h-8 lg:w-8 lg:h-8 rounded-xl lg:rounded-lg flex items-center justify-center mb-2 mx-auto`} style={{ background: 'rgba(255,255,255,0.05)', color: card.color }}>
+                        <span className="scale-90 lg:scale-100">{card.icon}</span>
                       </div>
-                      <p className="text-[9px] lg:text-[10px] font-medium uppercase tracking-[0.1em] lg:tracking-[0.12em] text-white/30 leading-tight">{card.label}</p>
+                      <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-white/35 leading-tight">{card.label}</p>
+                      <p className="mt-1.5 text-[13px] lg:text-[14px] font-semibold text-white/80">
+                        {card.score !== null ? `${card.score}/100` : 'Bientôt'}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -1443,7 +1491,7 @@ export default function BilansPage() {
                     draggable
                     onDragStart={e => {
                       dragPayload.current = { kind: "chip", value: activity }
-                      e.dataTransfer.effectAllowed = "copy"
+                      e.dataTransfer.effectAllowed = "all"
                       e.dataTransfer.setData("application/evo-drag-kind", "chip")
                       e.dataTransfer.setData("application/evo-chip", activity)
                       e.dataTransfer.setData("text/plain", activity)
@@ -1453,6 +1501,32 @@ export default function BilansPage() {
                     onClick={() => {
                       openCreateModal(new Date(currentDate), activity)
                     }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation()
+                      touchDragChipRef.current = activity
+                    }}
+                    onTouchMove={(e) => {
+                      if (!touchDragChipRef.current) return
+                      e.preventDefault()
+                      const touch = e.touches[0]
+                      const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                      const dayCell = el?.closest('[data-day-key]')
+                      setDragOverDay(dayCell ? dayCell.getAttribute('data-day-key') : null)
+                    }}
+                    onTouchEnd={(e) => {
+                      if (!touchDragChipRef.current) return
+                      const touch = e.changedTouches[0]
+                      const dayCell = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-day-key]')
+                      const targetDayKey = dayCell?.getAttribute('data-day-key')
+                      if (targetDayKey) {
+                        const nd = new Date(targetDayKey)
+                        nd.setHours(9, 0, 0, 0)
+                        openCreateModal(nd, touchDragChipRef.current)
+                      }
+                      setDragOverDay(null)
+                      touchDragChipRef.current = null
+                    }}
+                    style={{ touchAction: 'none' }}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-black/[0.06] text-[12px] font-medium text-[#1a1a1a]/60 cursor-grab active:cursor-grabbing whitespace-nowrap hover:border-[#c9a96e]/50 hover:text-[#1a1a1a] hover:shadow-sm transition-all shrink-0 select-none"
                   >
                     {activity.includes('Muscul') || activity.includes('Fitness') ? <Dumbbell className="w-3.5 h-3.5 shrink-0" /> :
@@ -1519,6 +1593,7 @@ export default function BilansPage() {
                     const dayKey = day.toISOString()
                     return (
                       <div key={i}
+                        data-day-key={dayKey}
                         onDragOver={e => onDragOver(e, dayKey)} onDragLeave={onDragLeave} onDrop={e => onDrop(e, day)}
                         className={`relative border-r border-b border-black/[0.03] min-h-[56px] p-1 text-left group transition-all ${isToday(day) ? "bg-[#3ECF8E]/[0.05]" : ""} ${dragOverDay === dayKey ? "bg-[#3ECF8E]/[0.08]" : "hover:bg-[#3ECF8E]/[0.02]"}`}>
                         <button onClick={() => openCreateModal(day)} className="w-full text-left">
@@ -1529,6 +1604,40 @@ export default function BilansPage() {
                             <div key={s.id} draggable={isDraggable(s)} onDragStart={e => isDraggable(s) && onDragStart(e, s.id)}
                               onDragEnd={clearDragState}
                               onClick={e => { e.stopPropagation(); if (isDraggable(s)) openEditModal(s) }}
+                              onTouchStart={isDraggable(s) ? (e) => {
+                                e.stopPropagation()
+                                touchDragSessionRef.current = { id: s.id, startX: e.touches[0].clientX, startY: e.touches[0].clientY }
+                              } : undefined}
+                              onTouchMove={isDraggable(s) ? (e) => {
+                                if (!touchDragSessionRef.current) return
+                                const touch = e.touches[0]
+                                const dx = Math.abs(touch.clientX - touchDragSessionRef.current.startX)
+                                const dy = Math.abs(touch.clientY - touchDragSessionRef.current.startY)
+                                if (dx < 8 && dy < 8) return
+                                e.preventDefault()
+                                const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                                const dayCell = el?.closest('[data-day-key]')
+                                setDragOverDay(dayCell ? dayCell.getAttribute('data-day-key') : null)
+                              } : undefined}
+                              onTouchEnd={isDraggable(s) ? (e) => {
+                                if (!touchDragSessionRef.current) return
+                                const touch = e.changedTouches[0]
+                                const dayCell = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-day-key]')
+                                const targetDayKey = dayCell?.getAttribute('data-day-key')
+                                if (targetDayKey) {
+                                  const targetDate = new Date(targetDayKey)
+                                  const srcId = touchDragSessionRef.current.id
+                                  setSessions(prev => prev.map(sess => {
+                                    if (sess.id !== srcId) return sess
+                                    const nd = new Date(targetDate)
+                                    nd.setHours(getHours(sess.date), getMinutes(sess.date), 0, 0)
+                                    return { ...sess, date: nd }
+                                  }))
+                                }
+                                setDragOverDay(null)
+                                touchDragSessionRef.current = null
+                              } : undefined}
+                              style={isDraggable(s) ? { touchAction: 'none' } : undefined}
                               className={`text-[8px] font-medium px-1 py-px rounded truncate ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${s.type === "evo" ? "bg-[#3ECF8E]/10 text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 text-[#1a73e8]" : "bg-[#c9a96e]/10 text-[#a08050]"}`}>{s.type === "google" ? "Occupé" : s.label}</div>
                           ))}
                           {ds.length > 2 && <div className="text-[8px] text-[#1a1a1a]/20">+{ds.length - 2}</div>}
@@ -1574,7 +1683,7 @@ export default function BilansPage() {
                                 className={`absolute left-0.5 right-0.5 z-10 rounded px-1 py-px overflow-hidden transition-opacity group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : "cursor-default"} ${cls}`}
                                 style={{ top, height: Math.max(height, 18) }}>
                                 {isDraggable(s) && <GripVertical className="w-2.5 h-2.5 absolute top-0.5 right-0 opacity-0 group-hover/sess:opacity-40 text-current" />}
-                                <p className="text-[8px] font-semibold truncate leading-tight">{s.type === "google" ? "Occupé" : s.label}</p>
+                                <p className="text-[8px] font-semibold truncate leading-tight flex items-center gap-0.5">{s.type === "google" ? "Occupé" : s.label}{s.isWeekly && <Repeat className="w-2 h-2 shrink-0 opacity-50 ml-0.5" />}</p>
                                 {height >= 28 && <p className="text-[7px] opacity-50">{format(s.date, "HH:mm")} · {s.duration}m</p>}
                               </div>
                             )
@@ -1614,7 +1723,7 @@ export default function BilansPage() {
                         className={`absolute left-1 right-4 z-10 rounded-lg px-3 py-1 overflow-hidden group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${cls}`}
                         style={{ top, height: Math.max(height, 24) }}>
                         {isDraggable(s) && <GripVertical className="w-3 h-3 absolute top-1 right-1 opacity-0 group-hover/sess:opacity-40 text-current" />}
-                        <p className="text-[11px] font-semibold truncate">{s.type === "google" ? "Occupé" : s.label}</p>
+                        <p className="text-[11px] font-semibold truncate flex items-center gap-1">{s.type === "google" ? "Occupé" : s.label}{s.isWeekly && <Repeat className="w-2.5 h-2.5 shrink-0 opacity-40" />}</p>
                         <p className="text-[10px] opacity-60">{format(s.date, "HH:mm")} — {s.duration} min</p>
                       </div>
                     )
@@ -1697,7 +1806,7 @@ export default function BilansPage() {
           <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-white rounded-xl border border-black/[0.04] p-5">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Profil de sante</h3>
+                <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Profil de santé</h3>
                 <span className="text-[9px] font-bold text-[#c9a96e] bg-[#c9a96e]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">Bientot</span>
               </div>
               <ResponsiveContainer width="100%" height={180}>
@@ -1706,7 +1815,7 @@ export default function BilansPage() {
             </div>
             <div className="bg-white rounded-xl border border-black/[0.04] p-5">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Activite cette semaine</h3>
+                <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Activité cette semaine</h3>
                 <span className="text-[9px] font-bold text-[#c9a96e] bg-[#c9a96e]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">Bientot</span>
               </div>
               <ResponsiveContainer width="100%" height={180}>
@@ -1731,9 +1840,9 @@ export default function BilansPage() {
                 <div className="absolute bottom-0 left-0 w-40 h-40 opacity-[0.06] pointer-events-none" style={{ background: "radial-gradient(circle, #c9a96e 0%, transparent 70%)" }} />
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                   <div>
-                    <p className="text-[11px] font-semibold text-[#3ECF8E]/80 uppercase tracking-[0.15em] mb-3">Longevity Science</p>
-                    <h3 className="text-2xl font-bold text-white/90 leading-tight mb-2">La longevite est une <span className="text-[#3ECF8E]">competence</span></h3>
-                    <p className="text-[13px] text-white/30 max-w-md leading-relaxed">Decouvre les piliers scientifiques de la longevite, les 12 hallmarks du vieillissement, et les strategies evidence-based pour vivre plus longtemps en bonne sante.</p>
+                    <p className="text-[11px] font-semibold text-[#3ECF8E]/80 uppercase tracking-[0.15em] mb-3">Science de la longévité</p>
+                    <h3 className="text-2xl font-bold text-white/90 leading-tight mb-2">La longévité est une <span className="text-[#3ECF8E]">compétence</span></h3>
+                    <p className="text-[13px] text-white/30 max-w-md leading-relaxed">Découvre les piliers scientifiques de la longévité, les 12 hallmarks du vieillissement, et les stratégies validées par la recherche pour vivre plus longtemps en bonne santé.</p>
                     <div className="flex items-center gap-8 mt-5">
                       {[{ label: "Ans gagnes", value: "+7" }, { label: "Mortalite", value: "-35%" }, { label: "Modifiable", value: "80%" }].map((s, i) => (
                         <div key={i}><p className="text-lg font-bold text-[#3ECF8E]">{s.value}</p><p className="text-[9px] text-white/25 mt-0.5">{s.label}</p></div>
@@ -1783,6 +1892,19 @@ export default function BilansPage() {
               <div className="flex items-center gap-1.5 text-[11px] text-[#1a1a1a]/30 shrink-0"><Timer className="w-3 h-3" /> min</div>
               <input type="number" min={5} max={180} step={5} value={newSession.duration} onChange={e => setNewSession(s => ({ ...s, duration: Number(e.target.value) }))} className="flex-1 px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40" />
             </div>
+            <label className="flex items-center gap-2.5 px-1 cursor-pointer select-none">
+              <div
+                onClick={() => setNewSession(s => ({ ...s, isWeekly: !s.isWeekly }))}
+                className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${newSession.isWeekly ? "bg-[#3ECF8E] border-[#3ECF8E]" : "border-black/20 bg-white"}`}
+              >
+                {newSession.isWeekly && <svg viewBox="0 0 10 8" className="w-2.5 h-2" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              </div>
+              <span className="text-[12px] text-[#1a1a1a]/60 flex items-center gap-1.5">
+                <Repeat className="w-3 h-3 opacity-50" />
+                Répéter toutes les semaines
+              </span>
+              {newSession.isWeekly && <span className="ml-auto text-[10px] text-[#1a1a1a]/30">{editingSessionId ? "+ 11 sem." : "× 12 sem."}</span>}
+            </label>
             <textarea placeholder="Notes (optionnel)" value={newSession.notes} onChange={e => setNewSession(s => ({ ...s, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40 resize-none placeholder:text-[#1a1a1a]/20" />
             <div className="flex gap-2 pt-1">
               {editingSessionId && (
