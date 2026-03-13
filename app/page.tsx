@@ -310,7 +310,7 @@ export default function Home() {
         <span className="text-xl font-light tracking-wide text-white/90">evo</span>
         <div className="flex items-center gap-6">
           <a href="/science" className="text-[13px] font-medium text-white/50 hover:text-white transition-colors duration-200 hidden sm:block">Science</a>
-          <a href={isLoggedIn ? '/onboarding/bilans' : '/onboarding/choix-bilan'} className="text-[13px] font-medium text-white/70 hover:text-white transition-colors duration-200 border border-white/20 hover:border-white/40 rounded-full px-4 py-1.5">
+          <a href={isLoggedIn ? '/onboarding/bilans' : '/onboarding/login?mode=login'} className="text-[13px] font-medium text-white/70 hover:text-white transition-colors duration-200 border border-white/20 hover:border-white/40 rounded-full px-4 py-1.5">
             {isLoggedIn ? 'Mon espace' : 'Login'}
           </a>
         </div>
