@@ -53,6 +53,9 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 
 	if (!error) return data
 
+	// Full error log for debugging
+	console.error('Profile upsert failed:', error.message, error)
+
 	const onboardingFields = [
 		'age', 'height', 'weight', 'activity_frequency', 'weekly_activities', 'agenda_sessions', 'agenda_mode',
 		'google_calendar_wanted', 'google_calendar_connected', 'limitations', 'joint_pain_where', 'muscle_pain_where',
@@ -63,10 +66,11 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 		error.message.includes(`profiles.${field}`)
 	)
 	if (!missingOnboardingColumns) {
-		console.warn('Profile upsert failed:', error.message)
+		console.warn('Profile upsert failed with non-column error:', error.message)
 		return null
 	}
 
+	// Fallback: try without onboarding fields but preserve basic profile fields + age/height/weight
 	const {
 		age,
 		height,
@@ -91,9 +95,18 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 		onboarding_completed_at,
 		...basicPayload
 	} = payload
+
+	// Include age, height, weight in fallback (keep what we collected)
+	const fallbackPayload = {
+		...basicPayload,
+		age: payload.age,
+		height: payload.height,
+		weight: payload.weight,
+	}
+
 	const fallback = await supabase
 		.from('profiles')
-		.upsert(basicPayload, { onConflict: 'id' })
+		.upsert(fallbackPayload, { onConflict: 'id' })
 		.select()
 		.single()
 
@@ -102,7 +115,7 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 		return null
 	}
 
-	console.warn('profiles table is missing onboarding columns; falling back to basic profile fields')
+	console.warn('profiles table is missing some onboarding columns; falling back to basic fields + age/height/weight')
 	return fallback.data
 }
 

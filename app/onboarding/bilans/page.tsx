@@ -568,7 +568,6 @@ export default function BilansPage() {
   const calTitle = calView === "month" ? format(currentDate, "MMMM yyyy", { locale: fr }) : calView === "week" ? `${format(weekStart, "d MMM", { locale: fr })} — ${format(addDays(weekStart, 6), "d MMM yyyy", { locale: fr })}` : format(currentDate, "EEEE d MMMM yyyy", { locale: fr })
 
   const last = progressData[progressData.length - 1]
-  const globalScore = Math.round((last.renforcement + last.cardio + last.sommeil + last.nutrition + last.mental) / 5)
   const sessionTop = (s: Session) => Math.max(0, (getHours(s.date) - 8 + getMinutes(s.date) / 60) * H_PX)
   const sessionHeight = (s: Session) => Math.max(18, (s.duration / 60) * H_PX)
   const isDraggable = (s: Session) => s.type !== "google" // only local sessions
@@ -609,6 +608,11 @@ export default function BilansPage() {
       }
     })
   }, [bilanResults])
+
+  /* ── Calculate completion percentage instead of score average ── */
+  const completedBilans = bilanOptions.filter(b => b.score !== null).length
+  const totalBilans = bilanOptions.length
+  const globalScore = totalBilans > 0 ? Math.round((completedBilans / totalBilans) * 100) : 0
 
   /* ── Score cards (fed by bilans) ── */
   const mobiliteScore = bilanResults.find(r => r.bilan_type === "mobilite")?.global_score ?? null

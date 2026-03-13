@@ -794,7 +794,7 @@ export default function ProfilPage() {
         },
       })
 
-      await upsertProfile({
+      const profileResult = await upsertProfile({
         id: session.user.id,
         first_name: firstName.trim() || session.user.user_metadata?.first_name || '',
         age: Number(age),
@@ -823,10 +823,16 @@ export default function ProfilPage() {
         onboarding_completed_at: payload.completedAt,
       })
 
+      if (!profileResult) {
+        console.error('Failed to save profile to database. Data may be in localStorage/auth metadata only.')
+      }
+
       localStorage.setItem('evo_onboarding_completed', 'true')
       localStorage.removeItem('evo_onboarding_data')
 
       router.push('/onboarding/bilans')
+    } catch (error) {
+      console.error('Error during onboarding finish:', error)
     } finally {
       setSaving(false)
     }

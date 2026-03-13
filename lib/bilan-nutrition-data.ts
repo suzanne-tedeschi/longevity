@@ -25,8 +25,8 @@ export type SectionIcon =
 
 export interface TestSection {
   id: string
-  title: string
-  subtitle: string
+  title?: string
+  subtitle?: string
   icon: SectionIcon
   description: string
   maxScore: number
@@ -54,8 +54,6 @@ const gsrsScoring: ScoreOption[] = [
 
 const reflux: TestSection = {
   id: 'reflux',
-  title: 'Reflux',
-  subtitle: 'Reflux gastro-œsophagien',
   icon: 'reflux',
   description:
     'Ces questions évaluent la présence et la sévérité de symptômes de reflux acide au cours de la dernière semaine.',
@@ -81,8 +79,6 @@ const reflux: TestSection = {
 
 const douleursAbdominales: TestSection = {
   id: 'douleurs-abdominales',
-  title: 'Douleurs abdominales',
-  subtitle: 'Douleurs et gênes abdominales',
   icon: 'pain',
   description:
     'Ces questions portent sur les douleurs ou gênes ressenties au niveau de l\'abdomen au cours de la dernière semaine.',
@@ -115,8 +111,6 @@ const douleursAbdominales: TestSection = {
 
 const indigestion: TestSection = {
   id: 'indigestion',
-  title: 'Indigestion',
-  subtitle: 'Ballonnements et gaz',
   icon: 'indigestion',
   description:
     'Ces questions évaluent les symptômes liés à la digestion : ballonnements, gargouillements et flatulences au cours de la dernière semaine.',
@@ -156,8 +150,6 @@ const indigestion: TestSection = {
 
 const diarrhee: TestSection = {
   id: 'diarrhee',
-  title: 'Diarrhée',
-  subtitle: 'Transit accéléré',
   icon: 'transit',
   description:
     'Ces questions évaluent les symptômes liés à un transit accéléré au cours de la dernière semaine.',
@@ -183,8 +175,6 @@ const diarrhee: TestSection = {
 
 const constipation: TestSection = {
   id: 'constipation',
-  title: 'Constipation',
-  subtitle: 'Transit ralenti',
   icon: 'constipation',
   description:
     'Ces questions évaluent les symptômes liés à un transit ralenti au cours de la dernière semaine.',
@@ -220,8 +210,6 @@ const ouiNegatifScoring = (pts: number): ScoreOption[] => [
 
 const habitudesGenerales: TestSection = {
   id: 'habitudes-generales',
-  title: 'Habitudes générales',
-  subtitle: 'Vos habitudes alimentaires de base',
   icon: 'habitudes',
   description:
     'Ces questions évaluent vos habitudes alimentaires quotidiennes : rythme des repas, qualité de l\'alimentation et comportement à table.',
@@ -298,8 +286,6 @@ const habitudesGenerales: TestSection = {
 
 const macronutriments: TestSection = {
   id: 'macronutriments',
-  title: 'Macronutriments',
-  subtitle: 'Apports en protéines, glucides et lipides',
   icon: 'macronutriments',
   description:
     'Ces questions évaluent la qualité et l\'équilibre de vos apports en macronutriments : protéines, glucides et graisses.',
@@ -361,8 +347,6 @@ const macronutriments: TestSection = {
 
 const micronutriments: TestSection = {
   id: 'micronutriments',
-  title: 'Micronutriments',
-  subtitle: 'Vitamines et minéraux essentiels',
   icon: 'micronutriments',
   description:
     'Ces questions évaluent la diversité et la richesse de vos apports en vitamines et minéraux.',
@@ -444,8 +428,6 @@ const micronutriments: TestSection = {
 
 const ultraTransformes: TestSection = {
   id: 'ultra-transformes',
-  title: 'Ultra-transformés',
-  subtitle: 'Produits industriels et additifs',
   icon: 'ultra-transformes',
   description:
     'Ces questions évaluent votre exposition aux aliments ultra-transformés, nocifs pour la santé métabolique et inflammatoire.',
@@ -493,8 +475,6 @@ const ultraTransformes: TestSection = {
 
 const inflammatoire: TestSection = {
   id: 'inflammatoire',
-  title: 'Inflammatoire',
-  subtitle: 'Alimentation pro/anti-inflammatoire',
   icon: 'inflammatoire',
   description:
     'Ces questions évaluent l\'impact inflammatoire de votre alimentation, un facteur clé du vieillissement accéléré.',
@@ -535,8 +515,6 @@ const inflammatoire: TestSection = {
 
 const bonusSante: TestSection = {
   id: 'bonus-sante',
-  title: 'Bonus santé',
-  subtitle: 'Habitudes protectrices avancées',
   icon: 'bonus',
   description:
     'Ces questions évaluent des habitudes alimentaires particulièrement protectrices pour la longévité.',
