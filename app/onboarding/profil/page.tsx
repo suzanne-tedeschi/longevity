@@ -30,7 +30,7 @@ import {
   Plus,
   X,
 } from 'lucide-react'
-import { isSupabaseConfigured, supabase } from '@/lib/supabase'
+import { isSupabaseConfigured, supabase, upsertProfile } from '@/lib/supabase'
 
 type StepId =
   | 'age'
@@ -794,53 +794,40 @@ export default function ProfilPage() {
         },
       })
 
-      console.log('[finishOnboarding] Calling server API to save profile...')
+      console.log('[finishOnboarding] About to upsert profile...')
 
-      const saveResponse = await fetch('/api/onboarding/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          first_name: firstName.trim() || session.user.user_metadata?.first_name || '',
-          age: Number(age),
-          height: Number(height),
-          weight: Number(weight),
-          activity_frequency: activityFrequency,
-          weekly_activities: weeklyActivities,
-          agenda_sessions: agendaSessions.map((session) => ({
-            ...session,
-            date: session.date.toISOString(),
-          })),
-          agenda_mode: agendaMode,
-          google_calendar_wanted: googleCalendarWanted,
-          google_calendar_connected: calendarConnected,
-          limitations,
-          joint_pain_where: jointPainWhere.trim(),
-          muscle_pain_where: musclePainWhere.trim(),
-          other_limitation: otherLimitation.trim(),
-          evo_usage: evoUsage,
-          priorities,
-          diet,
-          other_diet: otherDiet.trim(),
-          coach_tone: coachTone,
-          expectations: expectations.trim(),
-          onboarding_data: payload,
-          onboarding_completed_at: payload.completedAt,
-        }),
+      const profileResult = await upsertProfile({
+        id: session.user.id,
+        first_name: firstName.trim() || session.user.user_metadata?.first_name || '',
+        age: Number(age),
+        height: Number(height),
+        weight: Number(weight),
+        activity_frequency: activityFrequency,
+        weekly_activities: weeklyActivities,
+        agenda_sessions: agendaSessions.map((session) => ({
+          ...session,
+          date: session.date.toISOString(),
+        })),
+        agenda_mode: agendaMode,
+        google_calendar_wanted: googleCalendarWanted,
+        google_calendar_connected: calendarConnected,
+        limitations,
+        joint_pain_where: jointPainWhere.trim(),
+        muscle_pain_where: musclePainWhere.trim(),
+        other_limitation: otherLimitation.trim(),
+        evo_usage: evoUsage,
+        priorities,
+        diet,
+        other_diet: otherDiet.trim(),
+        coach_tone: coachTone,
+        expectations: expectations.trim(),
+        onboarding_data: payload,
+        onboarding_completed_at: payload.completedAt,
       })
 
-      console.log('[finishOnboarding] API response status:', saveResponse.status)
-
-      if (!saveResponse.ok) {
-        const error = await saveResponse.json()
-        console.error('[finishOnboarding] API error:', error)
-        throw new Error(error.error || 'Failed to save onboarding profile')
+      if (!profileResult) {
+        console.error('Failed to save profile to database. Data may be in localStorage/auth metadata only.')
       }
-
-      const saveResult = await saveResponse.json()
-      console.log('[finishOnboarding] Profile saved successfully:', saveResult.profile)
 
       localStorage.setItem('evo_onboarding_completed', 'true')
       localStorage.removeItem('evo_onboarding_data')

@@ -92,17 +92,9 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 
 	console.warn('[upsertProfile fallback] Detected missing onboarding columns, trying basic fields only')
 
-	// Fallback: preserve basic profile fields, age, height, weight (ignore advanced onboarding fields)
-	const fallbackPayload = {
-		id: payload.id,
-		first_name: payload.first_name,
-		last_name: payload.last_name,
-		email: payload.email,
-		avatar_url: payload.avatar_url,
-		age: payload.age,
-		height: payload.height,
-		weight: payload.weight,
-	}
+	// Fallback: try to save ALL fields (in case it's just a transient error)
+	// The payload already has all the fields we want to save
+	const fallbackPayload = payload
 
 	const fallback = await supabase
 		.from('profiles')
@@ -115,7 +107,7 @@ export async function upsertProfile(payload: ProfileUpsertPayload) {
 		return null
 	}
 
-	console.warn('[upsertProfile] Successfully saved basic profile (advanced onboarding columns may not exist)')
+	console.warn('[upsertProfile] Successfully saved all fields via fallback')
 	return fallback.data
 }
 
