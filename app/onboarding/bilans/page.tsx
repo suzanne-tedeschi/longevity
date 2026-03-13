@@ -261,6 +261,7 @@ export default function BilansPage() {
       duration: 45,
       notes: "",
       time: hasExplicitTime ? format(nextDate, "HH:mm") : "09:00",
+      isWeekly: false,
     })
     setModal({ open: true, date: nextDate })
   }, [])
