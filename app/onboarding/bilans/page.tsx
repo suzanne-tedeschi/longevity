@@ -24,6 +24,7 @@ import {
   MessageCircle, CheckCircle, AlertTriangle, LogOut, Sparkles,
 } from "lucide-react"
 import css from "./bilans.module.css"
+import { adaptActionForDiet } from "@/lib/bilan-nutrition-report"
 
 /* ─── types ─── */
 interface Session {
@@ -1131,95 +1132,43 @@ export default function BilansPage() {
 
                             {/* ═══ SECTION 4 — Plan d'action ═══ */}
                             <div className="mb-8">
-                              <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                                  <Lightbulb className="w-5 h-5 text-white" />
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-5 h-5 rounded-full bg-[#2D6A4F]/15 flex items-center justify-center flex-shrink-0">
+                                  <ChevronRight className="w-3 h-3 text-[#2D6A4F]" />
                                 </div>
-                                <div>
-                                  <h4 className="text-lg font-bold text-[#1a1a1a]">
-                                    {(report.strengths.length > 0 && report.weaknesses.length > 0) ? '4' : report.strengths.length > 0 || report.weaknesses.length > 0 ? '3' : '2'}. Votre plan d&apos;action
-                                  </h4>
-                                  <p className="text-xs text-[#1a1a1a]/40 mt-0.5">Étapes clés pour progresser rapidement</p>
-                                </div>
+                                <h4 className="text-sm font-bold text-[#1a1a1a]">
+                                  {(report.strengths.length > 0 && report.weaknesses.length > 0) ? '4' : report.strengths.length > 0 || report.weaknesses.length > 0 ? '3' : '2'}. Votre plan d&apos;action
+                                </h4>
                               </div>
 
-                              <div className="space-y-6">
-                                {report.actionPlan.map((phase, phaseIdx) => {
-                                  const getPhaseConfig = () => {
-                                    if (phase.phase === 1) {
-                                      return { 
-                                        circle: 'bg-gradient-to-br from-blue-500 to-blue-600', 
-                                        bg: 'bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent', 
-                                        border: 'border-blue-300/40', 
-                                        accent: 'bg-blue-500',
-                                        Icon: Zap,
-                                        badgeBg: 'bg-blue-100',
-                                        badgeText: 'text-blue-700'
-                                      }
-                                    } else if (phase.phase === 2) {
-                                      return { 
-                                        circle: 'bg-gradient-to-br from-purple-500 to-purple-600', 
-                                        bg: 'bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent', 
-                                        border: 'border-purple-300/40', 
-                                        accent: 'bg-purple-500',
-                                        Icon: TrendingUp,
-                                        badgeBg: 'bg-purple-100',
-                                        badgeText: 'text-purple-700'
-                                      }
-                                    } else {
-                                      return { 
-                                        circle: 'bg-gradient-to-br from-amber-500 to-amber-600', 
-                                        bg: 'bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent', 
-                                        border: 'border-amber-300/40', 
-                                        accent: 'bg-amber-500',
-                                        Icon: Sparkles,
-                                        badgeBg: 'bg-amber-100',
-                                        badgeText: 'text-amber-700'
-                                      }
-                                    }
-                                  }
-                                  const cfg = getPhaseConfig()
-                                  return (
-                                    <div key={phase.phase} className={`rounded-3xl border-2 overflow-hidden backdrop-blur-md ${cfg.bg} ${cfg.border} transition-all duration-300 hover:shadow-xl`}>
-                                      {/* Phase header */}
-                                      <div className={`px-6 py-5 border-b border-[#1a1a1a]/[0.08] bg-white/30`}>
-                                        <div className="flex items-center gap-4">
-                                          <div className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold text-white flex-shrink-0 ${cfg.circle} shadow-lg ring-4 ring-white/50`}>
-                                            <cfg.Icon className="w-6 h-6" />
-                                          </div>
-                                          <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                              <p className="text-base font-bold text-[#1a1a1a]">{phase.phaseTitle}</p>
-                                              <span className={`text-xs font-bold px-3 py-1 rounded-full ${cfg.badgeBg} ${cfg.badgeText}`}>Étape {phase.phase}</span>
+                              {report.actionPlan.map((phase) => (
+                                <div key={phase.phase} className="mb-6">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <p className="text-xs font-semibold text-[#1a1a1a]/70">{phase.phaseTitle}</p>
+                                    <span className="text-[10px] text-[#1a1a1a]/30">{phase.timeframe}</span>
+                                  </div>
+                                  <div className="space-y-3">
+                                    {phase.actions.map((action, actionIdx) => (
+                                      <div key={actionIdx} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
+                                        <div className="flex gap-4 px-5 py-5">
+                                          <div className="flex-shrink-0 pt-0.5">
+                                            <div className="w-8 h-8 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white text-sm font-bold leading-none">
+                                              {actionIdx + 1}
                                             </div>
-                                            <p className="text-sm text-[#1a1a1a]/50 font-medium">{phase.timeframe}</p>
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-bold text-[#1a1a1a] leading-snug mb-3">{adaptActionForDiet(action.action, userDiet ?? '')}</p>
+                                            <div className="bg-[#1a1a1a]/[0.03] border border-[#1a1a1a]/[0.06] rounded-xl px-3 py-2.5">
+                                              <p className="text-[10px] font-semibold text-[#1a1a1a]/35 uppercase tracking-wider mb-1">Pourquoi</p>
+                                              <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{adaptActionForDiet(action.why, userDiet ?? '')}</p>
+                                            </div>
                                           </div>
                                         </div>
                                       </div>
-
-                                      {/* Actions list */}
-                                      <div className="px-6 py-5 space-y-3">
-                                        {phase.actions.map((action, actionIdx) => (
-                                          <div key={actionIdx} className="group">
-                                            <div className="flex items-start gap-4 p-4 bg-white/70 hover:bg-white rounded-2xl border border-[#1a1a1a]/[0.08] transition-all duration-200 hover:shadow-md hover:border-[#1a1a1a]/[0.15]">
-                                              {/* Action number circle */}
-                                              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-white ${cfg.accent} ring-2 ring-white/50 shadow-md`}>
-                                                {actionIdx + 1}
-                                              </div>
-                                              
-                                              {/* Action content */}
-                                              <div className="flex-1 min-w-0 mt-0.5">
-                                                <p className="text-[12px] font-semibold text-[#1a1a1a] leading-relaxed mb-2">{action.action}</p>
-                                                <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed italic border-l-2 border-[#1a1a1a]/[0.1] pl-3">{action.why}</p>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )
-                                })}
-                              </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
 
                             {/* Global insights */}

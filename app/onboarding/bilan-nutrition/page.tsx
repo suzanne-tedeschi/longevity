@@ -589,7 +589,23 @@ function getPersonalizedHeadline(pct: number) {
 function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; onRestart?: () => void }) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [expandedInsights, setExpandedInsights] = useState<Set<string>>(new Set())
+  const [diet, setDiet] = useState<string>('')
   const hasSaved = useRef(false)
+
+  useEffect(() => {
+    async function fetchDiet() {
+      if (!supabase) return
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      // Try profile table first
+      const { data } = await supabase.from('profiles').select('diet').eq('id', user.id).single()
+      if (data?.diet) { setDiet(data.diet as string); return }
+      // Fallback to user metadata
+      const onb = user.user_metadata?.evo_onboarding as Record<string, unknown> | undefined
+      if (onb?.diet) setDiet(onb.diet as string)
+    }
+    fetchDiet()
+  }, [])
 
   // Digestif sub-score
   const digestifResults = digestifSections.map((section) => {
@@ -622,9 +638,10 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
   })
 
   const report = useMemo(() => generateFullReport(
-    allResults.map(r => ({ sectionId: r.sectionId, pct: r.pct, score: r.score, maxScore: r.maxScore, title: r.title })),
-    scores
-  ), [allResults, scores])
+    allResults.map(r => ({ sectionId: r.sectionId, pct: r.pct, score: r.score, maxScore: r.maxScore, title: r.title ?? '' })),
+    scores,
+    diet
+  ), [allResults, scores, diet])
 
   const hero = getPersonalizedHeadline(globalPct)
 
@@ -655,7 +672,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
       }
       setSaveStatus('saving')
 
-      const fullReport = generateFullReport(allResults, scores)
+      const fullReport = generateFullReport(allResults.map(r => ({ ...r, title: r.title ?? '' })), scores, diet)
 
       const payload = {
         bilanType: 'nutrition',
@@ -931,42 +948,45 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
         </div>
       )}
 
-      {/* ── Action plan (phase 1 only) ── */}
-      {report.actionPlan.length > 0 && (() => {
-        const phase1 = report.actionPlan.find(p => p.phase === 1)
-        if (!phase1) return null
-        return (
-          <div className="mb-10">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-5 h-5 rounded-full bg-[#2D6A4F]/15 flex items-center justify-center flex-shrink-0">
-                <ChevronRight className="w-3 h-3 text-[#2D6A4F]" />
-              </div>
-              <h3 className="text-sm font-bold text-[#1a1a1a]">Votre plan d&apos;action</h3>
-              <span className="text-[10px] text-[#1a1a1a]/30 ml-auto">{phase1.timeframe}</span>
+      {/* ── Action plan (all phases) ── */}
+      {report.actionPlan.length > 0 && (
+        <div className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-5 h-5 rounded-full bg-[#2D6A4F]/15 flex items-center justify-center flex-shrink-0">
+              <ChevronRight className="w-3 h-3 text-[#2D6A4F]" />
             </div>
-            <div className="space-y-3">
-              {phase1.actions.slice(0, 5).map((action, i) => (
-                <div key={i} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
-                  <div className="flex gap-4 px-5 py-5">
-                    <div className="flex-shrink-0 pt-0.5">
-                      <div className="w-8 h-8 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white text-sm font-bold leading-none">
-                        {i + 1}
+            <h3 className="text-sm font-bold text-[#1a1a1a]">Votre plan d&apos;action</h3>
+          </div>
+          {report.actionPlan.map((phase) => (
+            <div key={phase.phase} className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <p className="text-xs font-semibold text-[#1a1a1a]/70">{phase.phaseTitle}</p>
+                <span className="text-[10px] text-[#1a1a1a]/30">{phase.timeframe}</span>
+              </div>
+              <div className="space-y-3">
+                {phase.actions.slice(0, 5).map((action, i) => (
+                  <div key={i} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
+                    <div className="flex gap-4 px-5 py-5">
+                      <div className="flex-shrink-0 pt-0.5">
+                        <div className="w-8 h-8 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white text-sm font-bold leading-none">
+                          {i + 1}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-[#1a1a1a] leading-snug mb-3">{action.action}</p>
-                      <div className="bg-[#1a1a1a]/[0.03] border border-[#1a1a1a]/[0.06] rounded-xl px-3 py-2.5">
-                        <p className="text-[10px] font-semibold text-[#1a1a1a]/35 uppercase tracking-wider mb-1">Pourquoi</p>
-                        <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{action.why}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[#1a1a1a] leading-snug mb-3">{action.action}</p>
+                        <div className="bg-[#1a1a1a]/[0.03] border border-[#1a1a1a]/[0.06] rounded-xl px-3 py-2.5">
+                          <p className="text-[10px] font-semibold text-[#1a1a1a]/35 uppercase tracking-wider mb-1">Pourquoi</p>
+                          <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{action.why}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )
-      })()}
+          ))}
+        </div>
+      )}
 
       {/* ── Science cards ── */}
       {globalKeyInsights.length > 0 && (
@@ -1206,7 +1226,7 @@ export default function BilanNutritionPage() {
         {phase === 'testing' && currentTest && (
           <TestCard
             test={currentTest} testIndex={flatIndex} totalTests={partTotalTests}
-            sectionTitle={currentSection.title} sectionIcon={currentSection.icon}
+            sectionTitle={currentSection.title ?? ''} sectionIcon={currentSection.icon}
             selectedScore={scores[currentTest.id]} onScore={handleScore}
             onPrev={handlePrev}
           />

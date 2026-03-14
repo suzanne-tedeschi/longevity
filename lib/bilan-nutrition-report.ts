@@ -41,8 +41,16 @@ export interface SectionReport {
     insight: string
     recommendation: string
     action?: string
+    /** Action alternative pour régime végétarien/pescétarien */
+    actionVegetarian?: string
+    /** Action alternative pour régime vegan */
+    actionVegan?: string
     /** Explication scientifique du bénéfice de l'action (pour le plan d'action "Pourquoi") */
     actionWhy?: string
+    /** Explication "Pourquoi" alternative pour régime végétarien/pescétarien */
+    actionWhyVegetarian?: string
+    /** Explication "Pourquoi" alternative pour régime vegan */
+    actionWhyVegan?: string
   }[]
   /** Références du domaine */
   references: ScientificReference[]
@@ -208,10 +216,10 @@ const macroReport: SectionReport = {
     { maxPct: 100, level: 'excellent', title: 'Équilibre optimal', text: 'Excellent profil macronutrimentaire. Vous optimisez la satiété, l\'énergie cellulaire et la protection inflammatoire.' },
   ],
   questionInsights: [
-    { questionId: 'mac-1', triggerMaxScore: 0, insight: 'Apport protéique insuffisant à certains repas.', recommendation: 'Les protéines génèrent des petits fragments (di- et tri-peptides) qui déclenchent la production de glucose par l\'intestin, le signal de satiété le plus puissant et le plus durable. Elles fournissent aussi le tryptophane (précurseur de la sérotonine) et la tyrosine (précurseur de la dopamine).', action: 'Ajoutez une source de protéines à chaque repas (viande, poisson, œuf, légumineuses).', actionWhy: 'Les protéines déclenchent un mécanisme où l\'intestin produit du glucose, envoyant au cerveau le signal de satiété le plus profond et le plus durable. Elles fournissent aussi les précurseurs de la sérotonine (bien-être) et de la dopamine (motivation), essentiels pour l\'équilibre émotionnel de la journée.' },
+    { questionId: 'mac-1', triggerMaxScore: 0, insight: 'Apport protéique insuffisant à certains repas.', recommendation: 'Les protéines génèrent des petits fragments (di- et tri-peptides) qui déclenchent la production de glucose par l\'intestin, le signal de satiété le plus puissant et le plus durable. Elles fournissent aussi le tryptophane (précurseur de la sérotonine) et la tyrosine (précurseur de la dopamine).', action: 'Ajoutez une source de protéines à chaque repas (viande, poisson, œuf, légumineuses).', actionVegetarian: 'Ajoutez une source de protéines à chaque repas (œufs, légumineuses, produits laitiers, tofu ou tempeh).', actionVegan: 'Ajoutez une source de protéines à chaque repas (légumineuses, tofu, tempeh, seitan ou graines de courge).', actionWhy: 'Les protéines déclenchent un mécanisme où l\'intestin produit du glucose, envoyant au cerveau le signal de satiété le plus profond et le plus durable. Elles fournissent aussi les précurseurs de la sérotonine (bien-être) et de la dopamine (motivation), essentiels pour l\'équilibre émotionnel de la journée.' },
     { questionId: 'mac-3', triggerMaxScore: 0, insight: 'Consommation quotidienne de féculents raffinés.', recommendation: 'Les glucides raffinés (pain blanc, pâtes blanches) provoquent des pics de glycémie importants. Avec le temps, les cellules ne répondent plus aussi bien à l\'insuline, l\'hormone qui régule le sucre dans le sang. Remplacez progressivement par des versions complètes ou au levain.', action: 'Remplacez pain blanc et pâtes blanches par leurs versions complètes ou au levain.', actionWhy: 'Les glucides complets contiennent des fibres qui ralentissent l\'absorption du sucre dans le sang. Éviter les pics de glycémie (taux de sucre sanguin) répétés protège les cellules contre la surcharge énergétique qui installe progressivement l\'insulinorésistance, un marqueur central du vieillissement métabolique.' },
     { questionId: 'mac-5', triggerMaxScore: 0, insight: 'Consommation excessive d\'aliments ultra-transformés.', recommendation: 'Les aliments ultra-transformés ont été tellement modifiés industriellement que leur digestion est immédiate et explosive, générant un stress oxydatif important. Notre corps ne les reconnaît pas comme de vrais aliments.', action: 'Remplacez un aliment industriel par jour par son équivalent brut ou fait maison.', actionWhy: 'Les aliments bruts préservent leur structure naturelle, qui régule la vitesse d\'absorption des nutriments. Quand cette structure est détruite industriellement, le sucre et les graisses passent trop vite dans le sang, créant un stress pour les cellules que notre corps n\'est pas équipé pour gérer de façon répétée.' },
-    { questionId: 'mac-8', triggerMaxScore: 0, insight: 'Apport insuffisant en oméga-3.', recommendation: 'Les oméga-3 (EPA/DHA) s\'intègrent dans les membranes de nos cellules, les rendant plus fluides et moins inflammatoires. Ils produisent des molécules qui éteignent activement les foyers d\'inflammation. Visez 2 portions de petits poissons gras par semaine (sardines, maquereau).', action: 'Consommez des petits poissons gras 2x par semaine (sardines, maquereau, hareng).', actionWhy: 'Les oméga-3 s\'intègrent dans les membranes de vos cellules, les rendant plus souples et moins inflammatoires. Ils bloquent une enzyme clé de l\'inflammation (COX-2) et produisent des molécules qui éteignent activement les foyers inflammatoires, contrairement aux anti-douleurs classiques qui les masquent seulement.' },
+    { questionId: 'mac-8', triggerMaxScore: 0, insight: 'Apport insuffisant en oméga-3.', recommendation: 'Les oméga-3 (EPA/DHA) s\'intègrent dans les membranes de nos cellules, les rendant plus fluides et moins inflammatoires. Ils produisent des molécules qui éteignent activement les foyers d\'inflammation. Visez 2 portions de petits poissons gras par semaine (sardines, maquereau).', action: 'Consommez des petits poissons gras 2x par semaine (sardines, maquereau, hareng).', actionVegetarian: 'Consommez 2 c. à soupe de graines de lin moulues et une poignée de noix par jour (meilleures sources végétales d\'oméga-3).', actionVegan: 'Consommez 2 c. à soupe de graines de lin moulues et une poignée de noix par jour (meilleures sources végétales d\'oméga-3).', actionWhy: 'Les oméga-3 s\'intègrent dans les membranes de vos cellules, les rendant plus souples et moins inflammatoires. Ils bloquent une enzyme clé de l\'inflammation (COX-2) et produisent des molécules qui éteignent activement les foyers inflammatoires, contrairement aux anti-douleurs classiques qui les masquent seulement.', actionWhyVegetarian: 'Les graines de lin et les noix apportent de l\'ALA (oméga-3 végétal). Le corps le convertit partiellement en EPA/DHA. Pour compléter, une algue DHA en complément alimentaire est l\'alternative la plus directe aux poissons gras.', actionWhyVegan: 'Les graines de lin et les noix apportent de l\'ALA (oméga-3 végétal). Le corps le convertit partiellement en EPA/DHA. Pour compléter, une algue DHA en complément alimentaire est l\'alternative la plus directe aux poissons gras.' },
   ],
   references: [
     { authors: 'Berthou A', title: 'Régulation insulinique et métabolisme mitochondrial', journal: 'Référentiel nutritionnel', year: 2024 },
@@ -235,8 +243,8 @@ const microReport: SectionReport = {
   ],
   questionInsights: [
     { questionId: 'mic-1', triggerMaxScore: 0, insight: 'Consommation de légumes insuffisante.', recommendation: 'Les légumes apportent des fibres transformées par les bactéries intestinales en butyrate (le carburant principal des cellules du côlon, qui assurent l\'étanchéité de la paroi intestinale). Sans fibres, les bactéries dégradent leur propre couche de protection muqueuse. Visez 2 portions par jour minimum.', action: 'Visez au moins 2 portions de légumes par repas, cuits ou crus.', actionWhy: 'Les fibres végétales sont fermentées par les bactéries intestinales en butyrate, un composé qui nourrit les cellules du côlon et renforce l\'étanchéité de la paroi intestinale. Sans fibres, les bactéries dégradent leur propre couche de mucus protecteur pour survivre, exposant la paroi aux toxines.' },
-    { questionId: 'mic-4', triggerMaxScore: 0, insight: 'Apport en fer potentiellement insuffisant.', recommendation: 'Le fer est essentiel au transport d\'oxygène dans le sang et à la production d\'énergie dans les cellules. Une carence se traduit souvent par de la fatigue et une baisse de concentration. Sources : viande rouge 2x/semaine, lentilles et pois chiches avec de la vitamine C pour optimiser l\'absorption.', action: 'Intégrez des lentilles ou de la viande rouge 2x/semaine avec une source de vitamine C (tomate, poivron, citron).', actionWhy: 'Le fer est indispensable à l\'hémoglobine (qui transporte l\'oxygène dans le sang) et à la production d\'énergie dans chaque cellule. La vitamine C améliore l\'absorption du fer par l\'intestin : associer les deux multiplie l\'absorption par 3 à 4 fois.' },
-    { questionId: 'mic-6', triggerMaxScore: 0, insight: 'Possible déficit en vitamine D.', recommendation: 'La vitamine D fonctionne comme une hormone : elle régule l\'expression de plus de 200 gènes, dont ceux qui contrôlent l\'immunité et la résistance à l\'inflammation. Une exposition solaire quotidienne (15 min) ou un apport alimentaire régulier (poissons gras, jaune d\'œuf) est essentiel.', action: 'Exposez-vous au soleil 15 min/jour (avant-bras et visage découverts) ou consommez des poissons gras et des œufs.', actionWhy: 'La vitamine D fonctionne comme une hormone qui régule l\'immunité intestinale et renforce la paroi digestive. Un déficit est associé à une paroi intestinale trop perméable, une résistance affaiblie aux infections et une inflammation chronique discrète mais persistante.' },
+    { questionId: 'mic-4', triggerMaxScore: 0, insight: 'Apport en fer potentiellement insuffisant.', recommendation: 'Le fer est essentiel au transport d\'oxygène dans le sang et à la production d\'énergie dans les cellules. Une carence se traduit souvent par de la fatigue et une baisse de concentration. Sources : viande rouge 2x/semaine, lentilles et pois chiches avec de la vitamine C pour optimiser l\'absorption.', action: 'Intégrez des lentilles ou de la viande rouge 2x/semaine avec une source de vitamine C (tomate, poivron, citron).', actionVegetarian: 'Intégrez des lentilles, pois chiches ou haricots 3x/semaine avec une source de vitamine C (tomate, poivron, jus de citron) pour maximiser l\'absorption du fer végétal.', actionVegan: 'Intégrez des lentilles, pois chiches ou haricots 3x/semaine avec une source de vitamine C (tomate, poivron, jus de citron) pour maximiser l\'absorption du fer végétal.', actionWhy: 'Le fer est indispensable à l\'hémoglobine (qui transporte l\'oxygène dans le sang) et à la production d\'énergie dans chaque cellule. La vitamine C améliore l\'absorption du fer par l\'intestin : associer les deux multiplie l\'absorption par 3 à 4 fois.' },
+    { questionId: 'mic-6', triggerMaxScore: 0, insight: 'Possible déficit en vitamine D.', recommendation: 'La vitamine D fonctionne comme une hormone : elle régule l\'expression de plus de 200 gènes, dont ceux qui contrôlent l\'immunité et la résistance à l\'inflammation. Une exposition solaire quotidienne (15 min) ou un apport alimentaire régulier (poissons gras, jaune d\'œuf) est essentiel.', action: 'Exposez-vous au soleil 15 min/jour (avant-bras et visage découverts) ou consommez des poissons gras et des œufs.', actionVegetarian: 'Exposez-vous au soleil 15 min/jour (avant-bras et visage découverts) ou consommez des œufs et des champignons exposés au soleil. En hiver, envisagez un complément en vitamine D3.', actionVegan: 'Exposez-vous au soleil 15 min/jour (avant-bras et visage découverts). En cas d\'exposition insuffisante, prenez un complément en vitamine D3 d\'origine végétale (extrait de lichen).', actionWhy: 'La vitamine D fonctionne comme une hormone qui régule l\'immunité intestinale et renforce la paroi digestive. Un déficit est associé à une paroi intestinale trop perméable, une résistance affaiblie aux infections et une inflammation chronique discrète mais persistante.' },
     { questionId: 'mic-9', triggerMaxScore: 0, insight: 'Apport en magnésium possiblement insuffisant.', recommendation: 'Le magnésium intervient dans plus de 300 réactions enzymatiques, dont la production d\'énergie cellulaire. Un manque se manifeste souvent par des crampes, des spasmes intestinaux et de la fatigue. Sources : chocolat noir > 85 %, amandes, graines de courge, légumineuses.', action: 'Consommez amandes, graines de courge ou chocolat noir >85% chaque jour.', actionWhy: 'Le magnésium participe à la production d\'énergie dans chaque cellule et stabilise plus de 300 réactions chimiques dans le corps. Un manque provoque crampes, spasmes intestinaux et fatigue, et bloque en plus les effets de la vitamine D, amplifiant ses conséquences négatives.' },
   ],
   references: [
@@ -284,7 +292,7 @@ const inflammatoireReport: SectionReport = {
   ],
   questionInsights: [
     { questionId: 'inf-1', triggerMaxScore: 0, insight: 'Consommation d\'alcool supérieure à 2 verres par semaine.', recommendation: 'L\'alcool fragilise directement la paroi intestinale et surcharge le foie dans sa mission de filtration. Quand le foie est saturé, il ne peut plus éliminer les toxines efficacement, ce qui entretient une inflammation chronique dans tout le corps.', action: 'Limitez l\'alcool à 2 verres maximum par semaine, et espacez les consommations.', actionWhy: 'Réduire l\'alcool diminue la charge de toxines que le foie doit filtrer chaque jour. Cela permet aussi à la paroi intestinale de maintenir son étanchéité : moins de toxines bactériennes passent dans la circulation sanguine, ce qui réduit directement l\'inflammation chronique dans tout le corps.' },
-    { questionId: 'inf-2', triggerMaxScore: 0, insight: 'Consommation majoritaire de produits animaux issus de l\'élevage conventionnel.', recommendation: 'Les animaux nourris au maïs et au soja en élevage intensif ont un profil en graisses riche en oméga-6, des graisses pro-inflammatoires. Ce déséquilibre est transmis dans votre assiette. Privilégiez les élevages en herbe, label rouge ou bio, qui offrent un meilleur équilibre nutritionnel.', action: 'Choisissez viande et œufs issus d\'élevages en herbe, label rouge ou bio.', actionWhy: 'Les animaux nourris à l\'herbe ont un profil en graisses beaucoup plus équilibré (ratio oméga-6/oméga-3 proche de 2/1) que ceux de l\'élevage intensif (15/1 à 20/1). Or, ce ratio détermine directement la quantité de molécules pro-inflammatoires que votre corps va produire.' },
+    { questionId: 'inf-2', triggerMaxScore: 0, insight: 'Consommation majoritaire de produits animaux issus de l\'élevage conventionnel.', recommendation: 'Les animaux nourris au maïs et au soja en élevage intensif ont un profil en graisses riche en oméga-6, des graisses pro-inflammatoires. Ce déséquilibre est transmis dans votre assiette. Privilégiez les élevages en herbe, label rouge ou bio, qui offrent un meilleur équilibre nutritionnel.', action: 'Choisissez viande et œufs issus d\'élevages en herbe, label rouge ou bio.', actionVegetarian: 'Choisissez œufs et produits laitiers issus d\'élevages en plein air ou certifiés bio pour un meilleur profil oméga-3.', actionVegan: 'Variez vos sources de protéines végétales (légumineuses, tofu bio, tempeh fermenté) pour couvrir tous les acides aminés essentiels.', actionWhy: 'Les animaux nourris à l\'herbe ont un profil en graisses beaucoup plus équilibré (ratio oméga-6/oméga-3 proche de 2/1) que ceux de l\'élevage intensif (15/1 à 20/1). Or, ce ratio détermine directement la quantité de molécules pro-inflammatoires que votre corps va produire.' },
     { questionId: 'inf-3', triggerMaxScore: 0, insight: 'Consommation élevée d\'oméga-6.', recommendation: 'L\'huile de tournesol, les margarines et les plats industriels sont très riches en oméga-6, des graisses que le corps transforme en messagers chimiques de l\'inflammation. Remplacez l\'huile de tournesol par l\'huile d\'olive ou de colza. Ajoutez des graines de lin moulues (2 c. à soupe/jour) et des noix (30 g/jour).', action: 'Remplacez l\'huile de tournesol par de l\'huile d\'olive ou de colza. Ajoutez 2 c. à soupe de graines de lin moulues par jour.', actionWhy: 'L\'huile d\'olive contient des polyphénols qui bloquent le principal régulateur génétique de l\'inflammation dans le corps. L\'huile de colza apporte des oméga-3. Ce simple changement réduit l\'afflux d\'acide arachidonique, la matière première des molécules qui amplifient la douleur et l\'œdème dans les tissus.' },
   ],
   references: [
@@ -307,7 +315,7 @@ const bonusReport: SectionReport = {
     { maxPct: 100, level: 'excellent', title: 'Pratiques optimales', text: 'Vous maîtrisez les pratiques alimentaires de protection cellulaire avancée. Vos épinutriments activent les gènes de résilience et éteignent les gènes de l\'inflammation.' },
   ],
   questionInsights: [
-    { questionId: 'bon-1', triggerMaxScore: 0, insight: 'Pas de consommation régulière d\'aliments lactofermentés.', recommendation: 'Les aliments lactofermentés (choucroute, kimchi, yaourts vivants) enrichissent directement le microbiote en souches protectrices. Un microbiote diversifié est essentiel pour transformer les polyphénols en composés actifs (urolithines) qui stimulent le renouvellement de nos centrales énergétiques cellulaires et produire du butyrate, le carburant des cellules du côlon.', action: 'Ajoutez un aliment lactofermenté chaque jour : yaourt vivant au petit-déjeuner, choucroute ou kimchi en accompagnement, ou kéfir en collation.', actionWhy: 'Les aliments lactofermentés introduisent des bactéries vivantes qui enrichissent et diversifient le microbiote, un marqueur clé de longévité. Un microbiote diversifié transforme davantage d\'antioxydants végétaux (polyphénols) en composés actifs qui stimulent le renouvellement des mitochondries et produisent du butyrate pour protéger la paroi intestinale.' },
+    { questionId: 'bon-1', triggerMaxScore: 0, insight: 'Pas de consommation régulière d\'aliments lactofermentés.', recommendation: 'Les aliments lactofermentés (choucroute, kimchi, yaourts vivants) enrichissent directement le microbiote en souches protectrices. Un microbiote diversifié est essentiel pour transformer les polyphénols en composés actifs (urolithines) qui stimulent le renouvellement de nos centrales énergétiques cellulaires et produire du butyrate, le carburant des cellules du côlon.', action: 'Ajoutez un aliment lactofermenté chaque jour : yaourt vivant au petit-déjeuner, choucroute ou kimchi en accompagnement, ou kéfir en collation.', actionVegetarian: 'Ajoutez un aliment lactofermenté chaque jour : yaourt vivant au petit-déjeuner, choucroute ou kimchi en accompagnement, ou kéfir en collation.', actionVegan: 'Ajoutez un aliment lactofermenté chaque jour : kéfir de coco, kombucha, choucroute crue ou kimchi (sans anchois) en accompagnement.', actionWhy: 'Les aliments lactofermentés introduisent des bactéries vivantes qui enrichissent et diversifient le microbiote, un marqueur clé de longévité. Un microbiote diversifié transforme davantage d\'antioxydants végétaux (polyphénols) en composés actifs qui stimulent le renouvellement des mitochondries et produisent du butyrate pour protéger la paroi intestinale.' },
     { questionId: 'bon-3', triggerMaxScore: 0, insight: 'Vous ne pratiquez pas la cuisson douce.', recommendation: 'La cuisson à haute température (friture, grillade > 180°C) crée des composés néoformés (amines hétérocycliques, produits de glycation) qui génèrent du stress oxydatif et de l\'inflammation. La cuisson vapeur ou basse température préserve les nutriments et évite la formation de ces composés indésirables.', action: 'Privilégiez la cuisson vapeur, à l\'étouffée ou mijotée (<100°C). Réservez les grillades et fritures à une fois par semaine maximum.', actionWhy: 'La cuisson à haute température (friture, grillade > 180°C) génère des composés toxiques (AGEs, amines hétérocycliques) qui créent du stress oxydatif et activent les gènes de l\'inflammation. La cuisson douce préserve les vitamines sensibles à la chaleur (B9, vitamine C) et les composés protecteurs des aliments.' },
     { questionId: 'bon-4', triggerMaxScore: 0, insight: 'Apport en polyphénols insuffisant.', recommendation: 'Les polyphénols (thé vert, baies, chocolat noir > 85 %) sont de puissants composés végétaux qui éteignent les gènes de l\'inflammation et stimulent le renouvellement des mitochondries (nos générateurs d\'énergie cellulaire). Visez une source de polyphénols à chaque repas.', action: 'Ajoutez une source de polyphénols à chaque repas : thé vert au petit-déjeuner, baies à la collation, chocolat noir >85% en fin de repas.', actionWhy: 'Les polyphénols éteignent le principal gène de l\'inflammation et activent des voies biologiques associées à la longévité cellulaire. Les bactéries intestinales les transforment en composés actifs qui stimulent le renouvellement des mitochondries (vos centrales énergétiques), ralentissant le vieillissement cellulaire.' },
   ],
@@ -432,7 +440,25 @@ export interface ActionPhase { phase: number; phaseTitle: string; timeframe: str
 export function generateFullReport(
   sectionResults: { sectionId: string; pct: number; score: number; maxScore: number; title: string }[],
   scores: Record<string, number>,
+  diet?: string,
 ) {
+  const isVegan = diet ? /vegan|vegane|végane|végétalien/i.test(diet) : false
+  const isVegetarian = !isVegan && (diet ? /végétarien|vegetarien|vegetarian|végétarienne|végétarism/i.test(diet) : false)
+  const isPescetarian = !isVegan && !isVegetarian && (diet ? /pescet|poisson/i.test(diet) : false)
+
+  function pickAction(ti: { action?: string; actionVegetarian?: string; actionVegan?: string }) {
+    if (isVegan && ti.actionVegan) return ti.actionVegan
+    if ((isVegetarian || isPescetarian) && ti.actionVegetarian) return ti.actionVegetarian
+    return ti.action
+  }
+  function pickActionWhy(ti: { actionWhy?: string; actionWhyVegetarian?: string; actionWhyVegan?: string }) {
+    if (isVegan && ti.actionWhyVegan) return ti.actionWhyVegan
+    if ((isVegetarian || isPescetarian) && ti.actionWhyVegetarian) return ti.actionWhyVegetarian
+    return ti.actionWhy
+  }
+
+  const DIGESTIF_IDS = new Set(['reflux', 'douleurs-abdominales', 'indigestion', 'diarrhee', 'constipation'])
+
   const strengths: StrengthItem[] = []
   const weaknesses: WeaknessItem[] = []
   const sectionReports = sectionResults.map(r => {
@@ -480,14 +506,18 @@ export function generateFullReport(
     const fullReport = getSectionReport(w.sectionId)
     const allScores = scores
     const fullTriggered = fullReport ? getTriggeredInsights(fullReport, allScores) : []
+    const isDigestif = DIGESTIF_IDS.has(w.sectionId)
     for (const ti of fullTriggered) {
-      const short = ti.action || ti.recommendation.split('.')[0] + '.'
-      const why = ti.actionWhy || ti.recommendation
-      if (w.level === 'alerte') phase1.push({ action: short, why, sectionId: w.sectionId })
+      const short = pickAction(ti) || ti.recommendation.split('.')[0] + '.'
+      const why = pickActionWhy(ti) || ti.actionWhy || ti.recommendation
+      if (!isDigestif && w.level === 'alerte') phase1.push({ action: short, why, sectionId: w.sectionId })
       else phase2.push({ action: short, why, sectionId: w.sectionId })
     }
     if (fullTriggered.length === 0) {
-      phase1.push({ action: w.concern.split('.').slice(0, 2).join('.') + '.', why: fullReport?.context.split('.')[0] + '.' || w.concern.split('.')[0] + '.', sectionId: w.sectionId })
+      const fallbackAction = w.concern.split('.').slice(0, 2).join('.') + '.'
+      const fallbackWhy = fullReport?.context.split('.')[0] + '.' || w.concern.split('.')[0] + '.'
+      if (!isDigestif && w.level === 'alerte') phase1.push({ action: fallbackAction, why: fallbackWhy, sectionId: w.sectionId })
+      else phase2.push({ action: fallbackAction, why: fallbackWhy, sectionId: w.sectionId })
     }
   }
   const actionPlan: ActionPhase[] = []
@@ -546,4 +576,37 @@ export function generateTopActions(
     sectionTitle: a.sectionTitle,
     level: a.level,
   }))
+}
+
+/**
+ * Adapts an action text for a specific diet at display time.
+ * Used when the report was stored without diet context.
+ */
+export function adaptActionForDiet(action: string, diet: string): string {
+  if (!diet) return action
+  const isVegan = /vegan|vegane|végane|végétalien/i.test(diet)
+  const isVegetarian = !isVegan && /végétarien|vegetarien|vegetarian|végétarienne/i.test(diet)
+  if (!isVegan && !isVegetarian) return action
+
+  let result = action
+  if (isVegan) {
+    result = result
+      .replace(/viande(?:s)?,?\s*poisson(?:s)?,?\s*(?:ou\s+)?œuf(?:s)?,?\s*(?:ou\s+)?légumineuses/gi, 'légumineuses, tofu, tempeh, seitan ou graines de courge')
+      .replace(/viande rouge/gi, 'lentilles, tofu ferme ou haricots')
+      .replace(/petits? poissons? gras \d+x? par semaine \([^)]+\)/gi, '2 c. à soupe de graines de lin moulues et une poignée de noix par jour')
+      .replace(/sardines?, maquereau(?:, hareng)?/gi, 'noix, graines de lin et huile de colza')
+      .replace(/poissons? gras et (?:des )?œufs/gi, 'un complément en vitamine D3 d\'origine végétale (lichen)')
+      .replace(/yaourt vivant au petit-déjeuner/gi, 'kéfir de coco ou kombucha au petit-déjeuner')
+      .replace(/yaourt vivant/gi, 'kéfir de coco ou kombucha')
+      .replace(/viande et œufs issus d'élevages en herbe, label rouge ou bio/gi, 'légumineuses, tofu bio et tempeh comme sources protéiques')
+  } else if (isVegetarian) {
+    result = result
+      .replace(/viande(?:s)?,?\s*poisson(?:s)?,?\s*(?:ou\s+)?œuf(?:s)?,?\s*(?:ou\s+)?légumineuses/gi, 'œufs, légumineuses, produits laitiers, tofu ou tempeh')
+      .replace(/viande rouge/gi, 'lentilles ou haricots')
+      .replace(/petits? poissons? gras \d+x? par semaine \([^)]+\)/gi, '2 c. à soupe de graines de lin moulues et une poignée de noix par jour')
+      .replace(/sardines?, maquereau(?:, hareng)?/gi, 'noix, graines de lin et huile de colza')
+      .replace(/poissons? gras et (?:des )?œufs/gi, 'un complément en vitamine D3 ou des œufs enrichis')
+      .replace(/viande et œufs issus d'élevages en herbe, label rouge ou bio/gi, 'œufs et produits laitiers issus d\'élevages en plein air ou bio')
+  }
+  return result
 }
