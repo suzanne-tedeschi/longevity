@@ -207,6 +207,24 @@ function renderSectionIcon(icon: SectionIcon, className = 'w-6 h-6') {
   }
 }
 
+const SECTION_TITLE_BY_ID: Record<string, string> = {
+  'reflux': 'Reflux',
+  'douleurs-abdominales': 'Douleurs abdominales',
+  'indigestion': 'Indigestion',
+  'diarrhee': 'Transit accéléré',
+  'constipation': 'Constipation',
+  'habitudes-generales': 'Habitudes générales',
+  'macronutriments': 'Macronutriments',
+  'micronutriments': 'Micronutriments',
+  'ultra-transformes': 'Ultra-transformés',
+  'inflammatoire': 'Inflammation alimentaire',
+  'bonus-sante': 'Bonus santé',
+}
+
+function getSectionTitle(sectionId: string, fallback?: string) {
+  return fallback ?? SECTION_TITLE_BY_ID[sectionId] ?? sectionId
+}
+
 /* ═══════════════════════════════════════════════════════
    SCORE COLOR HELPERS
    ═══════════════════════════════════════════════════════ */
@@ -618,7 +636,16 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
     const pct = isDigestif
       ? Math.round(((section.maxScore - score) / section.maxScore) * 100)
       : Math.round((score / section.maxScore) * 100)
-    return { sectionId: section.id, pct, score, maxScore: section.maxScore, title: section.title, subtitle: section.subtitle, icon: section.icon, isDigestif }
+    return {
+      sectionId: section.id,
+      pct,
+      score,
+      maxScore: section.maxScore,
+      title: getSectionTitle(section.id, section.title),
+      subtitle: section.subtitle,
+      icon: section.icon,
+      isDigestif,
+    }
   })
 
   const report = useMemo(() => generateFullReport(
@@ -1206,7 +1233,7 @@ export default function BilanNutritionPage() {
         {phase === 'testing' && currentTest && currentSection && (
           <TestCard
             test={currentTest} testIndex={flatIndex} totalTests={partTotalTests}
-            sectionTitle={currentSection.title} sectionIcon={currentSection.icon}
+            sectionTitle={getSectionTitle(currentSection.id, currentSection.title)} sectionIcon={currentSection.icon}
             selectedScore={scores[currentTest.id]} onScore={handleScore}
             onPrev={handlePrev}
           />
