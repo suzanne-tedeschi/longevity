@@ -622,7 +622,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
   })
 
   const report = useMemo(() => generateFullReport(
-    allResults.map(r => ({ sectionId: r.sectionId, pct: r.pct, score: r.score, maxScore: r.maxScore, title: r.title })),
+    allResults.map(r => ({ sectionId: r.sectionId, pct: r.pct, score: r.score, maxScore: r.maxScore, title: r.title ?? '' })),
     scores
   ), [allResults, scores])
 
