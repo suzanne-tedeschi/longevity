@@ -68,12 +68,12 @@ const bilanOptionsDefs: { id: string; bilanType: string; title: string; descript
   { id: "condition-physique", bilanType: "mobilite", title: "Condition physique", description: "43 tests — mobilite, force, equilibre, souplesse.", duration: "15 min", available: false, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
   { id: "nutrition", bilanType: "nutrition", title: "Nutrition", description: "Troubles digestifs & habitudes alimentaires.", duration: "12 min", available: true, href: "/onboarding/bilan-nutrition", icon: <Apple className="w-5 h-5" />, color: "#c9a96e" },
   { id: "sommeil", bilanType: "sommeil", title: "Sommeil", description: "Qualite & recuperation nocturne.", duration: "10 min", available: false, href: "/onboarding/bilan-sommeil", icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
-  { id: "mental", bilanType: "mental", title: "Sante mentale", description: "Emotions, stress, resilience — 2 questionnaires.", duration: "25 min", available: false, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
+  { id: "mental", bilanType: "mental", title: "Santé mentale", description: "Émotions, stress, résilience — 2 questionnaires.", duration: "25 min", available: false, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
 ]
 
 /* Hidden defs for report lookup (emotionnel + stress saved separately in DB) */
 const subBilanDefs = [
-  { id: "emotionnel", bilanType: "emotionnel", title: "Sante emotionnelle", color: "#ff6b6b", icon: <Heart className="w-5 h-5" /> },
+  { id: "emotionnel", bilanType: "emotionnel", title: "Santé émotionnelle", color: "#ff6b6b", icon: <Heart className="w-5 h-5" /> },
   { id: "stress", bilanType: "stress", title: "Gestion du stress", color: "#60a5fa", icon: <Wind className="w-5 h-5" /> },
 ]
 
@@ -181,7 +181,7 @@ export default function BilansPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [modal, setModal] = useState<{ open: boolean; date: Date | null }>({ open: false, date: null })
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
-  const [newSession, setNewSession] = useState({ type: "sport" as "evo" | "sport", label: "", duration: 45, notes: "", time: "09:00" })
+  const [newSession, setNewSession] = useState({ type: "sport" as "evo" | "sport", label: "", duration: 45, notes: "", time: "09:00", isWeekly: false })
   const [calendarConnected, setCalendarConnected] = useState(false)
   const [calendarEmail, setCalendarEmail] = useState<string | null>(null)
   const [calendarLoading, setCalendarLoading] = useState(true)
@@ -208,19 +208,6 @@ export default function BilansPage() {
   const [dragOverDay, setDragOverDay] = useState<string | null>(null)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
 
-  const addSessionAtDate = useCallback((date: Date, label: string, type: "evo" | "sport" = "sport") => {
-    setSessions(prev => [
-      ...prev,
-      {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        date,
-        type,
-        label,
-        duration: 45,
-        notes: "",
-      },
-    ])
-  }, [])
 
   const getDraggedChipLabel = useCallback((e: React.DragEvent) => {
     if (dragPayload.current?.kind === "chip") return dragPayload.current.value.trim()
@@ -246,7 +233,7 @@ export default function BilansPage() {
   const resetModalState = useCallback(() => {
     setModal({ open: false, date: null })
     setEditingSessionId(null)
-    setNewSession({ type: "sport", label: "", duration: 45, notes: "", time: "09:00" })
+    setNewSession({ type: "sport", label: "", duration: 45, notes: "", time: "09:00", isWeekly: false })
   }, [])
 
   const openCreateModal = useCallback((date: Date, label = "") => {
@@ -259,6 +246,7 @@ export default function BilansPage() {
       duration: 45,
       notes: "",
       time: hasExplicitTime ? format(nextDate, "HH:mm") : "09:00",
+      isWeekly: false,
     })
     setModal({ open: true, date: nextDate })
   }, [])
@@ -272,6 +260,7 @@ export default function BilansPage() {
       duration: session.duration,
       notes: session.notes || "",
       time: format(session.date, "HH:mm"),
+      isWeekly: false,
     })
     setModal({ open: true, date: new Date(session.date) })
   }, [])
@@ -330,7 +319,9 @@ export default function BilansPage() {
     const chipLabel = getDraggedChipLabel(e)
     if (chipLabel) {
       const nd = new Date(targetDate); nd.setHours(9, 0, 0, 0)
-      addSessionAtDate(nd, chipLabel, "sport")
+      setEditingSessionId(null)
+      setNewSession({ type: "sport", label: chipLabel, duration: 45, notes: "", time: "09:00", isWeekly: false })
+      setModal({ open: true, date: nd })
       clearDragState()
       return
     }
@@ -343,7 +334,7 @@ export default function BilansPage() {
       return { ...s, date: nd }
     }))
     clearDragState()
-  }, [addSessionAtDate, clearDragState, getDraggedChipLabel, getDraggedSessionId])
+  }, [clearDragState, getDraggedChipLabel, getDraggedSessionId])
 
   /* drop with hour calculation from Y position */
   const onDropTime = useCallback((e: React.DragEvent, targetDate: Date) => {
@@ -359,7 +350,10 @@ export default function BilansPage() {
     const chipLabel = getDraggedChipLabel(e)
     if (chipLabel) {
       const nd = new Date(targetDate); nd.setHours(h, m, 0, 0)
-      addSessionAtDate(nd, chipLabel, "sport")
+      const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+      setEditingSessionId(null)
+      setNewSession({ type: "sport", label: chipLabel, duration: 45, notes: "", time: timeStr, isWeekly: false })
+      setModal({ open: true, date: nd })
       clearDragState()
       return
     }
@@ -372,7 +366,7 @@ export default function BilansPage() {
       return { ...s, date: nd }
     }))
     clearDragState()
-  }, [addSessionAtDate, clearDragState, getDraggedChipLabel, getDraggedSessionId])
+  }, [clearDragState, getDraggedChipLabel, getDraggedSessionId])
 
   /* ── google calendar ── */
   const fetchGoogleEvents = async (d: Date, forceSync = false) => {
@@ -553,6 +547,16 @@ export default function BilansPage() {
           ? { ...session, date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }
           : session
       ))
+    } else if (newSession.isWeekly) {
+      const newSessions = Array.from({ length: 12 }, (_, i) => ({
+        id: `${Date.now()}-${i}`,
+        date: addWeeks(d, i),
+        type: newSession.type,
+        label: newSession.label,
+        duration: newSession.duration,
+        notes: newSession.notes,
+      }))
+      setSessions(prev => [...prev, ...newSessions])
     } else {
       setSessions(prev => [...prev, { id: Date.now().toString(), date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }])
     }
@@ -568,7 +572,6 @@ export default function BilansPage() {
   const calTitle = calView === "month" ? format(currentDate, "MMMM yyyy", { locale: fr }) : calView === "week" ? `${format(weekStart, "d MMM", { locale: fr })} — ${format(addDays(weekStart, 6), "d MMM yyyy", { locale: fr })}` : format(currentDate, "EEEE d MMMM yyyy", { locale: fr })
 
   const last = progressData[progressData.length - 1]
-  const globalScore = Math.round((last.renforcement + last.cardio + last.sommeil + last.nutrition + last.mental) / 5)
   const sessionTop = (s: Session) => Math.max(0, (getHours(s.date) - 8 + getMinutes(s.date) / 60) * H_PX)
   const sessionHeight = (s: Session) => Math.max(18, (s.duration / 60) * H_PX)
   const isDraggable = (s: Session) => s.type !== "google" // only local sessions
@@ -609,6 +612,11 @@ export default function BilansPage() {
       }
     })
   }, [bilanResults])
+
+  /* ── Calculate completion percentage instead of score average ── */
+  const completedBilans = bilanOptions.filter(b => b.score !== null).length
+  const totalBilans = bilanOptions.length
+  const globalScore = totalBilans > 0 ? Math.round((completedBilans / totalBilans) * 100) : 0
 
   /* ── Score cards (fed by bilans) ── */
   const mobiliteScore = bilanResults.find(r => r.bilan_type === "mobilite")?.global_score ?? null
@@ -672,18 +680,30 @@ export default function BilansPage() {
           {/* subtle noise texture */}
           <div className="absolute inset-0 pointer-events-none opacity-[0.015]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
           {/* ─── nav inside hero ─── */}
-          <nav className="sticky top-0 z-30 bg-black/40 backdrop-blur-2xl border-b border-white/[0.06]">
-            <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-              <Link href="/" className="text-xl font-light tracking-wide text-white/80">evo</Link>
-              <div className="flex items-center gap-0.5 bg-white/[0.06] rounded-lg p-0.5">
+          <nav className="sticky top-0 z-30 border-b border-white/[0.06] bg-black/40 backdrop-blur-2xl">
+            <div className="max-w-5xl mx-auto px-4 py-3 sm:px-6 sm:h-14 sm:py-0 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center justify-between gap-3">
+                <Link href="/" className="text-xl font-light tracking-wide text-white/80">evo</Link>
+                <div className="flex items-center gap-2 sm:hidden">
+                  <ScoreRing value={globalScore} size={38} />
+                  <button
+                    onClick={async () => { await supabase?.auth.signOut(); router.replace('/') }}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/[0.08] transition-all"
+                    title="Se déconnecter"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar bg-white/[0.06] rounded-lg p-0.5">
                 {sections.map(s => (
                   <a key={s.id} href={`#${s.id}`} onClick={e => { e.preventDefault(); document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" }) }}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-[13px] font-medium transition-all text-white/35 hover:text-white hover:bg-white/[0.08]">
-                    {s.icon}<span className="hidden sm:inline">{s.label}</span>
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] sm:text-[13px] font-medium transition-all text-white/45 hover:text-white hover:bg-white/[0.08]">
+                    {s.icon}<span>{s.label}</span>
                   </a>
                 ))}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
                 <ScoreRing value={globalScore} size={40} />
                 <button
                   onClick={async () => { await supabase?.auth.signOut(); router.replace('/') }}
@@ -705,22 +725,22 @@ export default function BilansPage() {
 
             <div className="flex flex-col gap-5 lg:flex-row lg:gap-10 lg:items-start">
               {/* ── Left: profile block ── */}
-              <div className="shrink-0 w-full lg:w-[240px] rounded-2xl border border-white/[0.08] bg-white/[0.04] p-5 lg:border-0 lg:bg-transparent lg:p-0 flex flex-col items-center lg:items-start">
+              <div className="shrink-0 w-full lg:w-[240px] rounded-2xl border border-white/[0.08] bg-white/[0.04] p-5 sm:p-5 lg:border-0 lg:bg-transparent lg:p-0 flex flex-col items-center lg:items-start">
                 {/* Ages side by side — big & centered on mobile */}
                 <div className="flex items-start gap-6 sm:gap-5 mb-6 justify-center lg:justify-start">
                   <div className="text-center lg:text-left">
                     <p className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.18em] text-white/30 mb-2">Âge réel</p>
                     <div className="flex items-baseline gap-1 justify-center lg:justify-start">
-                      <span className="text-[56px] lg:text-[42px] leading-none font-extrabold text-white tracking-tight">{userAge ?? '—'}</span>
-                      {userAge && <span className="text-[16px] lg:text-base text-white/40 font-medium">ans</span>}
+                      <span className="text-[64px] sm:text-[56px] lg:text-[42px] leading-none font-extrabold text-white tracking-tight">{userAge ?? '—'}</span>
+                      {userAge && <span className="text-[18px] sm:text-[16px] lg:text-base text-white/40 font-medium">ans</span>}
                     </div>
                   </div>
                   <div className="w-px self-stretch bg-white/[0.08] mx-1" />
                   <div className="text-center lg:text-left">
                     <p className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.18em] text-white/30 mb-2">Âge bio</p>
                     <div className="flex items-baseline gap-1 justify-center lg:justify-start">
-                      <span className="text-[56px] lg:text-[42px] leading-none font-extrabold text-white/10 blur-[5px] select-none tracking-tight">00</span>
-                      <span className="text-[16px] lg:text-base text-white/10 blur-[4px]">ans</span>
+                      <span className="text-[64px] sm:text-[56px] lg:text-[42px] leading-none font-extrabold text-white/10 blur-[5px] select-none tracking-tight">00</span>
+                      <span className="text-[18px] sm:text-[16px] lg:text-base text-white/10 blur-[4px]">ans</span>
                     </div>
                     <p className="text-[10px] sm:text-[11px] text-white/20 mt-1 text-center lg:text-left">Bientôt</p>
                   </div>
@@ -731,19 +751,19 @@ export default function BilansPage() {
                   {userActivityFreq && (
                     <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.07]">
                       <Activity className="w-4 h-4 shrink-0" style={{ color: '#3ECF8E' }} />
-                      <span className="text-[11px] text-white/80 font-medium truncate">{shortActivityFreq(userActivityFreq)}</span>
+                      <span className="text-[12px] text-white/80 font-medium truncate">{shortActivityFreq(userActivityFreq)}</span>
                     </div>
                   )}
                   {userDiet && (
                     <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.07]">
                       <Apple className="w-4 h-4 shrink-0" style={{ color: '#c9a96e' }} />
-                      <span className="text-[11px] text-white/80 font-medium truncate">{shortDiet(userDiet)}</span>
+                      <span className="text-[12px] text-white/80 font-medium truncate">{shortDiet(userDiet)}</span>
                     </div>
                   )}
                   {userEvoUsage && (
                     <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.07]">
                       <Zap className="w-4 h-4 shrink-0" style={{ color: '#a78bfa' }} />
-                      <span className="text-[11px] text-white/80 font-medium truncate">{shortEvoUsage(userEvoUsage)}</span>
+                      <span className="text-[12px] text-white/80 font-medium truncate">{shortEvoUsage(userEvoUsage)}</span>
                     </div>
                   )}
                 </div>
@@ -767,43 +787,46 @@ export default function BilansPage() {
               <div className="flex-1 min-w-0 flex flex-col gap-2 lg:gap-3">
                 {/* Nutrition — carte principale */}
                 <div
-                  className={`${css.kpiCard} relative rounded-xl p-3 lg:p-5 overflow-hidden border cursor-pointer`}
+                  className={`${css.kpiCard} relative rounded-2xl p-4 sm:p-5 overflow-hidden border cursor-pointer`}
                   style={{ background: nutritionScore !== null ? 'rgba(201,169,110,0.07)' : 'rgba(255,255,255,0.04)', borderColor: nutritionScore !== null ? 'rgba(201,169,110,0.22)' : 'rgba(255,255,255,0.08)' }}
                   onClick={() => router.push('/onboarding/bilan-nutrition')}
                 >
                   <div className={css.kpiShimmer}><div /></div>
-                  <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-4">
-                    <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
-                      <div className={`${css.kpiIcon} w-8 h-8 lg:w-11 lg:h-11 rounded-lg lg:rounded-xl flex items-center justify-center shrink-0`} style={{ background: 'rgba(201,169,110,0.12)', color: '#c9a96e' }}>
-                        <Apple className="w-4 h-4 lg:w-5 lg:h-5" />
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                      <div className={`${css.kpiIcon} w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0`} style={{ background: 'rgba(201,169,110,0.12)', color: '#c9a96e' }}>
+                        <Apple className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] lg:text-[11px] font-medium uppercase tracking-[0.14em] text-white/35 mb-0.5 lg:mb-1">Nutrition</p>
+                        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/35 mb-1">Nutrition</p>
                         {nutritionScore !== null ? (
                           <div className="flex items-baseline gap-1">
-                            <span className={`${css.kpiValue} text-2xl lg:text-3xl font-bold text-white`}>{nutritionScore}</span>
-                            <span className="text-xs lg:text-sm text-white/30">/100</span>
+                            <span className={`${css.kpiValue} text-4xl sm:text-3xl font-bold text-white`}>{nutritionScore}</span>
+                            <span className="text-sm text-white/30">/100</span>
                           </div>
                         ) : (
-                          <p className="text-[12px] lg:text-[14px] text-white/55 font-medium leading-tight">Questionnaire<br className="lg:hidden" /> disponible</p>
+                          <p className="text-[15px] sm:text-[14px] text-white/70 font-medium leading-tight">Questionnaire disponible</p>
                         )}
                       </div>
                     </div>
-                    <div className="self-start lg:self-auto flex items-center gap-1 lg:gap-1.5 px-2.5 lg:px-3 py-1.5 rounded-lg text-[10px] lg:text-[11px] font-semibold transition-all" style={{ color: '#c9a96e', background: 'rgba(201,169,110,0.1)', border: '1px solid rgba(201,169,110,0.2)' }}>
+                    <div className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all" style={{ color: '#c9a96e', background: 'rgba(201,169,110,0.1)', border: '1px solid rgba(201,169,110,0.2)' }}>
                       {nutritionScore !== null ? 'Rapport' : 'Commencer'}
-                      <ArrowRight className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </div>
                   </div>
                 </div>
 
                 {/* 3 autres cartes — toujours visibles, compactes sur mobile */}
-                <div className="grid grid-cols-3 gap-1.5 lg:gap-3">
+                <div className="grid grid-cols-3 gap-2 lg:gap-3 lg:grid-cols-3">
                   {scoreCards.filter(c => c.label !== "Nutrition").map((card, i) => (
-                    <div key={i} className={`${css.kpiCard} relative rounded-xl p-2 lg:p-3.5 text-center overflow-hidden border opacity-40`} style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}>
-                      <div className={`${css.kpiIcon} w-6 h-6 lg:w-8 lg:h-8 rounded-md lg:rounded-lg flex items-center justify-center mx-auto mb-1 lg:mb-2`} style={{ background: 'rgba(255,255,255,0.05)', color: card.color }}>
-                        <span className="scale-75 lg:scale-100">{card.icon}</span>
+                    <div key={i} className={`${css.kpiCard} relative rounded-2xl p-3 lg:p-3.5 text-center overflow-hidden border`} style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
+                      <div className={`${css.kpiIcon} w-8 h-8 lg:w-8 lg:h-8 rounded-xl lg:rounded-lg flex items-center justify-center mb-2 mx-auto`} style={{ background: 'rgba(255,255,255,0.05)', color: card.color }}>
+                        <span className="scale-90 lg:scale-100">{card.icon}</span>
                       </div>
-                      <p className="text-[9px] lg:text-[10px] font-medium uppercase tracking-[0.1em] lg:tracking-[0.12em] text-white/30 leading-tight">{card.label}</p>
+                      <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-white/35 leading-tight">{card.label}</p>
+                      <p className="mt-1.5 text-[13px] lg:text-[14px] font-semibold text-white/80">
+                        {card.score !== null ? `${card.score}/100` : 'Bientôt'}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -1027,6 +1050,7 @@ export default function BilansPage() {
                                       }}
                                     />
                                   </div>
+                                  <span className="text-[11px] font-semibold text-[#1a1a1a]/50 w-10 text-right tabular-nums">{sr.pct}%</span>
                                 </div>
                               ))}
                             </div>
@@ -1091,6 +1115,9 @@ export default function BilansPage() {
                                           <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
                                               <span className="text-xs font-bold text-[#1a1a1a]">{sectionTitle(w.sectionId, w.title)}</span>
+                                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isAlert ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                {w.pct}%
+                                              </span>
                                             </div>
                                             <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed line-clamp-2">{w.concern}</p>
                                           </div>
@@ -1133,95 +1160,42 @@ export default function BilansPage() {
                             )}
 
                             {/* ═══ SECTION 4 — Plan d'action ═══ */}
-                            <div className="mb-8">
-                              <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                                  <Lightbulb className="w-5 h-5 text-white" />
+                            <div>
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center">
+                                  <Lightbulb className="w-3.5 h-3.5 text-blue-600" />
                                 </div>
-                                <div>
-                                  <h4 className="text-lg font-bold text-[#1a1a1a]">
-                                    {(report.strengths.length > 0 && report.weaknesses.length > 0) ? '4' : report.strengths.length > 0 || report.weaknesses.length > 0 ? '3' : '2'}. Votre plan d&apos;action
-                                  </h4>
-                                  <p className="text-xs text-[#1a1a1a]/40 mt-0.5">Étapes clés pour progresser rapidement</p>
-                                </div>
+                                <h4 className="text-sm font-bold text-[#1a1a1a]">
+                                  {(report.strengths.length > 0 && report.weaknesses.length > 0) ? '4' : report.strengths.length > 0 || report.weaknesses.length > 0 ? '3' : '2'}. Plan d&apos;action
+                                </h4>
                               </div>
 
-                              <div className="space-y-6">
-                                {report.actionPlan.map((phase, phaseIdx) => {
-                                  const getPhaseConfig = () => {
-                                    if (phase.phase === 1) {
-                                      return { 
-                                        circle: 'bg-gradient-to-br from-blue-500 to-blue-600', 
-                                        bg: 'bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent', 
-                                        border: 'border-blue-300/40', 
-                                        accent: 'bg-blue-500',
-                                        Icon: Zap,
-                                        badgeBg: 'bg-blue-100',
-                                        badgeText: 'text-blue-700'
-                                      }
-                                    } else if (phase.phase === 2) {
-                                      return { 
-                                        circle: 'bg-gradient-to-br from-purple-500 to-purple-600', 
-                                        bg: 'bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent', 
-                                        border: 'border-purple-300/40', 
-                                        accent: 'bg-purple-500',
-                                        Icon: TrendingUp,
-                                        badgeBg: 'bg-purple-100',
-                                        badgeText: 'text-purple-700'
-                                      }
-                                    } else {
-                                      return { 
-                                        circle: 'bg-gradient-to-br from-amber-500 to-amber-600', 
-                                        bg: 'bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent', 
-                                        border: 'border-amber-300/40', 
-                                        accent: 'bg-amber-500',
-                                        Icon: Sparkles,
-                                        badgeBg: 'bg-amber-100',
-                                        badgeText: 'text-amber-700'
-                                      }
-                                    }
-                                  }
-                                  const cfg = getPhaseConfig()
-                                  return (
-                                    <div key={phase.phase} className={`rounded-3xl border-2 overflow-hidden backdrop-blur-md ${cfg.bg} ${cfg.border} transition-all duration-300 hover:shadow-xl`}>
-                                      {/* Phase header */}
-                                      <div className={`px-6 py-5 border-b border-[#1a1a1a]/[0.08] bg-white/30`}>
-                                        <div className="flex items-center gap-4">
-                                          <div className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold text-white flex-shrink-0 ${cfg.circle} shadow-lg ring-4 ring-white/50`}>
-                                            <cfg.Icon className="w-6 h-6" />
-                                          </div>
-                                          <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                              <p className="text-base font-bold text-[#1a1a1a]">{phase.phaseTitle}</p>
-                                              <span className={`text-xs font-bold px-3 py-1 rounded-full ${cfg.badgeBg} ${cfg.badgeText}`}>Étape {phase.phase}</span>
-                                            </div>
-                                            <p className="text-sm text-[#1a1a1a]/50 font-medium">{phase.timeframe}</p>
-                                          </div>
-                                        </div>
+                              <div className="space-y-4">
+                                {report.actionPlan.map(phase => (
+                                  <div key={phase.phase}>
+                                    <div className="flex items-center gap-2 mb-2.5">
+                                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                                        phase.phase === 1 ? 'bg-blue-100 text-blue-700'
+                                          : phase.phase === 2 ? 'bg-purple-100 text-purple-700'
+                                          : 'bg-amber-100 text-amber-700'
+                                      }`}>
+                                        {phase.phase}
                                       </div>
-
-                                      {/* Actions list */}
-                                      <div className="px-6 py-5 space-y-3">
-                                        {phase.actions.map((action, actionIdx) => (
-                                          <div key={actionIdx} className="group">
-                                            <div className="flex items-start gap-4 p-4 bg-white/70 hover:bg-white rounded-2xl border border-[#1a1a1a]/[0.08] transition-all duration-200 hover:shadow-md hover:border-[#1a1a1a]/[0.15]">
-                                              {/* Action number circle */}
-                                              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-white ${cfg.accent} ring-2 ring-white/50 shadow-md`}>
-                                                {actionIdx + 1}
-                                              </div>
-                                              
-                                              {/* Action content */}
-                                              <div className="flex-1 min-w-0 mt-0.5">
-                                                <p className="text-[12px] font-semibold text-[#1a1a1a] leading-relaxed mb-2">{action.action}</p>
-                                                <p className="text-[11px] text-[#1a1a1a]/50 leading-relaxed italic border-l-2 border-[#1a1a1a]/[0.1] pl-3">{action.why}</p>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ))}
+                                      <div>
+                                        <p className="text-xs font-bold text-[#1a1a1a]">{phase.phaseTitle}</p>
+                                        <p className="text-[10px] text-[#1a1a1a]/30">{phase.timeframe}</p>
                                       </div>
                                     </div>
-                                  )
-                                })}
+                                    <div className="space-y-2 ml-3 pl-5 border-l-2 border-[#1a1a1a]/[0.06]">
+                                      {phase.actions.map((action, i) => (
+                                        <div key={i} className="bg-white border border-[#1a1a1a]/[0.06] rounded-xl p-3.5">
+                                          <p className="text-[11px] text-[#1a1a1a]/70 leading-relaxed font-medium">{action.action}</p>
+                                          <p className="text-[10px] text-[#1a1a1a]/35 mt-1 italic">{action.why}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             </div>
 
@@ -1294,6 +1268,7 @@ export default function BilansPage() {
                                               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${lc.badge}`}>
                                                 {sr.recommendationTitle}
                                               </span>
+                                              <span className="text-[10px] text-[#1a1a1a]/30 ml-auto tabular-nums">{sr.pct}%</span>
                                             </div>
                                           </div>
                                           <div className={`w-4 h-4 flex items-center justify-center transition-transform duration-200 ${isExpSec ? 'rotate-90' : ''}`}>
@@ -1734,9 +1709,9 @@ export default function BilansPage() {
                 <div className="absolute bottom-0 left-0 w-40 h-40 opacity-[0.06] pointer-events-none" style={{ background: "radial-gradient(circle, #c9a96e 0%, transparent 70%)" }} />
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                   <div>
-                    <p className="text-[11px] font-semibold text-[#3ECF8E]/80 uppercase tracking-[0.15em] mb-3">Longevity Science</p>
-                    <h3 className="text-2xl font-bold text-white/90 leading-tight mb-2">La longevite est une <span className="text-[#3ECF8E]">competence</span></h3>
-                    <p className="text-[13px] text-white/30 max-w-md leading-relaxed">Decouvre les piliers scientifiques de la longevite, les 12 hallmarks du vieillissement, et les strategies evidence-based pour vivre plus longtemps en bonne sante.</p>
+                    <p className="text-[11px] font-semibold text-[#3ECF8E]/80 uppercase tracking-[0.15em] mb-3">Science de la longévité</p>
+                    <h3 className="text-2xl font-bold text-white/90 leading-tight mb-2">La longévité est une <span className="text-[#3ECF8E]">compétence</span></h3>
+                    <p className="text-[13px] text-white/30 max-w-md leading-relaxed">Découvre les piliers scientifiques de la longévité, les 12 hallmarks du vieillissement, et les stratégies validées par la recherche pour vivre plus longtemps en bonne santé.</p>
                     <div className="flex items-center gap-8 mt-5">
                       {[{ label: "Ans gagnes", value: "+7" }, { label: "Mortalite", value: "-35%" }, { label: "Modifiable", value: "80%" }].map((s, i) => (
                         <div key={i}><p className="text-lg font-bold text-[#3ECF8E]">{s.value}</p><p className="text-[9px] text-white/25 mt-0.5">{s.label}</p></div>
@@ -1787,6 +1762,12 @@ export default function BilansPage() {
               <input type="number" min={5} max={180} step={5} value={newSession.duration} onChange={e => setNewSession(s => ({ ...s, duration: Number(e.target.value) }))} className="flex-1 px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40" />
             </div>
             <textarea placeholder="Notes (optionnel)" value={newSession.notes} onChange={e => setNewSession(s => ({ ...s, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40 resize-none placeholder:text-[#1a1a1a]/20" />
+            {!editingSessionId && (
+              <label className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-black/[0.06] cursor-pointer hover:bg-[#f9f9f9] transition-colors">
+                <input type="checkbox" checked={newSession.isWeekly} onChange={e => setNewSession(s => ({ ...s, isWeekly: e.target.checked }))} className="w-4 h-4 accent-[#3ECF8E]" />
+                <span className="text-[13px] text-[#1a1a1a]/70">Répéter chaque semaine (12 semaines)</span>
+              </label>
+            )}
             <div className="flex gap-2 pt-1">
               {editingSessionId && (
                 <button
