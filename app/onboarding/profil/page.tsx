@@ -210,6 +210,7 @@ export default function ProfilPage() {
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const dragPriorityFrom = useRef<number | null>(null)
   const [dragOverPriorityIdx, setDragOverPriorityIdx] = useState<number | null>(null)
+  const [draggingPriorityIdx, setDraggingPriorityIdx] = useState<number | null>(null)
   const touchDragPriorityFrom = useRef<number | null>(null)
   const touchDragSessionRef = useRef<{ id: string; startX: number; startY: number } | null>(null)
   const touchDragChipRef = useRef<string | null>(null)
@@ -391,6 +392,9 @@ export default function ProfilPage() {
     )
   }, [agendaSessions])
 
+  useEffect(() => {
+    if (window.innerWidth < 640) setCalView('day')
+  }, [])
 
   const toggleLimitation = (value: string) => {
     setLimitations(prev => {
@@ -457,7 +461,7 @@ export default function ProfilPage() {
       })
     )
     dragId.current = null
-  }, [])
+  }, [openSessionFromActivity])
 
   const onDropTime = useCallback((e: React.DragEvent, targetDate: Date) => {
     e.preventDefault()
@@ -495,7 +499,7 @@ export default function ProfilPage() {
       })
     )
     dragId.current = null
-  }, [])
+  }, [openSessionFromActivity])
 
   const openCreateSessionModal = (baseDate?: Date) => {
     const date = baseDate ? new Date(baseDate) : new Date(currentDate)
@@ -805,9 +809,9 @@ export default function ProfilPage() {
     'focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)]'
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5]">
+    <div className="min-h-screen bg-[#FAF8F5] flex flex-col">
       <div className="sticky top-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#1a1a1a]/[0.08]">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <div className="max-w-2xl mx-auto px-4 py-2 sm:py-3 flex items-center justify-between gap-4">
           <button
             onClick={handleBack}
             className="text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors"
@@ -829,14 +833,14 @@ export default function ProfilPage() {
         </div>
       </div>
 
-      <main className="w-full px-4 sm:px-6 lg:px-10 py-6 min-h-[calc(100vh-72px)] flex items-center justify-center">
-        <div className="w-full max-w-[980px] bg-white border border-[#1a1a1a]/[0.08] rounded-2xl p-5 sm:p-7 md:p-8 shadow-[0_30px_80px_-45px_rgba(26,26,26,0.5)]">
-          <div className="mb-4 inline-flex items-center rounded-full border border-[#25D366]/25 bg-[#25D366]/10 px-3 py-1">
+      <main className="flex-1 w-full px-0 sm:px-6 lg:px-10 py-0 sm:py-6 flex items-start sm:items-center justify-center overflow-y-auto">
+        <div className="w-full sm:max-w-[980px] bg-white sm:border sm:border-[#1a1a1a]/[0.08] sm:rounded-2xl p-4 pt-6 sm:p-7 md:p-8 sm:shadow-[0_30px_80px_-45px_rgba(26,26,26,0.5)]">
+          <div className="hidden sm:inline-flex mb-4 items-center rounded-full border border-[#25D366]/25 bg-[#25D366]/10 px-3 py-1">
             <span className="text-[11px] font-medium text-[#25D366]">Questionnaire onboarding evo</span>
           </div>
           {current.id === 'age' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Quel âge avez-vous ?</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">Quel âge avez-vous ?</h2>
               <input
                 type="number"
                 value={age}
@@ -851,7 +855,7 @@ export default function ProfilPage() {
 
           {current.id === 'height' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Quelle est votre taille ?</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">Quelle est votre taille ?</h2>
               <input
                 type="number"
                 value={height}
@@ -866,7 +870,7 @@ export default function ProfilPage() {
 
           {current.id === 'weight' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Quel est votre poids ?</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">Quel est votre poids ?</h2>
               <input
                 type="number"
                 value={weight}
@@ -881,7 +885,7 @@ export default function ProfilPage() {
 
           {current.id === 'activityFrequency' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-3">À quelle fréquence pratiquez-vous une activité physique ?</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-3">À quelle fréquence pratiquez-vous une activité physique ?</h2>
               <div className="space-y-2">
                 {activityFrequencies.map(option => (
                   <button
@@ -898,7 +902,7 @@ export default function ProfilPage() {
 
           {current.id === 'weeklyActivities' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Quelles activités pratiquez-vous chaque semaine ?</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">Quelles activités pratiquez-vous chaque semaine ?</h2>
               <p className="text-sm text-[#1a1a1a]/45 mb-3">Sélectionnez une ou plusieurs catégories.</p>
               <div className="flex flex-wrap gap-2.5">
                 {weeklyActivityCategories.map(category => (
@@ -930,7 +934,7 @@ export default function ProfilPage() {
 
           {current.id === 'agendaActivities' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Placez dans votre agenda les activités régulières</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">Placez dans votre agenda les activités régulières</h2>
               <p className="text-sm text-[#1a1a1a]/45 mb-3">Glissez vos séances pour les déplacer, puis ajoutez vos créneaux récurrents.</p>
 
               <div className="grid sm:grid-cols-2 gap-2 mb-4">
@@ -1008,7 +1012,7 @@ export default function ProfilPage() {
               )}
 
               <div
-                className="bg-white rounded-xl border border-black/[0.06] overflow-hidden"
+                className="bg-white rounded-xl border border-black/[0.06] overflow-x-hidden overflow-y-auto sm:overflow-hidden max-h-[48vh] sm:max-h-none"
                 onTouchStart={(e) => {
                   touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
                 }}
@@ -1355,7 +1359,7 @@ export default function ProfilPage() {
 
           {current.id === 'limitations' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Avez-vous actuellement des limitations physiques ?</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">Avez-vous actuellement des limitations physiques ?</h2>
               <div className="space-y-2">
                 {['Douleurs articulaires', 'Douleurs musculaires', 'Autre', 'Aucune'].map(option => (
                   <button
@@ -1397,7 +1401,7 @@ export default function ProfilPage() {
 
           {current.id === 'usage' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-3">Comment souhaitez-vous utiliser evo pour le sport ?</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-3">Comment souhaitez-vous utiliser evo pour le sport ?</h2>
               <div className="space-y-2">
                 {usageOptions.map(option => (
                   <button
@@ -1414,7 +1418,7 @@ export default function ProfilPage() {
 
           {current.id === 'priorities' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Classez ces 4 leviers de longévité par priorité</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">Classez ces 4 leviers de longévité par priorité</h2>
               <p className="text-sm text-[#1a1a1a]/45 mb-3">Glissez pour réorganiser, du plus important au moins important.</p>
               <div className="space-y-2">
                 {priorities.map((item, idx) => (
@@ -1422,7 +1426,7 @@ export default function ProfilPage() {
                     key={item}
                     data-priority-idx={idx}
                     draggable
-                    onDragStart={() => { dragPriorityFrom.current = idx }}
+                    onDragStart={() => { dragPriorityFrom.current = idx; setDraggingPriorityIdx(idx) }}
                     onDragOver={(e) => { e.preventDefault(); setDragOverPriorityIdx(idx) }}
                     onDragLeave={() => setDragOverPriorityIdx(null)}
                     onDrop={() => {
@@ -1431,11 +1435,13 @@ export default function ProfilPage() {
                       }
                       dragPriorityFrom.current = null
                       setDragOverPriorityIdx(null)
+                      setDraggingPriorityIdx(null)
                     }}
-                    onDragEnd={() => { dragPriorityFrom.current = null; setDragOverPriorityIdx(null) }}
+                    onDragEnd={() => { dragPriorityFrom.current = null; setDragOverPriorityIdx(null); setDraggingPriorityIdx(null) }}
                     onTouchStart={(e) => {
                       e.stopPropagation()
                       touchDragPriorityFrom.current = idx
+                      setDraggingPriorityIdx(idx)
                     }}
                     onTouchMove={(e) => {
                       if (touchDragPriorityFrom.current === null) return
@@ -1454,15 +1460,18 @@ export default function ProfilPage() {
                       }
                       touchDragPriorityFrom.current = null
                       setDragOverPriorityIdx(null)
+                      setDraggingPriorityIdx(null)
                     }}
                     style={{ touchAction: 'none' }}
-                    className={`rounded-xl border bg-white px-3 py-2.5 flex items-center gap-3 cursor-grab active:cursor-grabbing transition-all select-none ${
-                      dragOverPriorityIdx === idx
-                        ? 'border-[#25D366]/60 bg-[#25D366]/5 shadow-md scale-[1.02]'
-                        : 'border-[#1a1a1a]/[0.1]'
+                    className={`rounded-xl border bg-white px-3 py-2.5 flex items-center gap-3 cursor-grab active:cursor-grabbing transition-all duration-150 select-none ${
+                      draggingPriorityIdx === idx
+                        ? 'border-[#25D366]/70 bg-[#25D366]/8 shadow-xl scale-[1.04] rotate-1 z-10 relative opacity-95'
+                        : dragOverPriorityIdx === idx
+                          ? 'border-[#25D366]/50 bg-[#25D366]/5 shadow-md scale-[1.02]'
+                          : 'border-[#1a1a1a]/[0.1]'
                     }`}
                   >
-                    <GripVertical className="w-4 h-4 text-[#1a1a1a]/20 shrink-0" />
+                    <GripVertical className={`w-4 h-4 shrink-0 transition-colors ${draggingPriorityIdx === idx ? 'text-[#25D366]/60' : 'text-[#1a1a1a]/20'}`} />
                     <span className="text-xs font-bold text-[#25D366] w-5 shrink-0">#{idx + 1}</span>
                     <span className="text-sm text-[#1a1a1a]">{item}</span>
                   </div>
@@ -1473,7 +1482,7 @@ export default function ProfilPage() {
 
           {current.id === 'diet' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-3">Quel est votre régime alimentaire ?</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-3">Quel est votre régime alimentaire ?</h2>
               <div className="space-y-2">
                 {dietOptions.map(option => (
                   <button
@@ -1506,7 +1515,7 @@ export default function ProfilPage() {
 
           {current.id === 'coachTone' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-1">Quel ton préférez-vous pour votre coach evo ?</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-1">Quel ton préférez-vous pour votre coach evo ?</h2>
               <p className="text-sm text-[#1a1a1a]/45 mb-4">Voici comment chaque coach vous répondrait si vous ratiez une séance.</p>
               <div className="space-y-3">
                 {coachToneCards.map((tone) => (
@@ -1536,23 +1545,23 @@ export default function ProfilPage() {
 
           {current.id === 'expectations' && (
             <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Avez-vous des attentes particulières ?</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">Avez-vous des attentes particulières ?</h2>
               <p className="text-sm text-[#1a1a1a]/45 mb-3">Optionnel. Ex: mariage, performance, reprise, doutes...</p>
               <textarea
                 value={expectations}
                 onChange={(e) => setExpectations(e.target.value)}
-                rows={5}
+                rows={4}
                 placeholder="Dites-nous ce qui est important pour vous"
                 className="w-full rounded-xl border border-[#1a1a1a]/[0.12] px-4 py-3 text-sm outline-none focus:border-[#25D366]/60 focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)] transition-all"
               />
             </div>
           )}
 
-          <div className="mt-7 flex justify-end">
+          <div className="mt-6 sm:mt-7 flex justify-end">
             <button
               onClick={handleNext}
               disabled={!canContinue() || saving}
-              className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              className={`w-full sm:w-auto px-6 py-3 sm:py-2.5 rounded-xl text-sm font-semibold transition-all ${
                 canContinue() && !saving
                   ? 'bg-[#c9a96e] text-white hover:bg-[#b8945f]'
                   : 'bg-[#1a1a1a]/[0.07] text-[#1a1a1a]/25 cursor-not-allowed'
