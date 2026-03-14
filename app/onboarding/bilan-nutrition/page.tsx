@@ -786,7 +786,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
             </div>
             <h2 className="text-xl font-bold text-[#1a1a1a] leading-snug mb-2">{hero.title}</h2>
             <p className="text-xs text-[#1a1a1a]/50 leading-relaxed mb-2">{hero.subtitle}</p>
-            <p className="text-xs text-[#2D6A4F] font-medium leading-relaxed">Lisez chaque recommandation et essayez d&apos;en intégrer autant que vous pouvez !</p>
+            <p className="text-xs text-[#2D6A4F] font-medium leading-relaxed">Lisez nos recommandations et essayez d&apos;en intégrer autant que vous pouvez. Nous revenons vers toi sur Whatsapp pour suivre tes progrès et répondre à toutes tes questions !</p>
           </div>
         </div>
         {/* Save status */}
