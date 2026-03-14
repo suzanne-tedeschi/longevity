@@ -1154,7 +1154,7 @@ export default function BilanNutritionPage() {
     const total = alimentaireSections.reduce((sum, s) => sum + s.tests.reduce((a, t) => a + (scores[t.id] ?? 0), 0), 0)
     return alimentaireMaxScore > 0 ? Math.round((total / alimentaireMaxScore) * 100) : 0
   }, [scores])
-currentSection && 
+
   const digestifPctValue = useMemo(() => {
     const total = digestifSections.reduce((sum, s) => sum + s.tests.reduce((a, t) => a + (scores[t.id] ?? 0), 0), 0)
     return digestifMaxScore > 0 ? Math.round(((digestifMaxScore - total) / digestifMaxScore) * 100) : 0
@@ -1203,7 +1203,7 @@ currentSection &&
           />
         )}
 
-        {phase === 'testing' && currentTest && (
+        {phase === 'testing' && currentTest && currentSection && (
           <TestCard
             test={currentTest} testIndex={flatIndex} totalTests={partTotalTests}
             sectionTitle={currentSection.title} sectionIcon={currentSection.icon}
