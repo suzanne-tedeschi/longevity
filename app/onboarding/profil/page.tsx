@@ -393,7 +393,7 @@ export default function ProfilPage() {
   }, [agendaSessions])
 
   useEffect(() => {
-    if (window.innerWidth < 640) setCalView('day')
+    if (window.innerWidth < 640) setCalView('week')
   }, [])
 
   const toggleLimitation = (value: string) => {
