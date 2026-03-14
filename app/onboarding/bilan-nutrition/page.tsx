@@ -786,7 +786,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
             </div>
             <h2 className="text-xl font-bold text-[#1a1a1a] leading-snug mb-2">{hero.title}</h2>
             <p className="text-xs text-[#1a1a1a]/50 leading-relaxed mb-2">{hero.subtitle}</p>
-            <p className="text-xs text-[#2D6A4F] font-medium leading-relaxed">Lisez chaque recommandation et essayez d&apos;en intégrer une à la fois. On revient vers vous sur WhatsApp pour suivre vos progrès et répondre à vos questions.</p>
+            <p className="text-xs text-[#2D6A4F] font-medium leading-relaxed">Lisez chaque recommandation et essayez d&apos;en intégrer autant que vous pouvez !</p>
           </div>
         </div>
         {/* Save status */}
@@ -984,34 +984,26 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
             </div>
             <h3 className="text-sm font-bold text-[#1a1a1a]">Votre plan d&apos;action</h3>
           </div>
-          {report.actionPlan.map((phase) => (
-            <div key={phase.phase} className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <p className="text-xs font-semibold text-[#1a1a1a]/70">{phase.phaseTitle}</p>
-                <span className="text-[10px] text-[#1a1a1a]/30">{phase.timeframe}</span>
-              </div>
-              <div className="space-y-3">
-                {phase.actions.slice(0, 5).map((action, i) => (
-                  <div key={i} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
-                    <div className="flex gap-4 px-5 py-5">
-                      <div className="flex-shrink-0 pt-0.5">
-                        <div className="w-8 h-8 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white text-sm font-bold leading-none">
-                          {i + 1}
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-[#1a1a1a] leading-snug mb-3">{action.action}</p>
-                        <div className="bg-[#1a1a1a]/[0.03] border border-[#1a1a1a]/[0.06] rounded-xl px-3 py-2.5">
-                          <p className="text-[10px] font-semibold text-[#1a1a1a]/35 uppercase tracking-wider mb-1">Pourquoi</p>
-                          <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{action.why}</p>
-                        </div>
-                      </div>
+          <div className="space-y-3">
+            {report.actionPlan.flatMap((phase) => phase.actions).map((action, i) => (
+              <div key={i} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
+                <div className="flex gap-4 px-5 py-5">
+                  <div className="flex-shrink-0 pt-0.5">
+                    <div className="w-8 h-8 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white text-sm font-bold leading-none">
+                      {i + 1}
                     </div>
                   </div>
-                ))}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-[#1a1a1a] leading-snug mb-3">{action.action}</p>
+                    <div className="bg-[#1a1a1a]/[0.03] border border-[#1a1a1a]/[0.06] rounded-xl px-3 py-2.5">
+                      <p className="text-[10px] font-semibold text-[#1a1a1a]/35 uppercase tracking-wider mb-1">Pourquoi</p>
+                      <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{action.why}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 

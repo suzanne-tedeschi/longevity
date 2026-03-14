@@ -499,31 +499,32 @@ export function generateFullReport(
   }
   weaknesses.sort((a, b) => b.pct - a.pct)
 
-  const phase1: { action: string; why: string; sectionId: string }[] = []
-  const phase2: { action: string; why: string; sectionId: string }[] = []
+  const alimentaireAlerte: { action: string; why: string; sectionId: string }[] = []
+  const alimentaireVigilance: { action: string; why: string; sectionId: string }[] = []
+  const digestifActions: { action: string; why: string; sectionId: string }[] = []
   for (const w of weaknesses) {
-    // Re-fetch triggered insights from the original report to access actionWhy
     const fullReport = getSectionReport(w.sectionId)
-    const allScores = scores
-    const fullTriggered = fullReport ? getTriggeredInsights(fullReport, allScores) : []
+    const fullTriggered = fullReport ? getTriggeredInsights(fullReport, scores) : []
     const isDigestif = DIGESTIF_IDS.has(w.sectionId)
+    const bucket = isDigestif ? digestifActions : w.level === 'alerte' ? alimentaireAlerte : alimentaireVigilance
     for (const ti of fullTriggered) {
       const short = pickAction(ti) || ti.recommendation.split('.')[0] + '.'
       const why = pickActionWhy(ti) || ti.actionWhy || ti.recommendation
-      if (!isDigestif && w.level === 'alerte') phase1.push({ action: short, why, sectionId: w.sectionId })
-      else phase2.push({ action: short, why, sectionId: w.sectionId })
+      bucket.push({ action: short, why, sectionId: w.sectionId })
     }
     if (fullTriggered.length === 0) {
       const fallbackAction = w.concern.split('.').slice(0, 2).join('.') + '.'
       const fallbackWhy = fullReport?.context.split('.')[0] + '.' || w.concern.split('.')[0] + '.'
-      if (!isDigestif && w.level === 'alerte') phase1.push({ action: fallbackAction, why: fallbackWhy, sectionId: w.sectionId })
-      else phase2.push({ action: fallbackAction, why: fallbackWhy, sectionId: w.sectionId })
+      bucket.push({ action: fallbackAction, why: fallbackWhy, sectionId: w.sectionId })
     }
   }
+  const allActions = [...alimentaireAlerte, ...alimentaireVigilance, ...digestifActions].slice(0, 4)
   const actionPlan: ActionPhase[] = []
-  if (phase1.length > 0) actionPlan.push({ phase: 1, phaseTitle: 'Actions immédiates', timeframe: 'Semaines 1-2', actions: phase1.slice(0, 5) })
-  if (phase2.length > 0) actionPlan.push({ phase: 2, phaseTitle: 'Consolidation', timeframe: 'Semaines 3-8', actions: phase2.slice(0, 5) })
-  if (actionPlan.length === 0) actionPlan.push({ phase: 1, phaseTitle: 'Maintien des acquis', timeframe: 'En continu', actions: [{ action: 'Maintenez vos bonnes pratiques nutritionnelles et digestives.', why: 'Vos scores nutrition sont bons, continuez ainsi.', sectionId: '' }] })
+  if (allActions.length > 0) {
+    actionPlan.push({ phase: 1, phaseTitle: 'Vos priorités', timeframe: 'Semaines 1-4', actions: allActions })
+  } else {
+    actionPlan.push({ phase: 1, phaseTitle: 'Maintien des acquis', timeframe: 'En continu', actions: [{ action: 'Maintenez vos bonnes pratiques nutritionnelles et digestives.', why: 'Vos scores nutrition sont bons, continuez ainsi.', sectionId: '' }] })
+  }
 
   // Ajout d'une section visuelle pour le glossaire
   const glossarySection = nutritionGlossary.map(g => ({ term: g.term, definition: g.definition }))
