@@ -370,10 +370,21 @@ export function getTriggeredInsights(
   return report.questionInsights.filter((qi) => {
     const s = scores[qi.questionId]
     if (s === undefined) return false
+    // Amélioration 2 : insight sans seuil configuré → ne se déclenche jamais
+    if (qi.triggerMinScore === undefined && qi.triggerMaxScore === undefined) return false
     if (qi.triggerMinScore !== undefined) return s >= qi.triggerMinScore
-    return s <= (qi.triggerMaxScore ?? Infinity)
+    return s <= (qi.triggerMaxScore as number)
   })
 }
+
+// Amélioration 3 : source de vérité unique pour les IDs de sections digestives
+export const DIGESTIF_IDS = new Set([
+  'reflux',
+  'douleurs-abdominales',
+  'indigestion',
+  'diarrhee',
+  'constipation',
+])
 
 // ══════════════════════════════════════════════════════
 // GLOBAL REPORT & SYNTHESIS
@@ -457,8 +468,6 @@ export function generateFullReport(
     return ti.actionWhy
   }
 
-  const DIGESTIF_IDS = new Set(['reflux', 'douleurs-abdominales', 'indigestion', 'diarrhee', 'constipation'])
-
   const strengths: StrengthItem[] = []
   const weaknesses: WeaknessItem[] = []
   const sectionReports = sectionResults.map(r => {
@@ -497,7 +506,13 @@ export function generateFullReport(
       weaknesses.push({ sectionId: r.sectionId, title: report.weaknessLabel || r.title, pct: r.pct, level: rec.level, concern: rec.text, science: report.context, reference: ref0, triggeredInsights: triggered.map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation, action: t.action })) })
     }
   }
-  weaknesses.sort((a, b) => b.pct - a.pct)
+  // Amélioration 1 : tri par urgence (alerte d'abord), puis par pct croissant à même niveau
+  const levelOrder: Record<string, number> = { alerte: 0, vigilance: 1, bon: 2, excellent: 3 }
+  weaknesses.sort((a, b) => {
+    const lo = levelOrder[a.level] - levelOrder[b.level]
+    if (lo !== 0) return lo
+    return a.pct - b.pct
+  })
 
   const alimentaireAlerte: { action: string; why: string; sectionId: string }[] = []
   const alimentaireVigilance: { action: string; why: string; sectionId: string }[] = []
@@ -523,7 +538,21 @@ export function generateFullReport(
   if (allActions.length > 0) {
     actionPlan.push({ phase: 1, phaseTitle: 'Vos priorités', timeframe: 'Semaines 1-4', actions: allActions })
   } else {
-    actionPlan.push({ phase: 1, phaseTitle: 'Maintien des acquis', timeframe: 'En continu', actions: [{ action: 'Maintenez vos bonnes pratiques nutritionnelles et digestives.', why: 'Vos scores nutrition sont bons, continuez ainsi.', sectionId: '' }] })
+    // Amélioration 4 : fallback personnalisé — sections "bon" les plus fragiles (pct le plus bas)
+    const bonToConsolidate = strengths
+      .filter(s => !DIGESTIF_IDS.has(s.sectionId))
+      .sort((a, b) => a.pct - b.pct)
+      .slice(0, 3)
+    if (bonToConsolidate.length > 0) {
+      const consolidationActions = bonToConsolidate.map(s => ({
+        action: `Consolidez : ${s.title}`,
+        why: s.scienceNote || s.science,
+        sectionId: s.sectionId,
+      }))
+      actionPlan.push({ phase: 1, phaseTitle: 'Points à consolider', timeframe: 'En continu', actions: consolidationActions })
+    } else {
+      actionPlan.push({ phase: 1, phaseTitle: 'Maintien des acquis', timeframe: 'En continu', actions: [{ action: 'Maintenez vos bonnes pratiques nutritionnelles et digestives.', why: 'Vos scores nutrition sont excellents sur tous les axes. Continuez ainsi.', sectionId: '' }] })
+    }
   }
 
   // Ajout d'une section visuelle pour le glossaire

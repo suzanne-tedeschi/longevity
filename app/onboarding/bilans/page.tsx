@@ -24,8 +24,7 @@ import {
   MessageCircle, CheckCircle, AlertTriangle, LogOut, Sparkles,
 } from "lucide-react"
 import css from "./bilans.module.css"
-import { adaptActionForDiet } from "@/lib/bilan-nutrition-report"
-import { digestifSections } from "@/lib/bilan-nutrition-data"
+import { adaptActionForDiet, DIGESTIF_IDS } from "@/lib/bilan-nutrition-report"
 
 /* ─── types ─── */
 interface Session {
@@ -1047,7 +1046,7 @@ export default function BilansPage() {
 
                             {/* Strengths — alimentaire only, max 3 */}
                             {(() => {
-                              const digestifIds = new Set(digestifSections.map(s => s.id))
+                              const digestifIds = DIGESTIF_IDS
                               const alimentaireStrengths = report.strengths!.filter(s => !digestifIds.has(s.sectionId)).slice(0, 3)
                               return alimentaireStrengths.length > 0 ? (
                                 <div>
@@ -1071,7 +1070,7 @@ export default function BilansPage() {
 
                             {/* Weaknesses — split alimentaire / digestif */}
                             {report.weaknesses.length > 0 && (() => {
-                              const digestifIds = new Set(digestifSections.map(s => s.id))
+                              const digestifIds = DIGESTIF_IDS
                               const alimentaireW = report.weaknesses!.filter(w => !digestifIds.has(w.sectionId))
                               const digestifW = report.weaknesses!.filter(w => digestifIds.has(w.sectionId) && w.pct < 50)
                               return (

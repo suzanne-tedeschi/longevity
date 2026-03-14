@@ -18,6 +18,7 @@ import {
 import {
   globalKeyInsights,
   generateFullReport,
+  DIGESTIF_IDS,
 } from '@/lib/bilan-nutrition-report'
 
 /* ═══════════════════════════════════════════════════════
@@ -673,7 +674,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
   const hero = getPersonalizedHeadline(globalPct)
 
   // ── Weakness splits (alimentaire first, digestif subordinate) ──
-  const digestifIds = new Set(digestifSections.map(s => s.id))
+  const digestifIds = DIGESTIF_IDS
   const alimentaireWeaknesses = report.weaknesses.filter(w => !digestifIds.has(w.sectionId))
   const digestifWeaknesses = report.weaknesses.filter(w => digestifIds.has(w.sectionId) && w.pct < 50)
   const alimentaireStrengths = report.strengths.filter(s => !digestifIds.has(s.sectionId)).slice(0, 3)
