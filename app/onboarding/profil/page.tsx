@@ -1427,17 +1427,17 @@ export default function ProfilPage() {
                     data-priority-idx={idx}
                     draggable
                     onDragStart={() => { dragPriorityFrom.current = idx; setDraggingPriorityIdx(idx) }}
-                    onDragOver={(e) => { e.preventDefault(); setDragOverPriorityIdx(idx) }}
-                    onDragLeave={() => setDragOverPriorityIdx(null)}
-                    onDrop={() => {
+                    onDragOver={(e) => {
+                      e.preventDefault()
                       if (dragPriorityFrom.current !== null && dragPriorityFrom.current !== idx) {
                         setPriorities(prev => reorder(prev, dragPriorityFrom.current!, idx))
+                        dragPriorityFrom.current = idx
+                        setDraggingPriorityIdx(idx)
                       }
-                      dragPriorityFrom.current = null
-                      setDragOverPriorityIdx(null)
-                      setDraggingPriorityIdx(null)
                     }}
-                    onDragEnd={() => { dragPriorityFrom.current = null; setDragOverPriorityIdx(null); setDraggingPriorityIdx(null) }}
+                    onDragLeave={() => {}}
+                    onDrop={() => { dragPriorityFrom.current = null; setDraggingPriorityIdx(null) }}
+                    onDragEnd={() => { dragPriorityFrom.current = null; setDraggingPriorityIdx(null) }}
                     onTouchStart={(e) => {
                       e.stopPropagation()
                       touchDragPriorityFrom.current = idx
@@ -1451,13 +1451,14 @@ export default function ProfilPage() {
                       const priorityEl = el?.closest('[data-priority-idx]')
                       if (priorityEl) {
                         const targetIdx = parseInt(priorityEl.getAttribute('data-priority-idx') || '-1')
-                        if (targetIdx >= 0) setDragOverPriorityIdx(targetIdx)
+                        if (targetIdx >= 0 && targetIdx !== touchDragPriorityFrom.current) {
+                          setPriorities(prev => reorder(prev, touchDragPriorityFrom.current!, targetIdx))
+                          touchDragPriorityFrom.current = targetIdx
+                          setDraggingPriorityIdx(targetIdx)
+                        }
                       }
                     }}
                     onTouchEnd={() => {
-                      if (touchDragPriorityFrom.current !== null && dragOverPriorityIdx !== null && touchDragPriorityFrom.current !== dragOverPriorityIdx) {
-                        setPriorities(prev => reorder(prev, touchDragPriorityFrom.current!, dragOverPriorityIdx))
-                      }
                       touchDragPriorityFrom.current = null
                       setDragOverPriorityIdx(null)
                       setDraggingPriorityIdx(null)
