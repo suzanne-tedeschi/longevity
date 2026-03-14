@@ -655,7 +655,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
       }
       setSaveStatus('saving')
 
-      const fullReport = generateFullReport(allResults, scores)
+      const fullReport = generateFullReport(allResults.map(r => ({ ...r, title: r.title ?? '' })), scores)
 
       const payload = {
         bilanType: 'nutrition',
