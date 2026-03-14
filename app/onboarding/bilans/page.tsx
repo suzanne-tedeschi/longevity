@@ -1059,7 +1059,7 @@ export default function BilansPage() {
                                   <div className="space-y-3">
                                     {alimentaireStrengths.map(s => (
                                       <div key={s.sectionId} className="relative pl-4 border-l-2 border-emerald-300">
-                                        <p className="text-sm font-semibold text-[#1a1a1a] mb-0.5">{sectionTitle(s.sectionId, s.title)}</p>
+                                        <p className="text-sm font-semibold text-[#1a1a1a] mb-0.5">{s.title}</p>
                                         <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{s.scienceNote ?? s.science}</p>
                                       </div>
                                     ))}
@@ -1091,7 +1091,7 @@ export default function BilansPage() {
                                               <Apple className="w-4 h-4" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                              <p className="text-sm font-bold text-[#1a1a1a] mb-1">{sectionTitle(w.sectionId, w.title)}</p>
+                                              <p className="text-sm font-bold text-[#1a1a1a] mb-1">{w.title}</p>
                                               <p className="text-xs text-[#1a1a1a]/50 leading-relaxed mb-2">{w.concern}</p>
                                               {w.triggeredInsights && w.triggeredInsights.length > 0 && (
                                                 <button
@@ -1139,7 +1139,7 @@ export default function BilansPage() {
                                                   <AlertTriangle className="w-3.5 h-3.5" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                  <p className="text-xs font-semibold text-[#1a1a1a]/70 mb-0.5">{sectionTitle(w.sectionId, w.title)}</p>
+                                                  <p className="text-xs font-semibold text-[#1a1a1a]/70 mb-0.5">{w.title}</p>
                                                   <p className="text-[10px] text-[#1a1a1a]/40 leading-relaxed mb-1.5">{w.concern}</p>
                                                   {w.triggeredInsights && w.triggeredInsights.length > 0 && (
                                                     <button
