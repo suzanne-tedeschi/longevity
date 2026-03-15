@@ -44,8 +44,8 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Redirect unauthenticated visitors away from all /onboarding/* routes
-  const isOnboardingRoute = pathname.startsWith('/onboarding/')
+  // Redirect unauthenticated visitors away from all /onboarding/* routes (except login itself)
+  const isOnboardingRoute = pathname.startsWith('/onboarding/') && !pathname.startsWith('/onboarding/login')
   if (!user && isOnboardingRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/onboarding/login'
