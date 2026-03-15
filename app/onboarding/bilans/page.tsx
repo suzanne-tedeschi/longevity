@@ -790,7 +790,14 @@ export default function BilansPage() {
                 <div
                   className={`${css.kpiCard} relative rounded-2xl p-4 sm:p-5 overflow-hidden border cursor-pointer`}
                   style={{ background: nutritionScore !== null ? 'rgba(201,169,110,0.07)' : 'rgba(255,255,255,0.04)', borderColor: nutritionScore !== null ? 'rgba(201,169,110,0.22)' : 'rgba(255,255,255,0.08)' }}
-                  onClick={() => router.push('/onboarding/bilan-nutrition')}
+                  onClick={() => {
+                    if (nutritionScore !== null) {
+                      setExpandedReport('nutrition')
+                      setTimeout(() => document.getElementById('compte-rendu')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+                    } else {
+                      router.push('/onboarding/bilan-nutrition')
+                    }
+                  }}
                 >
                   <div className={css.kpiShimmer}><div /></div>
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-4">
