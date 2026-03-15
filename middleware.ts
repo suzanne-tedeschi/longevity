@@ -44,6 +44,15 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Redirect unauthenticated visitors away from all /onboarding/* routes
+  const isOnboardingRoute = pathname.startsWith('/onboarding/')
+  if (!user && isOnboardingRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/onboarding/login'
+    url.searchParams.set('next', pathname)
+    return NextResponse.redirect(url)
+  }
+
   // Only apply onboarding flow restrictions if user is already logged in
   if (user) {
     const isBilansRoute = pathname.startsWith('/onboarding/bilans')
