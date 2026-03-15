@@ -20,7 +20,6 @@ export default function Home() {
   const [rotatingWordIndex, setRotatingWordIndex] = useState(0)
   const [typedText, setTypedText] = useState('')
   const [isTyping, setIsTyping] = useState(true)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctaSectionRef = useRef<HTMLDivElement>(null)
   const vincentRef = useRef<HTMLDivElement>(null)
   const [vincentVisible, setVincentVisible] = useState(false)
@@ -87,173 +86,6 @@ export default function Home() {
     return () => observer.disconnect()
   }, [])
 
-  /* Animated fitness silhouettes on canvas */
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    const resize = () => {
-      const section = ctaSectionRef.current
-      if (section) {
-        canvas.width = section.offsetWidth
-        canvas.height = section.offsetHeight
-      } else {
-        canvas.width = window.innerWidth
-        canvas.height = 400
-      }
-    }
-    resize()
-    window.addEventListener('resize', resize)
-
-    type Pose = number[]
-
-    const lerpPose = (a: Pose, b: Pose, t: number): Pose =>
-      a.map((v, i) => v + (b[i] - v) * t)
-
-    const getPoseFromSequence = (poses: Pose[], progress: number): Pose => {
-      const n = poses.length
-      const scaled = progress * n
-      const i = Math.floor(scaled) % n
-      const j = (i + 1) % n
-      const local = scaled - Math.floor(scaled)
-      const t = local * local * (3 - 2 * local)
-      return lerpPose(poses[i], poses[j], t)
-    }
-
-    const stand: Pose = [0,-4.2, 0,-3.7, 0,-3.3, 0,-1.6,  -0.5,-2.7, -0.3,-1.9,  0.5,-2.7, 0.3,-1.9,  -0.35,-0.6, -0.35,0.3,  0.35,-0.6, 0.35,0.3]
-    const armsHalf: Pose = [0,-4.25, 0,-3.75, 0,-3.35, 0,-1.6,  -0.7,-3.5, -0.5,-4.0,  0.7,-3.5, 0.5,-4.0,  -0.35,-0.6, -0.35,0.3,  0.35,-0.6, 0.35,0.3]
-    const armsUp: Pose = [0,-4.3, 0,-3.8, 0,-3.4, 0,-1.6,  -0.25,-3.9, -0.12,-4.5,  0.25,-3.9, 0.12,-4.5,  -0.35,-0.6, -0.35,0.3,  0.35,-0.6, 0.35,0.3]
-    const war2: Pose = [0,-4.0, 0,-3.5, 0,-3.1, 0,-1.5,  -1.3,-3.1, -1.9,-3.1,  1.3,-3.1, 1.9,-3.1,  -0.7,-0.2, -1.1,0.3,  0.6,-0.5, 1.0,0.3]
-    const tree: Pose = [0,-4.3, 0,-3.8, 0,-3.4, 0,-1.6,  -0.4,-3.7, -0.25,-4.2,  0.4,-3.7, 0.25,-4.2,  -0.35,-0.6, -0.35,0.3,  0.3,-1.0, 0.15,-0.6]
-    const crescent: Pose = [0,-4.2, 0,-3.7, 0,-3.3, 0,-1.7,  -0.2,-3.8, -0.1,-4.4,  0.2,-3.8, 0.1,-4.4,  -0.5,-0.5, -0.8,0.3,  0.7,-0.9, 1.2,0.05]
-    const chair: Pose = [0,-3.8, 0,-3.3, 0,-2.9, 0,-1.3,  -0.25,-3.4, -0.1,-4.0,  0.25,-3.4, 0.1,-4.0,  -0.5,-0.2, -0.45,0.3,  0.5,-0.2, 0.45,0.3]
-    const fold: Pose = [0,-2.5, 0,-2.7, 0,-2.9, 0,-1.6,  -0.3,-2.0, -0.3,-1.2,  0.3,-2.0, 0.3,-1.2,  -0.35,-0.6, -0.35,0.3,  0.35,-0.6, 0.35,0.3]
-    const wide: Pose = [0,-3.7, 0,-3.2, 0,-2.8, 0,-1.4,  -1.1,-2.4, -1.4,-1.8,  1.1,-2.4, 1.4,-1.8,  -0.7,-0.1, -0.7,0.3,  0.7,-0.1, 0.7,0.3]
-    const reachL: Pose = [-0.15,-4.15, -0.08,-3.65, -0.04,-3.25, 0,-1.6,  -0.8,-3.0, -1.1,-2.5,  0.3,-3.7, 0.15,-4.3,  -0.35,-0.6, -0.35,0.3,  0.35,-0.6, 0.35,0.3]
-    const reachR: Pose = [0.15,-4.15, 0.08,-3.65, 0.04,-3.25, 0,-1.6,  -0.3,-3.7, -0.15,-4.3,  0.8,-3.0, 1.1,-2.5,  -0.35,-0.6, -0.35,0.3,  0.35,-0.6, 0.35,0.3]
-    const lungeR: Pose = [0,-4.0, 0,-3.5, 0,-3.1, 0,-1.5,  -0.6,-2.5, -0.4,-1.7,  0.6,-2.5, 0.4,-1.7,  -0.3,-0.3, -0.3,0.3,  0.8,-0.7, 1.2,0.15]
-    const lungeL: Pose = [0,-4.0, 0,-3.5, 0,-3.1, 0,-1.5,  -0.6,-2.5, -0.4,-1.7,  0.6,-2.5, 0.4,-1.7,  -0.8,-0.7, -1.2,0.15,  0.3,-0.3, 0.3,0.3]
-
-    const allPoses: Pose[] = [
-      stand, armsHalf, armsUp, armsHalf, stand,
-      chair, chair, armsUp, stand,
-      war2, war2, war2, stand,
-      crescent, crescent, armsUp, stand,
-      reachL, stand, reachR, stand,
-      lungeR, stand, lungeL, stand,
-      fold, fold, armsHalf, armsUp, armsHalf, stand,
-    ]
-
-    let frame = 0
-    let prevPose: Pose | null = null
-    let prevPose2: Pose | null = null
-    const trailPoses: { pose: Pose; age: number }[] = []
-    const trailPoses2: { pose: Pose; age: number }[] = []
-    const totalCycleDuration = allPoses.length * 110
-
-    const herPoses: Pose[] = [
-      stand, tree, tree, tree, stand,
-      armsHalf, armsUp, armsUp, armsHalf, stand,
-      wide, wide, wide, stand,
-      reachR, stand, reachL, stand,
-      crescent, crescent, armsUp, stand,
-      chair, chair, armsUp, stand,
-      fold, fold, armsHalf, armsUp, armsHalf, stand,
-    ]
-    const totalCycleDuration2 = herPoses.length * 110
-
-    interface GoldParticle {
-      x: number; y: number; vx: number; vy: number
-      life: number; maxLife: number; size: number
-      brightness: number
-    }
-    const particles: GoldParticle[] = []
-
-    const emitParticles = (x: number, y: number, velocityX: number, velocityY: number, count: number) => {
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2
-        const speed = 0.5 + Math.random() * 2.5
-        particles.push({
-          x, y,
-          vx: Math.cos(angle) * speed + velocityX * 0.3,
-          vy: Math.sin(angle) * speed + velocityY * 0.3 - Math.random() * 1.5,
-          life: 0, maxLife: 30 + Math.random() * 40,
-          size: 1 + Math.random() * 2.5, brightness: 0.5 + Math.random() * 0.5
-        })
-      }
-    }
-
-    const drawParticles = () => {
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i]
-        p.x += p.vx; p.y += p.vy; p.vy += 0.03; p.vx *= 0.99; p.life++
-        if (p.life >= p.maxLife) { particles.splice(i, 1); continue }
-        const lifeRatio = 1 - p.life / p.maxLife
-        const alpha = lifeRatio * 0.7 * p.brightness
-        const r = 201 + Math.round((255 - 201) * (1 - lifeRatio))
-        const g = 169 + Math.round((215 - 169) * (1 - lifeRatio))
-        const b = 110 - Math.round(60 * (1 - lifeRatio))
-        ctx.globalAlpha = alpha
-        ctx.fillStyle = `rgb(${r},${g},${b})`
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.size * lifeRatio, 0, Math.PI * 2); ctx.fill()
-      }
-      ctx.globalAlpha = 1
-    }
-
-    const drawFigure = (pose: Pose, cx: number, cy: number, s: number, alpha: number, hasPonytail = false) => {
-      ctx.globalAlpha = alpha; ctx.strokeStyle = '#c9a96e'; ctx.fillStyle = '#c9a96e'
-      ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'
-      const pt = (i: number) => ({ x: cx + pose[i] * s, y: cy + pose[i + 1] * s })
-      const head = pt(0), neck = pt(2), shoulder = pt(4), hip = pt(6)
-      const lElbow = pt(8), lHand = pt(10), rElbow = pt(12), rHand = pt(14)
-      const lKnee = pt(16), lFoot = pt(18), rKnee = pt(20), rFoot = pt(22)
-      ctx.beginPath(); ctx.arc(head.x, head.y, s * 0.25, 0, Math.PI * 2); ctx.stroke()
-      if (hasPonytail) {
-        const r = s * 0.25
-        ctx.beginPath(); ctx.moveTo(head.x + r * 0.5, head.y - r * 0.75)
-        ctx.bezierCurveTo(head.x + r * 1.6, head.y - r * 0.3, head.x + r * 1.6, head.y - r * 0.3 + r * 0.8, head.x + r * 1.2, head.y + r * 1.8); ctx.stroke()
-        ctx.beginPath(); ctx.moveTo(head.x - r * 0.5, head.y - r * 0.75)
-        ctx.bezierCurveTo(head.x - r * 1.6, head.y - r * 0.3, head.x - r * 1.6, head.y - r * 0.3 + r * 0.8, head.x - r * 1.2, head.y + r * 1.8); ctx.stroke()
-      }
-      ctx.beginPath(); ctx.moveTo(head.x, head.y + s * 0.25); ctx.lineTo(neck.x, neck.y); ctx.stroke()
-      ctx.beginPath(); ctx.moveTo(neck.x, neck.y); ctx.quadraticCurveTo(shoulder.x, shoulder.y, hip.x, hip.y); ctx.stroke()
-      ctx.beginPath(); ctx.moveTo(shoulder.x, shoulder.y); ctx.quadraticCurveTo(lElbow.x, lElbow.y, lHand.x, lHand.y); ctx.stroke()
-      ctx.beginPath(); ctx.moveTo(shoulder.x, shoulder.y); ctx.quadraticCurveTo(rElbow.x, rElbow.y, rHand.x, rHand.y); ctx.stroke()
-      ctx.beginPath(); ctx.moveTo(hip.x, hip.y); ctx.quadraticCurveTo(lKnee.x, lKnee.y, lFoot.x, lFoot.y); ctx.stroke()
-      ctx.beginPath(); ctx.moveTo(hip.x, hip.y); ctx.quadraticCurveTo(rKnee.x, rKnee.y, rFoot.x, rFoot.y); ctx.stroke()
-    }
-
-    const draw = () => {
-      const w = canvas.width, h = canvas.height
-      ctx.clearRect(0, 0, w, h); frame++
-      const figSize = Math.min(w, h) * 0.15
-      const cx = w * 0.85, cy = h * 0.78, floatY = Math.sin(frame * 0.005) * 2
-      const progress = (frame % totalCycleDuration) / totalCycleDuration
-      const pose = getPoseFromSequence(allPoses, progress)
-      if (frame % 8 === 0) { trailPoses.push({ pose: [...pose], age: 0 }); if (trailPoses.length > 6) trailPoses.shift() }
-      for (const trail of trailPoses) { trail.age++; const a = Math.max(0, 0.06 - trail.age * 0.004); if (a > 0) drawFigure(trail.pose, cx, cy + floatY, figSize, a) }
-      ctx.save(); ctx.shadowColor = 'rgba(201, 169, 110, 0.3)'; ctx.shadowBlur = 20; drawFigure(pose, cx, cy + floatY, figSize, 0.55); ctx.restore()
-      const cx2 = w * 0.15, cy2 = h * 0.78, floatY2 = Math.sin(frame * 0.006 + 1.5) * 2
-      const progress2 = ((frame + totalCycleDuration2 * 0.3) % totalCycleDuration2) / totalCycleDuration2
-      const pose2 = getPoseFromSequence(herPoses, progress2)
-      if (frame % 8 === 0) { trailPoses2.push({ pose: [...pose2], age: 0 }); if (trailPoses2.length > 6) trailPoses2.shift() }
-      for (const trail of trailPoses2) { trail.age++; const a = Math.max(0, 0.06 - trail.age * 0.004); if (a > 0) drawFigure(trail.pose, cx2, cy2 + floatY2, figSize, a, true) }
-      ctx.save(); ctx.shadowColor = 'rgba(201, 169, 110, 0.3)'; ctx.shadowBlur = 20; drawFigure(pose2, cx2, cy2 + floatY2, figSize, 0.55, true); ctx.restore()
-      const spt = (i: number) => ({ x: cx + pose[i] * figSize, y: cy + floatY + pose[i + 1] * figSize })
-      if (prevPose) { for (const idx of [10, 14, 18, 22]) { const curr = spt(idx); const dx = curr.x - (cx + prevPose[idx] * figSize); const dy = curr.y - (cy + floatY + prevPose[idx + 1] * figSize); const dist = Math.sqrt(dx * dx + dy * dy); if (dist > 0.4) emitParticles(curr.x, curr.y, dx, dy, Math.min(Math.floor(dist), 3)) } }
-      const spt2 = (i: number) => ({ x: cx2 + pose2[i] * figSize, y: cy2 + floatY2 + pose2[i + 1] * figSize })
-      if (prevPose2) { for (const idx of [10, 14, 18, 22]) { const curr = spt2(idx); const dx = curr.x - (cx2 + prevPose2[idx] * figSize); const dy = curr.y - (cy2 + floatY2 + prevPose2[idx + 1] * figSize); const dist = Math.sqrt(dx * dx + dy * dy); if (dist > 0.4) emitParticles(curr.x, curr.y, dx, dy, Math.min(Math.floor(dist), 3)) } }
-      drawParticles()
-      const allEndpoints = [...([10, 14, 18, 22] as number[]).map(i => spt(i)), ...([10, 14, 18, 22] as number[]).map(i => spt2(i))]
-      for (const ep of allEndpoints) { const sa = 0.15 + Math.sin(frame * 0.05 + ep.x) * 0.1; ctx.globalAlpha = sa; ctx.fillStyle = '#c9a96e'; ctx.beginPath(); ctx.arc(ep.x, ep.y, 2, 0, Math.PI * 2); ctx.fill() }
-      ctx.globalAlpha = 1; prevPose = [...pose]; prevPose2 = [...pose2]; requestAnimationFrame(draw)
-    }
-
-    const raf = requestAnimationFrame(draw)
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize) }
-  }, [])
 
   useEffect(() => {
     const currentWord = rotatingWords[rotatingWordIndex]
@@ -396,7 +228,7 @@ export default function Home() {
               }}
             >
               <div className="h-full min-h-[220px] md:min-h-[400px] rounded-2xl overflow-hidden relative bg-[#e3dfd8]">
-                <img src="/images/Vincent.png" alt="Vincent" className="w-full h-full object-cover object-top" />
+                <img src="/images/Vincent.png" alt="Vincent" className="w-full h-full object-contain object-top md:object-cover md:object-top" />
                 <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#c9a96e]/25 to-transparent pointer-events-none" />
               </div>
             </div>
@@ -488,7 +320,6 @@ export default function Home() {
       </section>
 
       <section ref={ctaSectionRef} className="relative min-h-[600px] flex flex-col items-center justify-center px-6 text-center overflow-hidden">
-        <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
         <h2 className="relative z-10 text-4xl md:text-5xl font-bold mb-6">Pr&ecirc;t(e) &agrave; jouer le long terme&nbsp;?</h2>
         <p className="relative z-10 text-white/40 text-lg max-w-xl mx-auto mb-10">Commence ton programme en 2 minutes.</p>
         <div className="relative z-10 flex flex-col items-center gap-4">
