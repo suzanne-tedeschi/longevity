@@ -606,10 +606,18 @@ function getPersonalizedHeadline(pct: number) {
 }
 
 function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; onRestart?: () => void }) {
+  const router = useRouter()
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [expandedInsights, setExpandedInsights] = useState<Set<string>>(new Set())
   const [diet, setDiet] = useState<string>('')
   const hasSaved = useRef(false)
+
+  // ── Feedback modal ──
+  const [showFeedback, setShowFeedback] = useState(false)
+  const [feedbackUseful, setFeedbackUseful] = useState<boolean | null>(null)
+  const [feedbackComment, setFeedbackComment] = useState('')
+  const [feedbackSaving, setFeedbackSaving] = useState(false)
+  const feedbackDone = useRef(false)
 
   useEffect(() => {
     async function fetchDiet() {
@@ -754,6 +762,46 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // ── Intercept browser back button → show feedback modal ──
+  useEffect(() => {
+    window.history.pushState(null, '', window.location.href)
+    const handlePopState = () => {
+      if (feedbackDone.current) return
+      window.history.pushState(null, '', window.location.href)
+      setShowFeedback(true)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  function handleNavigateBack() {
+    setShowFeedback(true)
+  }
+
+  async function submitFeedback() {
+    setFeedbackSaving(true)
+    try {
+      const session = await supabase?.auth.getSession()
+      const userId = session?.data?.session?.user?.id
+      if (supabase && userId) {
+        await supabase.from('bilan_nutrition_feedback').insert({
+          user_id: userId,
+          useful: feedbackUseful,
+          comment: feedbackComment || null,
+        })
+      }
+    } catch (e) {
+      console.error('[feedback] Save failed:', e)
+    }
+    feedbackDone.current = true
+    router.push('/onboarding/bilans')
+  }
+
+  function skipFeedback() {
+    feedbackDone.current = true
+    router.push('/onboarding/bilans')
+  }
+
   const r = 52
   const circ = 2 * Math.PI * r
   const dashOffset = circ - (globalPct / 100) * circ
@@ -761,6 +809,16 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
 
   return (
     <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
+
+      {/* ── Top Retour button ── */}
+      <div className="mb-4">
+        <button
+          onClick={handleNavigateBack}
+          className="flex items-center gap-1.5 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a]/70 transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" /> Retour
+        </button>
+      </div>
 
       {/* ── Hero card ── */}
       <div className={`relative bg-gradient-to-br ${hero.heroGradient} border border-[#1a1a1a]/[0.07] rounded-3xl px-6 py-8 mb-8 overflow-hidden`}>
@@ -1047,12 +1105,63 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
             Recommencer
           </button>
         )}
-        <Link href="/onboarding/bilans" className="btn-primary text-center inline-block px-10 py-4 text-base w-full max-w-xs">
+        <button onClick={handleNavigateBack} className="btn-primary text-center px-10 py-4 text-base w-full max-w-xs">
           Retour aux bilans
-        </Link>
+        </button>
       </div>
 
       <div className="w-12 h-px bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mt-12" />
+
+      {/* ── Feedback modal ── */}
+      {showFeedback && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+            <h3 className="text-lg font-bold text-[#1a1a1a] mb-1">Avant de partir…</h3>
+            <p className="text-sm text-[#1a1a1a]/50 mb-6">Votre avis nous aide à améliorer Evo.</p>
+
+            <p className="text-sm font-semibold text-[#1a1a1a] mb-3">Ce questionnaire et recommandations vous ont été utiles ?</p>
+            <div className="flex gap-3 mb-6">
+              <button
+                onClick={() => setFeedbackUseful(true)}
+                className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-all ${feedbackUseful === true ? 'bg-[#2D6A4F] text-white' : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/60 hover:bg-[#1a1a1a]/10'}`}
+              >
+                Oui
+              </button>
+              <button
+                onClick={() => setFeedbackUseful(false)}
+                className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-all ${feedbackUseful === false ? 'bg-red-400 text-white' : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/60 hover:bg-[#1a1a1a]/10'}`}
+              >
+                Non
+              </button>
+            </div>
+
+            <p className="text-sm font-semibold text-[#1a1a1a] mb-2">Vos commentaires</p>
+            <textarea
+              value={feedbackComment}
+              onChange={(e) => setFeedbackComment(e.target.value)}
+              placeholder="Partagez vos impressions…"
+              className="w-full rounded-2xl border border-[#1a1a1a]/10 bg-[#FAF8F5] px-4 py-3 text-sm text-[#1a1a1a] placeholder:text-[#1a1a1a]/30 resize-none focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 mb-6"
+              rows={3}
+            />
+
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={submitFeedback}
+                disabled={feedbackSaving}
+                className="w-full btn-primary py-3 text-sm disabled:opacity-60"
+              >
+                {feedbackSaving ? 'Envoi…' : 'Envoyer et revenir au tableau de bord'}
+              </button>
+              <button
+                onClick={skipFeedback}
+                className="w-full py-3 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a]/60 transition-colors"
+              >
+                Passer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
