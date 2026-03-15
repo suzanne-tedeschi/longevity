@@ -1453,7 +1453,7 @@ export default function BilansPage() {
                     draggable
                     onDragStart={e => {
                       dragPayload.current = { kind: "chip", value: activity }
-                      e.dataTransfer.effectAllowed = "copy"
+                      e.dataTransfer.effectAllowed = "all"
                       e.dataTransfer.setData("application/evo-drag-kind", "chip")
                       e.dataTransfer.setData("application/evo-chip", activity)
                       e.dataTransfer.setData("text/plain", activity)
