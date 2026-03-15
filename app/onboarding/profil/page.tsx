@@ -211,7 +211,6 @@ export default function ProfilPage() {
   const dragPriorityFrom = useRef<number | null>(null)
   const [dragOverPriorityIdx, setDragOverPriorityIdx] = useState<number | null>(null)
   const [draggingPriorityIdx, setDraggingPriorityIdx] = useState<number | null>(null)
-  const touchDragPriorityFrom = useRef<number | null>(null)
   const priorityListRef = useRef<HTMLDivElement>(null)
   const touchDragSessionRef = useRef<{ id: string; startX: number; startY: number } | null>(null)
   const touchDragChipRef = useRef<string | null>(null)
@@ -397,16 +396,6 @@ export default function ProfilPage() {
     if (window.innerWidth < 640) setCalView('week')
   }, [])
 
-  /* Non-passive touchmove on priority list to allow preventDefault on iOS */
-  useEffect(() => {
-    const el = priorityListRef.current
-    if (!el) return
-    const handler = (e: TouchEvent) => {
-      if (touchDragPriorityFrom.current !== null) e.preventDefault()
-    }
-    el.addEventListener('touchmove', handler, { passive: false })
-    return () => el.removeEventListener('touchmove', handler)
-  }, [])
 
   const toggleLimitation = (value: string) => {
     setLimitations(prev => {
@@ -1431,7 +1420,8 @@ export default function ProfilPage() {
           {current.id === 'priorities' && (
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">Classez ces 4 leviers de longévité par priorité</h2>
-              <p className="text-sm text-[#1a1a1a]/45 mb-3">Glissez pour réorganiser, du plus important au moins important.</p>
+              <p className="text-sm text-[#1a1a1a]/45 mb-3 hidden sm:block">Glissez pour réorganiser, du plus important au moins important.</p>
+              <p className="text-sm text-[#1a1a1a]/45 mb-3 sm:hidden">Utilisez les flèches pour réorganiser, du plus important au moins important.</p>
               <div
                 ref={priorityListRef}
                 className="space-y-2 pt-3 pb-3"
@@ -1479,43 +1469,36 @@ export default function ProfilPage() {
                       setDraggingPriorityIdx(null)
                       setDragOverPriorityIdx(null)
                     }}
-                    onTouchStart={(e) => {
-                      e.stopPropagation()
-                      touchDragPriorityFrom.current = idx
-                      setDraggingPriorityIdx(idx)
-                    }}
-                    onTouchMove={(e) => {
-                      if (touchDragPriorityFrom.current === null) return
-                      e.preventDefault()
-                      const touch = e.touches[0]
-                      const el = document.elementFromPoint(touch.clientX, touch.clientY)
-                      const priorityEl = el?.closest('[data-priority-idx]')
-                      if (priorityEl) {
-                        const targetIdx = parseInt(priorityEl.getAttribute('data-priority-idx') || '-1')
-                        if (targetIdx >= 0 && targetIdx !== touchDragPriorityFrom.current) {
-                          setPriorities(prev => reorder(prev, touchDragPriorityFrom.current!, targetIdx))
-                          touchDragPriorityFrom.current = targetIdx
-                          setDraggingPriorityIdx(targetIdx)
-                        }
-                      }
-                    }}
-                    onTouchEnd={() => {
-                      touchDragPriorityFrom.current = null
-                      setDragOverPriorityIdx(null)
-                      setDraggingPriorityIdx(null)
-                    }}
-                    style={{ touchAction: 'none' }}
-                    className={`rounded-xl border bg-white px-4 py-4 sm:py-2.5 flex items-center gap-3 cursor-grab active:cursor-grabbing transition-all duration-150 select-none ${
+                    className={`rounded-xl border bg-white px-4 py-3.5 flex items-center gap-3 transition-all duration-150 select-none ${
                       draggingPriorityIdx === idx
-                        ? 'border-[#25D366]/70 bg-[#25D366]/8 shadow-xl scale-[1.04] rotate-1 z-10 relative opacity-95'
+                        ? 'border-[#25D366]/70 bg-[#25D366]/8 shadow-xl scale-[1.04] z-10 relative opacity-95'
                         : dragOverPriorityIdx === idx
                           ? 'border-[#25D366]/50 bg-[#25D366]/5 shadow-md scale-[1.02]'
                           : 'border-[#1a1a1a]/[0.1]'
                     }`}
                   >
-                    <GripVertical className={`w-5 h-5 sm:w-4 sm:h-4 shrink-0 transition-colors ${draggingPriorityIdx === idx ? 'text-[#25D366]/60' : 'text-[#1a1a1a]/30'}`} />
+                    <GripVertical className="hidden sm:block w-4 h-4 shrink-0 text-[#1a1a1a]/25 cursor-grab active:cursor-grabbing" />
                     <span className="text-xs font-bold text-[#25D366] w-5 shrink-0">#{idx + 1}</span>
-                    <span className="text-sm text-[#1a1a1a]">{item}</span>
+                    <span className="text-sm text-[#1a1a1a] flex-1">{item}</span>
+                    {/* Mobile up/down buttons */}
+                    <div className="flex flex-col gap-0.5 sm:hidden">
+                      <button
+                        disabled={idx === 0}
+                        onClick={() => setPriorities(prev => reorder(prev, idx, idx - 1))}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg disabled:opacity-20 active:scale-95 transition-all"
+                        style={{ background: 'rgba(37,211,102,0.1)', color: '#25D366' }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15" /></svg>
+                      </button>
+                      <button
+                        disabled={idx === priorities.length - 1}
+                        onClick={() => setPriorities(prev => reorder(prev, idx, idx + 1))}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg disabled:opacity-20 active:scale-95 transition-all"
+                        style={{ background: 'rgba(37,211,102,0.1)', color: '#25D366' }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
