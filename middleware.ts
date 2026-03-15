@@ -44,9 +44,12 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Redirect unauthenticated visitors away from all /onboarding/* routes (except login itself)
-  const isOnboardingRoute = pathname.startsWith('/onboarding/') && !pathname.startsWith('/onboarding/login')
-  if (!user && isOnboardingRoute) {
+  // Redirect unauthenticated visitors away from authenticated-only routes
+  // (bilan questionnaires and the bilans dashboard require a logged-in user)
+  const requiresAuth =
+    pathname.startsWith('/onboarding/bilans') ||
+    pathname.startsWith('/onboarding/bilan-')
+  if (!user && requiresAuth) {
     const url = request.nextUrl.clone()
     url.pathname = '/onboarding/login'
     url.searchParams.set('next', pathname)
