@@ -14,6 +14,7 @@ export default function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const mode: AuthMode = searchParams.get('mode') === 'login' ? 'login' : 'signup'
+  const nextPath = searchParams.get('next') || '/onboarding/bilans'
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -113,7 +114,7 @@ export default function LoginContent() {
         // If already authenticated (e.g. just returned from Google OAuth), redirect directly
         if (session?.user) {
           await applyPendingOnboarding(session.user)
-          router.push('/onboarding/bilans')
+          router.push(nextPath)
         }
       } catch {
         // Silently ignore auth errors
@@ -181,10 +182,10 @@ export default function LoginContent() {
         data: { session },
       } = await supabase.auth.getSession()
       if (mode === 'login') {
-        router.push('/onboarding/bilans')
+        router.push(nextPath)
       } else {
         if (session?.user) await applyPendingOnboarding(session.user)
-        router.push('/onboarding/bilans')
+        router.push(nextPath)
       }
     } catch {
       setErrorMsg('Une erreur est survenue. Réessayez.')
@@ -199,7 +200,6 @@ export default function LoginContent() {
     }
     setLoading(true)
     setErrorMsg('')
-    const nextPath = mode === 'login' ? '/onboarding/bilans' : '/onboarding/login?mode=signup'
     const redirectBase = appUrl || window.location.origin
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
@@ -337,7 +337,29 @@ export default function LoginContent() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-[#1a1a1a]/20 mt-6">
+        <p className="text-center text-sm text-[#1a1a1a]/40 mt-6">
+          {mode === 'signup' ? (
+            <>Vous avez déjà un compte ?{' '}
+              <Link
+                href={`/onboarding/login?mode=login${nextPath !== '/onboarding/bilans' ? `&next=${encodeURIComponent(nextPath)}` : ''}`}
+                className="font-semibold text-[#2D6A4F] hover:underline"
+              >
+                Se connecter
+              </Link>
+            </>
+          ) : (
+            <>Pas encore de compte ?{' '}
+              <Link
+                href={`/onboarding/login${nextPath !== '/onboarding/bilans' ? `?next=${encodeURIComponent(nextPath)}` : ''}`}
+                className="font-semibold text-[#2D6A4F] hover:underline"
+              >
+                Créer un compte
+              </Link>
+            </>
+          )}
+        </p>
+
+        <p className="text-center text-xs text-[#1a1a1a]/20 mt-4">
           En continuant, vous acceptez nos{' '}
           <Link href="#" className="underline hover:text-[#1a1a1a]/40">conditions d&apos;utilisation</Link>
           {' '}et notre{' '}
