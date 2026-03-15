@@ -209,8 +209,6 @@ export default function ProfilPage() {
   const dragId = useRef<string | null>(null)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const dragPriorityFrom = useRef<number | null>(null)
-  const prioritiesSnapshot = useRef<string[]>([])
-  const dragOverTargetRef = useRef<number | null>(null)
   const [dragOverPriorityIdx, setDragOverPriorityIdx] = useState<number | null>(null)
   const [draggingPriorityIdx, setDraggingPriorityIdx] = useState<number | null>(null)
   const touchDragPriorityFrom = useRef<number | null>(null)
@@ -1422,7 +1420,37 @@ export default function ProfilPage() {
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">Classez ces 4 leviers de longévité par priorité</h2>
               <p className="text-sm text-[#1a1a1a]/45 mb-3">Glissez pour réorganiser, du plus important au moins important.</p>
-              <div className="space-y-2">
+              <div
+                className="space-y-2 pt-3 pb-3"
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  if (dragPriorityFrom.current === null) return
+                  const items = e.currentTarget.querySelectorAll('[data-priority-idx]')
+                  let targetIdx = priorities.length - 1
+                  for (const item of Array.from(items)) {
+                    const rect = item.getBoundingClientRect()
+                    if (e.clientY < rect.top + rect.height / 2) {
+                      targetIdx = parseInt(item.getAttribute('data-priority-idx') || '0')
+                      break
+                    }
+                  }
+                  setDragOverPriorityIdx(targetIdx)
+                }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  if (dragPriorityFrom.current !== null && dragOverPriorityIdx !== null && dragOverPriorityIdx !== dragPriorityFrom.current) {
+                    setPriorities(prev => reorder(prev, dragPriorityFrom.current!, dragOverPriorityIdx))
+                  }
+                  dragPriorityFrom.current = null
+                  setDraggingPriorityIdx(null)
+                  setDragOverPriorityIdx(null)
+                }}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    setDragOverPriorityIdx(null)
+                  }
+                }}
+              >
                 {priorities.map((item, idx) => (
                   <div
                     key={item}
@@ -1430,26 +1458,16 @@ export default function ProfilPage() {
                     draggable
                     onDragStart={() => {
                       dragPriorityFrom.current = idx
-                      prioritiesSnapshot.current = [...priorities]
-                      dragOverTargetRef.current = idx
                       setDraggingPriorityIdx(idx)
                     }}
-                    onDragOver={(e) => {
-                      e.preventDefault()
-                      if (dragPriorityFrom.current !== null && dragOverTargetRef.current !== idx) {
-                        dragOverTargetRef.current = idx
-                        setPriorities(reorder(prioritiesSnapshot.current, dragPriorityFrom.current, idx))
-                        setDraggingPriorityIdx(idx)
-                      }
+                    onDragEnd={() => {
+                      dragPriorityFrom.current = null
+                      setDraggingPriorityIdx(null)
+                      setDragOverPriorityIdx(null)
                     }}
-                    onDragLeave={() => {}}
-                    onDrop={() => { dragPriorityFrom.current = null; dragOverTargetRef.current = null; setDraggingPriorityIdx(null) }}
-                    onDragEnd={() => { dragPriorityFrom.current = null; dragOverTargetRef.current = null; setDraggingPriorityIdx(null) }}
                     onTouchStart={(e) => {
                       e.stopPropagation()
                       touchDragPriorityFrom.current = idx
-                      prioritiesSnapshot.current = [...priorities]
-                      dragOverTargetRef.current = idx
                       setDraggingPriorityIdx(idx)
                     }}
                     onTouchMove={(e) => {
@@ -1460,16 +1478,15 @@ export default function ProfilPage() {
                       const priorityEl = el?.closest('[data-priority-idx]')
                       if (priorityEl) {
                         const targetIdx = parseInt(priorityEl.getAttribute('data-priority-idx') || '-1')
-                        if (targetIdx >= 0 && dragOverTargetRef.current !== targetIdx) {
-                          dragOverTargetRef.current = targetIdx
-                          setPriorities(reorder(prioritiesSnapshot.current, touchDragPriorityFrom.current!, targetIdx))
+                        if (targetIdx >= 0 && targetIdx !== touchDragPriorityFrom.current) {
+                          setPriorities(prev => reorder(prev, touchDragPriorityFrom.current!, targetIdx))
+                          touchDragPriorityFrom.current = targetIdx
                           setDraggingPriorityIdx(targetIdx)
                         }
                       }
                     }}
                     onTouchEnd={() => {
                       touchDragPriorityFrom.current = null
-                      dragOverTargetRef.current = null
                       setDragOverPriorityIdx(null)
                       setDraggingPriorityIdx(null)
                     }}
