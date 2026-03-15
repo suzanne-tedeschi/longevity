@@ -51,8 +51,9 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/onboarding/bilan-')
   if (!user && requiresAuth) {
     const url = request.nextUrl.clone()
-    url.pathname = '/onboarding/login'
-    url.searchParams.set('next', pathname)
+    url.pathname = pathname.startsWith('/onboarding/bilan-')
+      ? '/onboarding/choix-bilan'
+      : '/onboarding/login'
     return NextResponse.redirect(url)
   }
 
