@@ -212,6 +212,7 @@ export default function ProfilPage() {
   const [dragOverPriorityIdx, setDragOverPriorityIdx] = useState<number | null>(null)
   const [draggingPriorityIdx, setDraggingPriorityIdx] = useState<number | null>(null)
   const touchDragPriorityFrom = useRef<number | null>(null)
+  const priorityListRef = useRef<HTMLDivElement>(null)
   const touchDragSessionRef = useRef<{ id: string; startX: number; startY: number } | null>(null)
   const touchDragChipRef = useRef<string | null>(null)
 
@@ -394,6 +395,17 @@ export default function ProfilPage() {
 
   useEffect(() => {
     if (window.innerWidth < 640) setCalView('week')
+  }, [])
+
+  /* Non-passive touchmove on priority list to allow preventDefault on iOS */
+  useEffect(() => {
+    const el = priorityListRef.current
+    if (!el) return
+    const handler = (e: TouchEvent) => {
+      if (touchDragPriorityFrom.current !== null) e.preventDefault()
+    }
+    el.addEventListener('touchmove', handler, { passive: false })
+    return () => el.removeEventListener('touchmove', handler)
   }, [])
 
   const toggleLimitation = (value: string) => {
@@ -1421,7 +1433,9 @@ export default function ProfilPage() {
               <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">Classez ces 4 leviers de longévité par priorité</h2>
               <p className="text-sm text-[#1a1a1a]/45 mb-3">Glissez pour réorganiser, du plus important au moins important.</p>
               <div
+                ref={priorityListRef}
                 className="space-y-2 pt-3 pb-3"
+                style={{ touchAction: 'none' }}
                 onDragOver={(e) => {
                   e.preventDefault()
                   if (dragPriorityFrom.current === null) return
@@ -1491,7 +1505,7 @@ export default function ProfilPage() {
                       setDraggingPriorityIdx(null)
                     }}
                     style={{ touchAction: 'none' }}
-                    className={`rounded-xl border bg-white px-3 py-2.5 flex items-center gap-3 cursor-grab active:cursor-grabbing transition-all duration-150 select-none ${
+                    className={`rounded-xl border bg-white px-4 py-4 sm:py-2.5 flex items-center gap-3 cursor-grab active:cursor-grabbing transition-all duration-150 select-none ${
                       draggingPriorityIdx === idx
                         ? 'border-[#25D366]/70 bg-[#25D366]/8 shadow-xl scale-[1.04] rotate-1 z-10 relative opacity-95'
                         : dragOverPriorityIdx === idx
@@ -1499,7 +1513,7 @@ export default function ProfilPage() {
                           : 'border-[#1a1a1a]/[0.1]'
                     }`}
                   >
-                    <GripVertical className={`w-4 h-4 shrink-0 transition-colors ${draggingPriorityIdx === idx ? 'text-[#25D366]/60' : 'text-[#1a1a1a]/20'}`} />
+                    <GripVertical className={`w-5 h-5 sm:w-4 sm:h-4 shrink-0 transition-colors ${draggingPriorityIdx === idx ? 'text-[#25D366]/60' : 'text-[#1a1a1a]/30'}`} />
                     <span className="text-xs font-bold text-[#25D366] w-5 shrink-0">#{idx + 1}</span>
                     <span className="text-sm text-[#1a1a1a]">{item}</span>
                   </div>
