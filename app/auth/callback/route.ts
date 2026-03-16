@@ -10,14 +10,21 @@ import type { NextRequest } from 'next/server'
  * @supabase/ssr (set during signInWithOAuth on the client), so the server
  * can exchange the code without needing localStorage.
  */
+function sanitizeNext(next: string | null): string {
+  if (!next) return '/onboarding/bilans'
+  // Only allow relative internal paths (must start with /)
+  if (!next.startsWith('/') || next.startsWith('//')) return '/onboarding/bilans'
+  return next
+}
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const next = requestUrl.searchParams.get('next') ?? '/onboarding/bilans'
+  const next = sanitizeNext(requestUrl.searchParams.get('next'))
 
   if (code) {
     // Build the redirect response first so we can attach cookies to it
-    const redirectTo = new URL('/onboarding/bilans', request.url)
+    const redirectTo = new URL(next, request.url)
     const response = NextResponse.redirect(redirectTo)
 
     const supabase = createServerClient(
@@ -46,9 +53,7 @@ export async function GET(request: NextRequest) {
         user.user_metadata?.evo_onboarding_completed
       )
 
-      const destination = isOnboardingCompleted
-        ? '/onboarding/bilans'
-        : next
+      const destination = next
 
       const finalResponse = NextResponse.redirect(new URL(destination, request.url))
       // Copy all cookies (session tokens) to the final redirect response

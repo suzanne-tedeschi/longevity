@@ -7,8 +7,6 @@ import { supabase, isSupabaseConfigured, ensureProfile, upsertProfile } from '@/
 
 type AuthMode = 'login' | 'signup'
 
-const appUrl =
-  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || null
 
 export default function LoginContent() {
   const router = useRouter()
@@ -200,7 +198,7 @@ export default function LoginContent() {
     }
     setLoading(true)
     setErrorMsg('')
-    const redirectBase = appUrl || window.location.origin
+    const redirectBase = window.location.origin
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
