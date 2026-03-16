@@ -1,8 +1,23 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
 export default function ChoixBilanPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+
+  const handleNewProfile = async () => {
+    setLoading(true)
+    // Sign out any existing session so the middleware doesn't redirect to bilans
+    if (isSupabaseConfigured && supabase) {
+      await supabase.auth.signOut()
+    }
+    router.push('/onboarding/profil')
+  }
+
   return (
     <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center px-4">
       <div className="w-full max-w-xl bg-white border border-[#1a1a1a]/[0.08] rounded-2xl p-6 sm:p-8 shadow-[0_30px_80px_-45px_rgba(26,26,26,0.5)]">
@@ -13,23 +28,24 @@ export default function ChoixBilanPage() {
         </div>
 
         <div className="space-y-3">
-          <Link
-            href="/onboarding/profil"
-            className="w-full inline-flex items-center justify-between rounded-xl border-2 border-[#25D366]/25 bg-[#25D366]/10 px-4 py-4 text-left hover:border-[#25D366]/45 transition-all"
+          <button
+            onClick={handleNewProfile}
+            disabled={loading}
+            className="w-full inline-flex items-center justify-between rounded-xl border-2 border-[#25D366]/25 bg-[#25D366]/10 px-4 py-4 text-left hover:border-[#25D366]/45 transition-all disabled:opacity-60"
           >
             <span>
               <p className="text-sm font-semibold text-[#1a1a1a]">Configurer mon profil</p>
-              <p className="text-xs text-[#1a1a1a]/55">Je suis nouveau, je configure mon profil d’abord.</p>
+              <p className="text-xs text-[#1a1a1a]/55">Je suis nouveau, je configure mon profil d'abord.</p>
             </span>
-            <span className="text-[#25D366]">→</span>
-          </Link>
+            <span className="text-[#25D366]">{loading ? '…' : '→'}</span>
+          </button>
 
           <Link
             href="/onboarding/login?mode=login"
             className="w-full inline-flex items-center justify-between rounded-xl border border-[#1a1a1a]/[0.12] bg-white px-4 py-4 text-left hover:border-[#25D366]/45 transition-all"
           >
             <span>
-              <p className="text-sm font-semibold text-[#1a1a1a]">J’ai déjà un compte</p>
+              <p className="text-sm font-semibold text-[#1a1a1a]">J'ai déjà un compte</p>
               <p className="text-xs text-[#1a1a1a]/55">Je me connecte avec email/mot de passe ou Google.</p>
             </span>
             <span className="text-[#1a1a1a]/45">→</span>
