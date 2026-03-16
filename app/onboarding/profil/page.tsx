@@ -198,6 +198,7 @@ export default function ProfilPage() {
   const [coachTone, setCoachTone] = useState('')
   const [expectations, setExpectations] = useState('')
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
 
   const [calView, setCalView] = useState<CalView>('week')
@@ -329,34 +330,36 @@ export default function ProfilPage() {
   }, [])
 
   useEffect(() => {
-    localStorage.setItem(
-      'evo_onboarding_data',
-      JSON.stringify({
-        firstName,
-        age,
-        height,
-        weight,
-        activityFrequency,
-        weeklyActivities,
-        agendaActivities,
-        agendaMode,
-        agendaSessions: agendaSessions.map((session) => ({
-          ...session,
-          date: session.date.toISOString(),
-        })),
-        limitations,
-        jointPainWhere,
-        musclePainWhere,
-        otherLimitation,
-        otherActivity,
-        evoUsage,
-        priorities,
-        diet,
-        otherDiet,
-        coachTone,
-        expectations,
-      })
-    )
+    try {
+      localStorage.setItem(
+        'evo_onboarding_data',
+        JSON.stringify({
+          firstName,
+          age,
+          height,
+          weight,
+          activityFrequency,
+          weeklyActivities,
+          agendaActivities,
+          agendaMode,
+          agendaSessions: agendaSessions.map((session) => ({
+            ...session,
+            date: session.date.toISOString(),
+          })),
+          limitations,
+          jointPainWhere,
+          musclePainWhere,
+          otherLimitation,
+          otherActivity,
+          evoUsage,
+          priorities,
+          diet,
+          otherDiet,
+          coachTone,
+          expectations,
+        })
+      )
+    } catch { /* localStorage unavailable (private mode) — data lives in memory */ }
   }, [
     firstName,
     age,
@@ -381,15 +384,17 @@ export default function ProfilPage() {
   ])
 
   useEffect(() => {
-    localStorage.setItem(
-      'evo_planning_sessions',
-      JSON.stringify(
-        agendaSessions.map((session) => ({
-          ...session,
-          date: session.date.toISOString(),
-        }))
+    try {
+      localStorage.setItem(
+        'evo_planning_sessions',
+        JSON.stringify(
+          agendaSessions.map((session) => ({
+            ...session,
+            date: session.date.toISOString(),
+          }))
+        )
       )
-    )
+    } catch { /* ignore */ }
   }, [agendaSessions])
 
   useEffect(() => {
@@ -726,6 +731,7 @@ export default function ProfilPage() {
     }
 
     setSaving(true)
+    setSaveError('')
     try {
       const {
         data: { session },
@@ -779,6 +785,7 @@ export default function ProfilPage() {
       router.push('/onboarding/bilans')
     } catch (error) {
       console.error('Error during onboarding finish:', error)
+      setSaveError('Une erreur est survenue. Réessayez.')
     } finally {
       setSaving(false)
     }
@@ -1578,6 +1585,9 @@ export default function ProfilPage() {
             </div>
           )}
 
+          {saveError && (
+            <p className="mt-4 text-sm text-red-500 text-center">{saveError}</p>
+          )}
           <div className="mt-6 sm:mt-7 flex justify-end">
             <button
               onClick={handleNext}
