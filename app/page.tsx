@@ -74,6 +74,19 @@ export default function Home() {
     return () => subscription.unsubscribe()
   }, [])
 
+  /* Force autoplay on first hero video (iOS Safari sometimes ignores autoPlay attr) */
+  useEffect(() => {
+    const v = video1Ref.current
+    if (!v) return
+    v.muted = true
+    const promise = v.play()
+    if (promise !== undefined) {
+      promise.catch(() => {
+        // Autoplay blocked — silently ignore, video stays paused until user interaction
+      })
+    }
+  }, [mounted])
+
   /* Vincent section scroll reveal */
   useEffect(() => {
     const el = vincentRef.current
