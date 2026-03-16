@@ -34,6 +34,7 @@ interface Session {
   label: string
   duration: number
   notes?: string
+  color?: string
 }
 
 interface StoredSession {
@@ -43,6 +44,7 @@ interface StoredSession {
   label: string
   duration: number
   notes?: string
+  color?: string
 }
 type CalView = "week" | "month" | "day"
 
@@ -182,7 +184,7 @@ export default function BilansPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [modal, setModal] = useState<{ open: boolean; date: Date | null }>({ open: false, date: null })
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
-  const [newSession, setNewSession] = useState({ type: "sport" as "evo" | "sport", label: "", duration: 45, notes: "", time: "09:00", isWeekly: false })
+  const [newSession, setNewSession] = useState({ type: "sport" as "evo" | "sport", label: "", duration: 45, notes: "", time: "09:00", isWeekly: false, color: "#c9a96e" })
   const [calendarConnected, setCalendarConnected] = useState(false)
   const [calendarEmail, setCalendarEmail] = useState<string | null>(null)
   const [calendarLoading, setCalendarLoading] = useState(true)
@@ -234,7 +236,7 @@ export default function BilansPage() {
   const resetModalState = useCallback(() => {
     setModal({ open: false, date: null })
     setEditingSessionId(null)
-    setNewSession({ type: "sport", label: "", duration: 45, notes: "", time: "09:00", isWeekly: false })
+    setNewSession({ type: "sport", label: "", duration: 45, notes: "", time: "09:00", isWeekly: false, color: "#c9a96e" })
   }, [])
 
   const openCreateModal = useCallback((date: Date, label = "") => {
@@ -248,6 +250,7 @@ export default function BilansPage() {
       notes: "",
       time: hasExplicitTime ? format(nextDate, "HH:mm") : "09:00",
       isWeekly: false,
+      color: "#c9a96e",
     })
     setModal({ open: true, date: nextDate })
   }, [])
@@ -262,6 +265,7 @@ export default function BilansPage() {
       notes: session.notes || "",
       time: format(session.date, "HH:mm"),
       isWeekly: false,
+      color: session.color || "#c9a96e",
     })
     setModal({ open: true, date: new Date(session.date) })
   }, [])
@@ -321,7 +325,7 @@ export default function BilansPage() {
     if (chipLabel) {
       const nd = new Date(targetDate); nd.setHours(9, 0, 0, 0)
       setEditingSessionId(null)
-      setNewSession({ type: "sport", label: chipLabel, duration: 45, notes: "", time: "09:00", isWeekly: false })
+      setNewSession({ type: "sport", label: chipLabel, duration: 45, notes: "", time: "09:00", isWeekly: false, color: "#c9a96e" })
       setModal({ open: true, date: nd })
       clearDragState()
       return
@@ -353,7 +357,7 @@ export default function BilansPage() {
       const nd = new Date(targetDate); nd.setHours(h, m, 0, 0)
       const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
       setEditingSessionId(null)
-      setNewSession({ type: "sport", label: chipLabel, duration: 45, notes: "", time: timeStr, isWeekly: false })
+      setNewSession({ type: "sport", label: chipLabel, duration: 45, notes: "", time: timeStr, isWeekly: false, color: "#c9a96e" })
       setModal({ open: true, date: nd })
       clearDragState()
       return
@@ -553,7 +557,7 @@ export default function BilansPage() {
     if (editingSessionId) {
       setSessions(prev => prev.map(session =>
         session.id === editingSessionId
-          ? { ...session, date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }
+          ? { ...session, date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes, color: newSession.color }
           : session
       ))
     } else if (newSession.isWeekly) {
@@ -564,10 +568,11 @@ export default function BilansPage() {
         label: newSession.label,
         duration: newSession.duration,
         notes: newSession.notes,
+        color: newSession.color,
       }))
       setSessions(prev => [...prev, ...newSessions])
     } else {
-      setSessions(prev => [...prev, { id: Date.now().toString(), date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes }])
+      setSessions(prev => [...prev, { id: Date.now().toString(), date: d, type: newSession.type, label: newSession.label, duration: newSession.duration, notes: newSession.notes, color: newSession.color }])
     }
     resetModalState()
   }
@@ -1547,7 +1552,8 @@ export default function BilansPage() {
                             <div key={s.id} draggable={isDraggable(s)} onDragStart={e => isDraggable(s) && onDragStart(e, s.id)}
                               onDragEnd={clearDragState}
                               onClick={e => { e.stopPropagation(); if (isDraggable(s)) openEditModal(s) }}
-                              className={`text-[8px] font-medium px-1 py-px rounded truncate ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${s.type === "evo" ? "bg-[#3ECF8E]/10 text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 text-[#1a73e8]" : "bg-[#c9a96e]/10 text-[#a08050]"}`}>{s.type === "google" ? "Occupé" : s.label}</div>
+                              className={`text-[8px] font-medium px-1 py-px rounded truncate ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${s.type === "evo" ? "bg-[#3ECF8E]/10 text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 text-[#1a73e8]" : ""}`}
+                              style={s.type === "sport" ? { backgroundColor: (s.color || "#c9a96e") + "1a", color: s.color || "#c9a96e" } : {}}>{s.type === "google" ? "Occupé" : s.label}</div>
                           ))}
                           {ds.length > 2 && <div className="text-[8px] text-[#1a1a1a]/20">+{ds.length - 2}</div>}
                         </div>
@@ -1584,13 +1590,14 @@ export default function BilansPage() {
                           <button className="absolute inset-0 w-full z-0 opacity-0" onClick={e => onTimeGridClick(e, day)} />
                           {ds.map(s => {
                             const top = sessionTop(s), height = sessionHeight(s)
-                            const cls = s.type === "evo" ? "bg-[#3ECF8E]/15 border-l-2 border-l-[#3ECF8E] text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 border-l-2 border-l-[#4285f4] text-[#1a73e8]" : "bg-[#c9a96e]/12 border-l-2 border-l-[#c9a96e] text-[#a08050]"
+                            const cls = s.type === "evo" ? "bg-[#3ECF8E]/15 border-l-2 border-l-[#3ECF8E] text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 border-l-2 border-l-[#4285f4] text-[#1a73e8]" : "border-l-2"
+                            const sportColor = s.type === "sport" ? (s.color || "#c9a96e") : null
                             return (
                               <div key={s.id} draggable={isDraggable(s)} onDragStart={e => isDraggable(s) && onDragStart(e, s.id)}
                                 onDragEnd={clearDragState}
                                 onClick={e => { e.stopPropagation(); if (isDraggable(s)) openEditModal(s) }}
                                 className={`absolute left-0.5 right-0.5 z-10 rounded px-1 py-px overflow-hidden transition-opacity group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : "cursor-default"} ${cls}`}
-                                style={{ top, height: Math.max(height, 18) }}>
+                                style={{ top, height: Math.max(height, 18), ...(sportColor ? { backgroundColor: sportColor + "1e", borderLeftColor: sportColor, color: sportColor } : {}) }}>
                                 {isDraggable(s) && <GripVertical className="w-2.5 h-2.5 absolute top-0.5 right-0 opacity-0 group-hover/sess:opacity-40 text-current" />}
                                 <p className="text-[8px] font-semibold truncate leading-tight">{s.type === "google" ? "Occupé" : s.label}</p>
                                 {height >= 28 && <p className="text-[7px] opacity-50">{format(s.date, "HH:mm")} · {s.duration}m</p>}
@@ -1624,13 +1631,14 @@ export default function BilansPage() {
                   <button className="absolute inset-0 w-full z-0 opacity-0" onClick={e => onTimeGridClick(e, currentDate)} />
                   {sessionsOnDay(currentDate).map(s => {
                     const top = sessionTop(s), height = sessionHeight(s)
-                    const cls = s.type === "evo" ? "bg-[#3ECF8E]/15 border-l-[3px] border-l-[#3ECF8E] text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 border-l-[3px] border-l-[#4285f4] text-[#1a73e8]" : "bg-[#c9a96e]/12 border-l-[3px] border-l-[#c9a96e] text-[#a08050]"
+                    const cls = s.type === "evo" ? "bg-[#3ECF8E]/15 border-l-[3px] border-l-[#3ECF8E] text-[#1B9C6E]" : s.type === "google" ? "bg-[#4285f4]/10 border-l-[3px] border-l-[#4285f4] text-[#1a73e8]" : "border-l-[3px]"
+                    const sportColor = s.type === "sport" ? (s.color || "#c9a96e") : null
                     return (
                       <div key={s.id} draggable={isDraggable(s)} onDragStart={e => isDraggable(s) && onDragStart(e, s.id)}
                         onDragEnd={clearDragState}
                         onClick={e => { e.stopPropagation(); if (isDraggable(s)) openEditModal(s) }}
                         className={`absolute left-1 right-4 z-10 rounded-lg px-3 py-1 overflow-hidden group/sess ${isDraggable(s) ? "cursor-grab active:cursor-grabbing" : ""} ${cls}`}
-                        style={{ top, height: Math.max(height, 24) }}>
+                        style={{ top, height: Math.max(height, 24), ...(sportColor ? { backgroundColor: sportColor + "1e", borderLeftColor: sportColor, color: sportColor } : {}) }}>
                         {isDraggable(s) && <GripVertical className="w-3 h-3 absolute top-1 right-1 opacity-0 group-hover/sess:opacity-40 text-current" />}
                         <p className="text-[11px] font-semibold truncate">{s.type === "google" ? "Occupé" : s.label}</p>
                         <p className="text-[10px] opacity-60">{format(s.date, "HH:mm")} — {s.duration} min</p>
@@ -1802,6 +1810,16 @@ export default function BilansPage() {
               <input type="number" min={5} max={180} step={5} value={newSession.duration} onChange={e => setNewSession(s => ({ ...s, duration: Number(e.target.value) }))} className="flex-1 px-3 py-2 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40" />
             </div>
             <textarea placeholder="Notes (optionnel)" value={newSession.notes} onChange={e => setNewSession(s => ({ ...s, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#3ECF8E]/40 resize-none placeholder:text-[#1a1a1a]/20" />
+            <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-black/[0.06]">
+              <span className="text-[11px] text-[#1a1a1a]/40 shrink-0">Couleur</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {["#c9a96e","#3ECF8E","#4285f4","#ff6b6b","#a855f7","#f97316","#06b6d4","#ec4899"].map(c => (
+                  <button key={c} type="button" onClick={() => setNewSession(s => ({ ...s, color: c }))}
+                    className="w-5 h-5 rounded-full transition-transform hover:scale-110 shrink-0"
+                    style={{ backgroundColor: c, outline: newSession.color === c ? `2px solid ${c}` : "2px solid transparent", outlineOffset: "2px" }} />
+                ))}
+              </div>
+            </div>
             {!editingSessionId && (
               <label className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-black/[0.06] cursor-pointer hover:bg-[#f9f9f9] transition-colors">
                 <input type="checkbox" checked={newSession.isWeekly} onChange={e => setNewSession(s => ({ ...s, isWeekly: e.target.checked }))} className="w-4 h-4 accent-[#3ECF8E]" />
