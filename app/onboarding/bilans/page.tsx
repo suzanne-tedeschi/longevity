@@ -399,8 +399,9 @@ export default function BilansPage() {
         const name = u?.user_metadata?.first_name || u?.user_metadata?.full_name?.split(' ')[0] || u?.user_metadata?.name?.split(' ')[0] || u?.email?.split('@')[0] || null
         if (name) setUserName(name.charAt(0).toUpperCase() + name.slice(1))
         const onb = u?.user_metadata?.evo_onboarding as Record<string, unknown> | undefined
+        let hasProfileData = false
         if (onb) {
-          if (onb.age) setUserAge(Number(onb.age))
+          if (onb.age) { setUserAge(Number(onb.age)); hasProfileData = true }
           if (onb.activityFrequency) setUserActivityFreq(onb.activityFrequency as string)
           if (onb.diet) setUserDiet(onb.diet as string)
           if (onb.evoUsage) setUserEvoUsage(onb.evoUsage as string)
@@ -411,13 +412,20 @@ export default function BilansPage() {
             const cached = localStorage.getItem('evo_onboarding_data')
             if (cached) {
               const d = JSON.parse(cached) as Record<string, unknown>
-              if (d.age) setUserAge(Number(d.age))
+              if (d.age) { setUserAge(Number(d.age)); hasProfileData = true }
               if (d.activityFrequency) setUserActivityFreq(d.activityFrequency as string)
               if (d.diet) setUserDiet(d.diet as string)
               if (d.evoUsage) setUserEvoUsage(d.evoUsage as string)
               if (Array.isArray(d.weeklyActivities)) setUserWeeklyActivities(d.weeklyActivities as string[])
             }
           } catch { /* ignore */ }
+        }
+
+        // If no profile data found, the onboarding flag was set incorrectly — reset and redo
+        if (!hasProfileData) {
+          await supabase!.auth.updateUser({ data: { evo_onboarding_completed: false } })
+          router.replace('/onboarding/profil')
+          return
         }
 
         const metadataSessions = (u?.user_metadata?.evo_onboarding as { agendaSessions?: StoredSession[] } | undefined)?.agendaSessions

@@ -735,18 +735,8 @@ export default function ProfilPage() {
         return
       }
 
-      await supabase.auth.updateUser({
-        data: {
-          ...session.user.user_metadata,
-          first_name: firstName.trim() || session.user.user_metadata?.first_name || '',
-          evo_onboarding_completed: true,
-          evo_onboarding: payload,
-        },
-      })
-
-      console.log('[finishOnboarding] About to upsert profile...')
-
-      const profileResult = await upsertProfile({
+      // Save profile data FIRST, then mark onboarding as completed
+      await upsertProfile({
         id: session.user.id,
         first_name: firstName.trim() || session.user.user_metadata?.first_name || '',
         age: Number(age),
@@ -773,9 +763,15 @@ export default function ProfilPage() {
         onboarding_completed_at: payload.completedAt,
       })
 
-      if (!profileResult) {
-        console.error('Failed to save profile to database. Data may be in localStorage/auth metadata only.')
-      }
+      // Only mark as completed AFTER profile data is saved
+      await supabase.auth.updateUser({
+        data: {
+          ...session.user.user_metadata,
+          first_name: firstName.trim() || session.user.user_metadata?.first_name || '',
+          evo_onboarding_completed: true,
+          evo_onboarding: payload,
+        },
+      })
 
       localStorage.setItem('evo_onboarding_completed', 'true')
       localStorage.removeItem('evo_onboarding_data')
