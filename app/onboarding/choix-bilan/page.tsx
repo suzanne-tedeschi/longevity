@@ -35,7 +35,7 @@ export default function ChoixBilanPage() {
           >
             <span>
               <p className="text-sm font-semibold text-[#1a1a1a]">Configurer mon profil</p>
-              <p className="text-xs text-[#1a1a1a]/55">Je suis nouveau, je configure mon profil d'abord.</p>
+              <p className="text-xs text-[#1a1a1a]/55">Je suis nouveau, je configure mon profil d&apos;abord.</p>
             </span>
             <span className="text-[#25D366]">{loading ? '…' : '→'}</span>
           </button>
@@ -45,8 +45,9 @@ export default function ChoixBilanPage() {
             className="w-full inline-flex items-center justify-between rounded-xl border border-[#1a1a1a]/[0.12] bg-white px-4 py-4 text-left hover:border-[#25D366]/45 transition-all"
           >
             <span>
-              <p className="text-sm font-semibold text-[#1a1a1a]">J'ai déjà un compte</p>
+              <p className="text-sm font-semibold text-[#1a1a1a]">J&apos;ai déjà un compte</p>
               <p className="text-xs text-[#1a1a1a]/55">Je me connecte avec email/mot de passe ou Google.</p>
+
             </span>
             <span className="text-[#1a1a1a]/45">→</span>
           </Link>
