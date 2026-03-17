@@ -6,6 +6,7 @@ import Link from 'next/link'
 import {
   allSections,
   totalMaxScore,
+  type ScoreOption,
   type TestSection,
   type SommeilTest,
   type SectionIcon,
@@ -13,7 +14,6 @@ import {
 import { supabase } from '@/lib/supabase'
 import { saveProgress, loadProgress, clearProgress } from '@/lib/bilan-progress'
 import { generateFullReport } from '@/lib/bilan-sommeil-report'
-import { Zap, TrendingUp, Sparkles } from 'lucide-react'
 
 /* ═══════════════════════════════════════════════════════
    SVG ICON COMPONENTS — Sleep-themed line icons
@@ -456,8 +456,17 @@ function getPersonalizedHeadline(pct: number): { title: string; subtitle: string
    RESULTS SCREEN
    ═══════════════════════════════════════════════════════ */
 function ResultsScreen({ scores }: { scores: Record<string, number> }) {
+  const router = useRouter()
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [expandedInsights, setExpandedInsights] = useState<Set<string>>(new Set())
   const hasSaved = useRef(false)
+
+  // ── Feedback modal ──
+  const [showFeedback, setShowFeedback] = useState(false)
+  const [feedbackUseful, setFeedbackUseful] = useState<boolean | null>(null)
+  const [feedbackComment, setFeedbackComment] = useState('')
+  const [feedbackSaving, setFeedbackSaving] = useState(false)
+  const feedbackDone = useRef(false)
 
   const sectionResults = allSections.map((section) => {
     const score = section.tests.reduce((sum, t) => sum + (scores[t.id] ?? 0), 0)
@@ -484,9 +493,17 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
       const token = session?.data?.session?.access_token
       if (!token) { console.warn('[bilan-save] No auth session'); setSaveStatus('error'); return }
       setSaveStatus('saving')
+      const allTests = allSections.flatMap(s => s.tests)
+      const answers: Record<string, { value: number; label: string }> = {}
+      for (const [qId, val] of Object.entries(scores)) {
+        const opts = allTests.find(t => t.id === qId)?.scoring ?? []
+        answers[qId] = { value: val, label: opts.find((o: ScoreOption) => o.value === val)?.label ?? String(val), question: allTests.find(t => t.id === qId)?.criteria ?? '' }
+      }
+
       const payload = {
         bilanType: 'sommeil',
         scores,
+        answers,
         globalScore: totalPct,
         globalPoints: totalScore,
         maxPoints: totalMaxScore,
@@ -515,12 +532,70 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // ── Intercept browser back button → show feedback modal ──
+  useEffect(() => {
+    window.history.pushState(null, '', window.location.href)
+    const handlePopState = () => {
+      if (feedbackDone.current) return
+      window.history.pushState(null, '', window.location.href)
+      setShowFeedback(true)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  function handleNavigateBack() {
+    setShowFeedback(true)
+  }
+
+  async function submitFeedback() {
+    setFeedbackSaving(true)
+    try {
+      const session = await supabase?.auth.getSession()
+      const userId = session?.data?.session?.user?.id
+      if (supabase && userId) {
+        await supabase.from('bilan_sommeil_feedback').insert({
+          user_id: userId,
+          useful: feedbackUseful,
+          comment: feedbackComment || null,
+        })
+      }
+    } catch (e) {
+      console.error('[feedback] Save failed:', e)
+    }
+    feedbackDone.current = true
+    router.push('/onboarding/bilans')
+  }
+
+  function skipFeedback() {
+    feedbackDone.current = true
+    router.push('/onboarding/bilans')
+  }
+
+  const toggleInsights = (sectionId: string) =>
+    setExpandedInsights(prev => {
+      const next = new Set(prev)
+      if (next.has(sectionId)) next.delete(sectionId)
+      else next.add(sectionId)
+      return next
+    })
+
   // Circular gauge dimensions
   const r = 52; const circ = 2 * Math.PI * r
   const dashOffset = circ - (totalPct / 100) * circ
 
   return (
     <div className="animate-fade-in max-w-2xl mx-auto px-4 py-8">
+
+      {/* ── Top Retour button ── */}
+      <div className="mb-4">
+        <button
+          onClick={handleNavigateBack}
+          className="flex items-center gap-1.5 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a]/70 transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" /> Retour
+        </button>
+      </div>
 
       {/* ── Hero card ── */}
       <div className={`relative bg-gradient-to-br ${hero.heroGradient} border border-[#1a1a1a]/[0.07] rounded-3xl px-6 py-8 mb-8 overflow-hidden`}>
@@ -554,7 +629,8 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
               <span className="text-xs font-semibold tracking-widest uppercase text-[#1a1a1a]/40">Bilan Sommeil</span>
             </div>
             <h2 className="text-xl font-bold text-[#1a1a1a] leading-snug mb-2">{hero.title}</h2>
-            <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{hero.subtitle}</p>
+            <p className="text-xs text-[#1a1a1a]/50 leading-relaxed mb-2">{hero.subtitle}</p>
+            <p className="text-xs text-[#2D6A4F] font-medium leading-relaxed">Lis nos recommandations pour améliorer la qualité de ton sommeil et essaie d&apos;en appliquer autant que tu peux. On revient vers toi sur Whatsapp pour suivre tes progrès et répondre à toutes tes questions !</p>
           </div>
         </div>
 
@@ -568,36 +644,8 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
             </div>
           )}
           {saveStatus === 'error' && (
-            <button onClick={doSave} className="text-[10px] text-red-400 underline">Sauvegarde échouée — réessayer</button>
+            <button onClick={doSave} className="text-[10px] text-red-400 underline">Sauvegarde échouée, réessayer</button>
           )}
-        </div>
-      </div>
-
-      {/* ── Section overview ── */}
-      <div className="mb-10">
-        <p className="text-xs font-semibold tracking-widest uppercase text-[#1a1a1a]/30 mb-3">Vue d&apos;ensemble</p>
-        <div className="space-y-2">
-          {sectionResults.map(({ section, score }) => {
-            const pct = Math.round((score / section.maxScore) * 100)
-            const info = getOverallLabel(pct)
-            return (
-              <div key={section.id} className="bg-white border border-[#1a1a1a]/[0.07] rounded-xl px-4 py-3">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-7 h-7 rounded-lg bg-supagreen/8 flex items-center justify-center text-supagreen/70 flex-shrink-0">
-                    {renderSectionIcon(section.icon, 'w-3.5 h-3.5')}
-                  </div>
-                  <p className="text-xs font-semibold text-[#1a1a1a] flex-1">{section.title}</p>
-                  <span className={`text-sm font-bold tabular-nums ${info.color}`}>{pct}%</span>
-                </div>
-                <div className="h-1.5 bg-[#1a1a1a]/[0.05] rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${info.bar} transition-all duration-700`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              </div>
-            )
-          })}
         </div>
       </div>
 
@@ -613,10 +661,8 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
           <div className="space-y-3">
             {report.strengths.map((s) => (
               <div key={s.sectionId} className="relative pl-4 border-l-2 border-emerald-300">
-                <div className="flex items-center justify-between mb-0.5">
-                  <p className="text-sm font-semibold text-[#1a1a1a]">{s.title}</p>
-                </div>
-                <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{s.praise}</p>
+                <p className="text-sm font-semibold text-[#1a1a1a] mb-0.5">{s.title}</p>
+                <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{s.scienceNote}</p>
               </div>
             ))}
           </div>
@@ -632,35 +678,37 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
             </div>
             <h3 className="text-sm font-bold text-[#1a1a1a]">Ce qu&apos;on peut améliorer</h3>
           </div>
-          <div className="space-y-5">
+          <div className="space-y-4">
             {report.weaknesses.map((w) => {
-              const wInfo = getOverallLabel(w.pct)
+              const isExpanded = expandedInsights.has(w.sectionId)
               return (
                 <div key={w.sectionId} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
-                  {/* Section header */}
-                  <div className={`px-5 py-4 border-b border-[#1a1a1a]/[0.06] flex items-start gap-3`}>
+                  <div className="px-5 py-4 flex items-start gap-3">
                     <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${
                       w.pct < 40 ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-500'
                     }`}>
                       {renderSectionIcon(allSections.find(s => s.id === w.sectionId)?.icon ?? 'troubles', 'w-4 h-4')}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <p className="text-sm font-bold text-[#1a1a1a]">{w.title}</p>
-                      </div>
-                      <p className="text-xs text-[#1a1a1a]/50 leading-relaxed">{w.concern}</p>
+                      <p className="text-sm font-bold text-[#1a1a1a] mb-1">{w.title}</p>
+                      <p className="text-xs text-[#1a1a1a]/50 leading-relaxed mb-2">{w.concern}</p>
+                      {w.triggeredInsights.length > 0 && (
+                        <button
+                          onClick={() => toggleInsights(w.sectionId)}
+                          className="flex items-center gap-1 text-[10px] text-[#2D6A4F] font-semibold"
+                        >
+                          {isExpanded ? 'Masquer' : `Voir ${w.triggeredInsights.length} recommandation${w.triggeredInsights.length > 1 ? 's' : ''}`}
+                          <ChevronRight className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                        </button>
+                      )}
                     </div>
                   </div>
-
-                  {/* Triggered insights */}
-                  {w.triggeredInsights.length > 0 && (
-                    <div className="divide-y divide-[#1a1a1a]/[0.05]">
+                  {isExpanded && w.triggeredInsights.length > 0 && (
+                    <div className="divide-y divide-[#1a1a1a]/[0.05] border-t border-[#1a1a1a]/[0.06]">
                       {w.triggeredInsights.map((ins, i) => (
                         <div key={i} className="px-5 py-4">
                           <div className="flex items-start gap-2.5 mb-3">
-                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-[10px] font-bold text-amber-600 mt-0.5">
-                              {i + 1}
-                            </span>
+                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-[10px] font-bold text-amber-600 mt-0.5">{i + 1}</span>
                             <p className="text-xs text-[#1a1a1a]/60 leading-relaxed italic">{ins.insight}</p>
                           </div>
                           <div className="ml-7 bg-supagreen/[0.05] border border-supagreen/[0.15] rounded-xl px-4 py-3">
@@ -681,85 +729,31 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
       {/* ── Action plan ── */}
       {report.actionPlan.length > 0 && (
         <div className="mb-10">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-              <ChevronRight className="w-3 h-3 text-white" />
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-5 h-5 rounded-full bg-[#2D6A4F]/15 flex items-center justify-center flex-shrink-0">
+              <ChevronRight className="w-3 h-3 text-[#2D6A4F]" />
             </div>
-            <h3 className="text-base font-bold text-[#1a1a1a]">Votre plan d&apos;action</h3>
+            <h3 className="text-sm font-bold text-[#1a1a1a]">Votre plan d&apos;action</h3>
           </div>
-          <div className="space-y-6">
-            {report.actionPlan.map((phase) => {
-              const getPhaseConfig = () => {
-                if (phase.phase === 1) {
-                  return { 
-                    circle: 'bg-gradient-to-br from-blue-500 to-blue-600', 
-                    bg: 'bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent', 
-                    border: 'border-blue-300/40', 
-                    accent: 'bg-blue-500',
-                    Icon: Zap,
-                    badgeBg: 'bg-blue-100',
-                    badgeText: 'text-blue-700'
-                  }
-                } else if (phase.phase === 2) {
-                  return { 
-                    circle: 'bg-gradient-to-br from-purple-500 to-purple-600', 
-                    bg: 'bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent', 
-                    border: 'border-purple-300/40', 
-                    accent: 'bg-purple-500',
-                    Icon: TrendingUp,
-                    badgeBg: 'bg-purple-100',
-                    badgeText: 'text-purple-700'
-                  }
-                } else {
-                  return { 
-                    circle: 'bg-gradient-to-br from-amber-500 to-amber-600', 
-                    bg: 'bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent', 
-                    border: 'border-amber-300/40', 
-                    accent: 'bg-amber-500',
-                    Icon: Sparkles,
-                    badgeBg: 'bg-amber-100',
-                    badgeText: 'text-amber-700'
-                  }
-                }
-              }
-              const cfg = getPhaseConfig()
-              return (
-                <div key={phase.phase} className={`rounded-3xl border-2 overflow-hidden backdrop-blur-md ${cfg.bg} ${cfg.border} transition-all duration-300 hover:shadow-xl`}>
-                  {/* Phase header */}
-                  <div className={`px-6 py-5 border-b border-[#1a1a1a]/[0.08] bg-white/30`}>
-                    <div className="flex items-center gap-4">
-                      <div className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold text-white flex-shrink-0 ${cfg.circle} shadow-lg ring-4 ring-white/50`}>
-                        <cfg.Icon className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="text-base font-bold text-[#1a1a1a]">{phase.phaseTitle}</p>
-                          <span className={`text-xs font-bold px-3 py-1 rounded-full ${cfg.badgeBg} ${cfg.badgeText}`}>Étape {phase.phase}</span>
-                        </div>
-                        <p className="text-sm text-[#1a1a1a]/50 font-medium">{phase.timeframe}</p>
-                      </div>
+          <div className="space-y-3">
+            {report.actionPlan.flatMap((phase) => phase.actions).map((action, i) => (
+              <div key={i} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
+                <div className="flex gap-4 px-5 py-5">
+                  <div className="flex-shrink-0 pt-0.5">
+                    <div className="w-8 h-8 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white text-sm font-bold leading-none">
+                      {i + 1}
                     </div>
                   </div>
-
-                  {/* Actions list */}
-                  <div className="divide-y divide-[#1a1a1a]/[0.05]">
-                    {phase.actions.map((action, actionIdx) => (
-                      <div key={actionIdx} className="px-6 py-5 hover:bg-white/20 transition-colors">
-                        <div className="flex gap-4">
-                          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${cfg.accent} ring-2 ring-white/30`}>
-                            {actionIdx + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-[#1a1a1a] mb-1">{action.action}</p>
-                            <p className="text-xs text-[#1a1a1a]/60 leading-relaxed">{action.why}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-[#1a1a1a] leading-snug mb-3">{action.action}</p>
+                    <div className="bg-[#1a1a1a]/[0.03] border border-[#1a1a1a]/[0.06] rounded-xl px-3 py-2.5">
+                      <p className="text-[10px] font-semibold text-[#1a1a1a]/35 uppercase tracking-wider mb-1">Pourquoi</p>
+                      <p className="text-xs text-[#1a1a1a]/55 leading-relaxed">{action.why}</p>
+                    </div>
                   </div>
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -788,12 +782,66 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
 
       {/* ── CTA ── */}
       <div className="flex flex-col items-center gap-3 pt-2">
-        <Link href="/onboarding/bilans" className="btn-primary text-center inline-block px-10 py-4 text-base w-full max-w-xs">
+        <button
+          onClick={handleNavigateBack}
+          className="btn-primary text-center px-10 py-4 text-base w-full max-w-xs"
+        >
           Retour aux bilans
-        </Link>
+        </button>
       </div>
 
       <div className="w-12 h-px bg-gradient-to-r from-transparent via-supagreen to-transparent mx-auto mt-12" />
+
+      {/* ── Feedback modal ── */}
+      {showFeedback && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+            <h3 className="text-lg font-bold text-[#1a1a1a] mb-1">Avant de partir…</h3>
+            <p className="text-sm text-[#1a1a1a]/50 mb-6">Votre avis nous aide à améliorer Evo.</p>
+
+            <p className="text-sm font-semibold text-[#1a1a1a] mb-3">Ce questionnaire et recommandations vous ont été utiles ?</p>
+            <div className="flex gap-3 mb-6">
+              <button
+                onClick={() => setFeedbackUseful(true)}
+                className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-all ${feedbackUseful === true ? 'bg-[#2D6A4F] text-white' : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/60 hover:bg-[#1a1a1a]/10'}`}
+              >
+                Oui
+              </button>
+              <button
+                onClick={() => setFeedbackUseful(false)}
+                className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-all ${feedbackUseful === false ? 'bg-red-400 text-white' : 'bg-[#1a1a1a]/[0.06] text-[#1a1a1a]/60 hover:bg-[#1a1a1a]/10'}`}
+              >
+                Non
+              </button>
+            </div>
+
+            <p className="text-sm font-semibold text-[#1a1a1a] mb-2">Vos commentaires</p>
+            <textarea
+              value={feedbackComment}
+              onChange={(e) => setFeedbackComment(e.target.value)}
+              placeholder="Partagez vos impressions…"
+              className="w-full rounded-2xl border border-[#1a1a1a]/10 bg-[#FAF8F5] px-4 py-3 text-sm text-[#1a1a1a] placeholder:text-[#1a1a1a]/30 resize-none focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 mb-6"
+              rows={3}
+            />
+
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={submitFeedback}
+                disabled={feedbackSaving}
+                className="w-full btn-primary py-3 text-sm disabled:opacity-60"
+              >
+                {feedbackSaving ? 'Envoi…' : 'Envoyer et revenir au tableau de bord'}
+              </button>
+              <button
+                onClick={skipFeedback}
+                className="w-full py-3 text-sm text-[#1a1a1a]/40 hover:text-[#1a1a1a]/60 transition-colors"
+              >
+                Passer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

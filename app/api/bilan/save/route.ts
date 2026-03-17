@@ -12,6 +12,7 @@ export async function POST(request: Request) {
     const {
       bilanType,
       scores,
+      answers,
       globalScore,
       globalPoints,
       maxPoints,
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
       user_id: user.id,
       bilan_type: bilanType,
       scores,
+      answers: answers ?? {},
       global_score: globalScore,
       global_points: globalPoints ?? 0,
       max_points: maxPoints ?? 0,

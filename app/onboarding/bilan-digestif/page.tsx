@@ -7,6 +7,7 @@ import {
   allSections,
   totalMaxScore,
   digestifInterpretations,
+  type ScoreOption,
   type TestSection,
   type DigestifTest,
   type SectionIcon,
@@ -480,9 +481,17 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
 
       const fullReport = generateFullReport(allResults, scores)
 
+      const allTests = allSections.flatMap(s => s.tests)
+      const answers: Record<string, { value: number; label: string }> = {}
+      for (const [qId, val] of Object.entries(scores)) {
+        const opts = allTests.find(t => t.id === qId)?.scoring ?? []
+        answers[qId] = { value: val, label: opts.find((o: ScoreOption) => o.value === val)?.label ?? String(val), question: allTests.find(t => t.id === qId)?.criteria ?? '' }
+      }
+
       const payload = {
         bilanType: 'digestif',
         scores,
+        answers,
         globalScore: totalPct,
         globalPoints: totalScore,
         maxPoints: totalMaxScore,

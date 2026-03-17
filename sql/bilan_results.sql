@@ -24,6 +24,10 @@ create table if not exists bilan_results (
   -- Per-section breakdown: [{ sectionId, score, max, pct, level, title }]
   section_results jsonb not null default '[]'::jsonb,
 
+  -- Per-question individual answers: { "questionId": { "value": 2, "label": "Rarement", "question": "Au cours du dernier mois..." }, ... }
+  -- Added via migration: sql/add_answers_to_bilan_results.sql
+  answers       jsonb not null default '{}'::jsonb,
+
   -- Generated report (scientific recommendations, actions, insights)
   report        jsonb not null default '{}'::jsonb,
   -- Structure:
