@@ -712,7 +712,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
       const fullReport = generateFullReport(allResults.map(r => ({ ...r, title: r.title ?? '' })), scores, diet)
 
       const allTests = [...digestifSections, ...alimentaireSections].flatMap(s => s.tests)
-      const answers: Record<string, { value: number; label: string }> = {}
+      const answers: Record<string, { value: number; label: string; question: string }> = {}
       for (const [qId, val] of Object.entries(scores)) {
         const opts = allTests.find(t => t.id === qId)?.scoring ?? []
         answers[qId] = { value: val, label: opts.find((o: ScoreOption) => o.value === val)?.label ?? String(val), question: allTests.find(t => t.id === qId)?.criteria ?? '' }
