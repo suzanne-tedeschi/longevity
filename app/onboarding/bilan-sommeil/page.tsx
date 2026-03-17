@@ -162,11 +162,6 @@ function ScoreButton({ value, label, description, selected, onSelect }: {
       }`}
     >
       <div className="flex items-center gap-3">
-        <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-          selected ? `${colors.bg} ${colors.text} ${colors.border} border` : 'bg-[#1a1a1a]/[0.05] text-[#1a1a1a]/30 border border-[#1a1a1a]/[0.08]'
-        }`}>
-          {value}
-        </div>
         <div className="flex-1 min-w-0">
           <p className={`font-semibold text-sm transition-colors duration-300 ${selected ? colors.text : 'text-[#1a1a1a]'}`}>{label}</p>
         </div>
