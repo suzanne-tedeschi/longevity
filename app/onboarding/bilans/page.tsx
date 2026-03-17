@@ -425,9 +425,9 @@ export default function BilansPage() {
           } catch { /* ignore */ }
         }
 
-        // If no profile data found, the onboarding flag was set incorrectly — reset and redo
+        // If no profile data found, redirect to profil to complete it
+        // but do NOT reset evo_onboarding_completed to avoid a redirect loop
         if (!hasProfileData) {
-          await supabase!.auth.updateUser({ data: { evo_onboarding_completed: false } })
           router.replace('/onboarding/profil')
           return
         }
