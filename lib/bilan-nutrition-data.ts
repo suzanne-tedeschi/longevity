@@ -289,7 +289,7 @@ const macronutriments: TestSection = {
   icon: 'macronutriments',
   description:
     'Ces questions évaluent la qualité et l\'équilibre de vos apports en macronutriments : protéines, glucides et graisses.',
-  maxScore: 9,
+  maxScore: 11,
   tests: [
     {
       id: 'mac-1',
@@ -431,7 +431,7 @@ const ultraTransformes: TestSection = {
   icon: 'ultra-transformes',
   description:
     'Ces questions évaluent votre exposition aux aliments ultra-transformés, nocifs pour la santé métabolique et inflammatoire.',
-  maxScore: 8,
+  maxScore: 9,
   tests: [
     {
       id: 'ut-1',
