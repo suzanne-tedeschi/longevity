@@ -223,7 +223,12 @@ const hygieneSommeil: TestSection = {
       name: 'Activités au lit hors sommeil',
       description: 'TV, repas, travail au lit quand vous ne pouvez pas dormir',
       criteria: 'Je sors du lit pour faire des activités non liées au sommeil (TV, repas, travail…) lorsque je ne peux pas dormir.',
-      scoring: shiFrequencyScoring,
+      scoring: [
+        { value: 3, label: 'Toujours / Souvent', description: '3 jours sur 7 ou plus' },
+        { value: 2, label: 'Parfois', description: '1 à 2 fois par semaine' },
+        { value: 1, label: 'Rarement', description: '1 à 2 fois par mois' },
+        { value: 0, label: 'Jamais', description: 'Cela ne m\'arrive pas' },
+      ],
     },
     {
       id: 'hyg-3',

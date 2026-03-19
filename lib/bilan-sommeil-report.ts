@@ -331,7 +331,7 @@ const hygieneSommeilReport: SectionReport = {
       questionId: 'hyg-2',
       triggerMaxScore: 1,
       insight:
-        "Vous sortez du lit pour des activités non liées au sommeil quand vous n'arrivez pas à dormir. Cette habitude rompt l'association mentale lit-sommeil : votre cerveau associe progressivement le lit à l'éveil et à la frustration.",
+        "Vous restez au lit quand vous n'arrivez pas à dormir. Ce comportement renforce l'association lit-éveil : votre cerveau apprend progressivement à associer le lit à la frustration et à l'état d'éveil, plutôt qu'au sommeil.",
       recommendation:
         "Si vous ne dormez pas en 20 minutes, quittez la chambre et faites une activité calme à la lumière douce (lire un livre physique, écouter de la musique douce) jusqu'à ressentir le sommeil. Revenez au lit seulement à ce moment. Ce reconditionnement est un pilier de la TCC-I (thérapie comportementale et cognitive pour l'insomnie).",
       action: 'Si vous ne dormez pas en 20 min, quittez la chambre et revenez seulement quand vous ressentez le sommeil.',
