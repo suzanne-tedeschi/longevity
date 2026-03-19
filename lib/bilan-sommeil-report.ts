@@ -1,7 +1,6 @@
 // ──────────────────────────────────────────────────────
 // Bilan Sommeil, Compte-rendu
-// Référence principale : Matthew Walker, "Pourquoi nous dormons" (2017)
-// Complété par : PSQI, SHI, TCC-I, recherche circadienne contemporaine
+// Basé sur : PSQI, SHI, TCC-I, recherche circadienne et neurosciences du sommeil
 // ──────────────────────────────────────────────────────
 
 export interface ScientificReference {
@@ -44,17 +43,17 @@ export interface SectionReport {
 const troublesSommeilReport: SectionReport = {
   sectionId: 'troubles-sommeil',
   context:
-    "Chaque interruption nocturne brise des cycles de 90 minutes alternant NREM N3 et REM — deux phases non interchangeables. Le NREM N3, dominant en première moitié de nuit, libère l'hormone de croissance, consolide la mémoire factuels et active le système glymphatique (élimination des déchets cérébraux, dont les protéines liées à Alzheimer). Le REM, dominant en fin de nuit, régule les émotions, restaure la créativité et consolide la mémoire procédurale. Une fragmentation chronique du sommeil génère un risque cardiovasculaire, métabolique et immunitaire comparable à la privation totale.",
+    "Chaque interruption nocturne brise des cycles de 90 minutes alternant NREM N3 (sommeil profond) et REM (sommeil paradoxal), deux phases non interchangeables. Le NREM N3, dominant en première moitié de nuit, libère l'hormone de croissance et active le système glymphatique (réseau de nettoyage cérébral éliminant les déchets métaboliques). Le REM, dominant en fin de nuit, régule les émotions et consolide la mémoire. Une fragmentation chronique génère des risques cardiovasculaires, métaboliques et immunitaires comparables à la privation totale.",
   strengthLabel: 'Vos nuits sont calmes et non fragmentées',
   weaknessLabel: 'Perturbations nocturnes à corriger en priorité',
   scienceNote:
-    "Un sommeil non fragmenté permet au cerveau de compléter ses cycles. C'est en NREM N3 que l'hormone de croissance est libérée et que le nettoyage glymphatique s'effectue — ce processus ne se rattrape pas le week-end.",
+    "Un sommeil non fragmenté permet au cerveau de compléter ses cycles. C'est en NREM N3 que l'hormone de croissance est libérée et que le nettoyage glymphatique s'effectue : ce processus ne se rattrape pas le week-end.",
   recommendations: [
     {
       maxPct: 33,
       level: 'alerte',
       title: 'Nuits très fragmentées',
-      text: "Vos nuits sont chroniquement perturbées : le cerveau n'atteint plus les phases réparatrices, et la dette s'accumule sans que vous en ayez conscience. Consultez votre médecin pour identifier la cause — apnées du sommeil, hyperactivation du système nerveux, douleurs chroniques — les solutions existent et sont efficaces.",
+      text: "Vos nuits sont chroniquement perturbées : le cerveau n'atteint plus les phases réparatrices, et la dette s'accumule sans que vous en ayez conscience. Consultez votre médecin pour identifier la cause (apnées du sommeil, hyperactivation du système nerveux, douleurs chroniques) : les solutions existent et sont efficaces.",
     },
     {
       maxPct: 66,
@@ -66,13 +65,13 @@ const troublesSommeilReport: SectionReport = {
       maxPct: 90,
       level: 'bon',
       title: 'Quelques inconforts ponctuels',
-      text: "Vos nuits sont globalement calmes. Surveillez si un facteur revient régulièrement — température, bruit, lumière, stress — pour l'éliminer.",
+      text: "Vos nuits sont globalement calmes. Surveillez si un facteur revient régulièrement (température, bruit, lumière, stress) pour l'éliminer.",
     },
     {
       maxPct: 100,
       level: 'excellent',
       title: 'Nuits non perturbées',
-      text: "Vos cycles sont complets, le système glymphatique fonctionne, la mémoire se consolide, les émotions se régulent. Walker classe le sommeil non fragmenté parmi les premiers marqueurs de longévité cellulaire.",
+      text: "Vos cycles sont complets : système glymphatique actif, mémoire consolidée, émotions régulées. Le sommeil non fragmenté est l'un des premiers marqueurs de longévité cellulaire.",
     },
   ],
   questionInsights: [
@@ -80,9 +79,9 @@ const troublesSommeilReport: SectionReport = {
       questionId: 'som-1',
       triggerMaxScore: 1,
       insight:
-        "Un endormissement >30 min signale une désynchronisation entre pression de sommeil (adénosine accumulée) et horloge circadienne. Si ce symptôme survient ≥3 nuits/semaine depuis ≥3 mois avec retentissement diurne — fatigue, irritabilité, baisse des performances — on parle cliniquement d'insomnie chronique : la TCC-I est le traitement de première intention recommandé.",
+        "Un endormissement long (plus de 30 min) signale une désynchronisation entre la pression de sommeil (adénosine accumulée) et l'horloge circadienne. Si ce symptôme survient 3 nuits ou plus par semaine depuis plus de 3 mois avec un retentissement diurne (fatigue, irritabilité, baisse des performances), il s'agit d'une insomnie chronique : la TCC-I (thérapie comportementale et cognitive pour l'insomnie) est le traitement recommandé en première intention.",
       recommendation:
-        "Ne vous couchez que sur des signaux réels de sommeil (paupières lourdes, bâillements). Levez-vous à heure fixe chaque matin, week-end inclus : c'est le levier le plus puissant — il calibre l'accumulation d'adénosine et resynchronise l'horloge interne. Si vous n'êtes pas endormi après 20 min, levez-vous et faites une activité calme à faible luminosité jusqu'au retour du sommeil.",
+        "Ne vous couchez que sur des signaux réels de sommeil (paupières lourdes, bâillements). Levez-vous à heure fixe chaque matin, week-end inclus : c'est le levier le plus puissant pour calibrer l'accumulation d'adénosine et resynchroniser l'horloge interne. Si pas endormi après 20 min, levez-vous et faites une activité calme à faible luminosité jusqu'au retour du sommeil.",
       action: 'Ne vous couchez que sur des signaux réels de sommeil, et levez-vous à heure fixe chaque matin.',
       actionWhy:
         "L'heure de réveil fixe resynchronise le noyau suprachiasmatique et recalibre l'accumulation d'adénosine, rendant l'endormissement naturel au bon moment le soir.",
@@ -91,12 +90,12 @@ const troublesSommeilReport: SectionReport = {
       questionId: 'som-2',
       triggerMaxScore: 1,
       insight:
-        "Les réveils en première moitié de nuit amputent le NREM N3 : perte de la récupération physique et du nettoyage glymphatique. Les réveils en fin de nuit amputent le REM : perte de la régulation émotionnelle et de la consolidation créative. Les cycles de 90 minutes ne sont pas interchangeables.",
+        "Les réveils en première moitié de nuit amputent le NREM N3 (récupération physique, nettoyage glymphatique). Les réveils en fin de nuit amputent le REM (régulation émotionnelle, consolidation créative). Ces deux phases ne se rattrapent pas.",
       recommendation:
         "Chambre fraîche (16-19°C), obscurité totale incluant les LED des chargeurs. Si vous ne vous rendormez pas en 20 min, levez-vous, activité calme à lumière tamisée, cohérence cardiaque (5s inspiration / 5s expiration, 5 min) pour réactiver le système parasympathique.",
       action: 'Vérifiez la température (16-19°C) et l\'obscurité totale de votre chambre.',
       actionWhy:
-        "La descente thermique corporelle est le principal signal biologique déclencheur du sommeil profond — une chambre trop chaude génère des micro-éveils par défaut de thermorégulation.",
+        "La descente thermique corporelle est le principal signal biologique déclencheur du sommeil profond : une chambre trop chaude génère des micro-éveils par défaut de thermorégulation.",
     },
     {
       questionId: 'som-4',
@@ -118,18 +117,18 @@ const troublesSommeilReport: SectionReport = {
         "Dormez sur le côté, évitez l'alcool le soir. Des exercices myofonctionnels (renforcement des muscles du palais et de la gorge, 10 min/j pendant 3 mois) réduisent le ronflement de façon documentée. Consultez si fort ou quotidien.",
       action: 'Dormez sur le côté et consultez votre médecin si le ronflement est fort ou quotidien.',
       actionWhy:
-        "La position latérale empêche la langue et les tissus mous de retomber vers l'arrière et d'obstruer partiellement les voies aériennes — cause mécanique directe du ronflement.",
+        "La position latérale empêche la langue et les tissus mous de retomber vers l'arrière et d'obstruer partiellement les voies aériennes : cause mécanique directe du ronflement.",
     },
     {
       questionId: 'som-8',
       triggerMaxScore: 1,
       insight:
-        "Des cauchemars fréquents perturbent le REM — la phase que Walker décrit comme une 'thérapie émotionnelle nocturne' : le cerveau rejoue les souvenirs chargés dans un environnement sans noradrénaline, ce qui en émousse la charge émotionnelle. Des cauchemars récurrents signalent une perturbation de ce processus, souvent par stress chronique, traumatisme ou privation de REM elle-même.",
+        "Des cauchemars fréquents perturbent le REM, la phase pendant laquelle le cerveau rejoue les souvenirs chargés dans un environnement neurochimique calme (sans noradrénaline), émousant progressivement leur charge émotionnelle. Des cauchemars récurrents signalent une perturbation de ce mécanisme, souvent liée au stress chronique ou à la privation de REM.",
       recommendation:
         "Répétition par imagerie (IRT) : 10 min chaque soir avant le coucher, réécrivez le scénario du cauchemar avec une fin apaisante, répétez-le mentalement 3-4 jours de suite. Résultats visibles en 2 à 4 semaines.",
       action: 'Pratiquez la répétition par imagerie : réécrivez chaque soir votre cauchemar avec une fin apaisante.',
       actionWhy:
-        "L'IRT active les mêmes circuits que le REM pendant l'éveil, substituant progressivement le contenu anxiogène par un contenu neutre — mécanisme validé dans le traitement des traumatismes.",
+        "L'IRT active les mêmes circuits que le REM pendant l'éveil, substituant progressivement le contenu anxiogène par un contenu neutre : mécanisme validé dans le traitement des traumatismes.",
     },
     {
       questionId: 'som-9',
@@ -176,7 +175,7 @@ const troublesSommeilReport: SectionReport = {
 const qualiteImpactReport: SectionReport = {
   sectionId: 'qualite-impact',
   context:
-    "La qualité perçue du sommeil et son impact sur la journée reflètent directement l'efficacité de la récupération nocturne. Une privation partielle — 6h/nuit — rend l'amygdale 60 % plus réactive aux stimuli négatifs et fragilise sa connexion avec le cortex préfrontal, le frein rationnel du cerveau (Yoo et al., 2007). Après 10 nuits à 6h, les performances cognitives atteignent le niveau d'une privation totale de 24h — mais les sujets sous-estiment systématiquement leur déficit. La somnolence diurne signale que la pression de sommeil (adénosine) n'a pas été suffisamment résorbée.",
+    "La qualité perçue du sommeil reflète directement l'efficacité de la récupération nocturne. Une privation partielle (6h/nuit) rend l'amygdale (centre des émotions) 60 % plus réactive aux stimuli négatifs et fragilise sa connexion avec le cortex préfrontal, le frein rationnel. Après 10 nuits à 6h, les performances cognitives atteignent le niveau d'une privation totale de 24h, mais le déficit est systématiquement sous-estimé. La somnolence diurne indique que l'adénosine (molécule de la pression de sommeil) n'a pas été suffisamment résorbée.",
   strengthLabel: 'Votre sommeil recharge efficacement vos journées',
   weaknessLabel: 'Votre sommeil impacte votre quotidien',
   scienceNote:
@@ -186,19 +185,19 @@ const qualiteImpactReport: SectionReport = {
       maxPct: 33,
       level: 'alerte',
       title: 'Impact sévère sur le quotidien',
-      text: "L'amygdale hyperactivée par le manque de sommeil amplifie les émotions négatives, réduit la concentration et favorise les décisions impulsives — c'est une réponse neurologique, pas un manque de résistance. Consultez votre médecin pour une orientation vers les bons outils.",
+      text: "L'amygdale hyperactivée par le manque de sommeil amplifie les émotions négatives, réduit la concentration et favorise les décisions impulsives : c'est une réponse neurologique, pas un manque de résistance. Consultez votre médecin pour une orientation vers les bons outils.",
     },
     {
       maxPct: 66,
       level: 'vigilance',
       title: 'Fatigue qui s\'accumule',
-      text: "Walker compare la privation partielle chronique à conduire légèrement ivre sans le savoir : les performances sont altérées, mais la conscience de cette altération disparaît progressivement. Régularité des horaires + hygiène de sommeil : impact visible dès la première semaine.",
+      text: "La privation partielle chronique altère les performances tout en masquant la perception de ce déficit. Régularité des horaires et hygiène de sommeil : impact visible dès la première semaine.",
     },
     {
       maxPct: 90,
       level: 'bon',
       title: 'Quelques coups de mou',
-      text: "Des baisses d'énergie ponctuelles en journée. Protégez les 7-9 heures recommandées et stabilisez les horaires de lever — l'énergie et la régulation émotionnelle suivront.",
+      text: "Des baisses d'énergie ponctuelles en journée. Protégez les 7-9 heures recommandées et stabilisez les horaires de lever : l'énergie et la régulation émotionnelle suivront.",
     },
     {
       maxPct: 100,
@@ -212,20 +211,20 @@ const qualiteImpactReport: SectionReport = {
       questionId: 'qual-1',
       triggerMaxScore: 1,
       insight:
-        "Une mauvaise perception du sommeil génère une anxiété de performance — 'je dois dormir' — qui est elle-même le carburant principal de l'insomnie chronique : l'esprit surveille activement son propre sommeil, ce qui l'empêche de se produire. C'est un cercle cognitif, pas une fragilité constitutionnelle.",
+        "Une mauvaise perception du sommeil génère une anxiété de performance (\"je dois dormir\") qui est elle-même le carburant principal de l'insomnie chronique : l'esprit surveille activement son propre sommeil, ce qui l'empêche de se produire. C'est un cercle cognitif, pas une fragilité constitutionnelle.",
       recommendation:
-        "La TCC-I (thérapie comportementale et cognitive pour l'insomnie) est le traitement de première ligne recommandé par l'ACP (2016) et l'AASM (2021) : 4-6 séances, résultats supérieurs aux somnifères à 6 et 12 mois. Elle agit directement sur l'hyperactivation cognitive et reconditionne l'association lit-sommeil. Demandez une orientation à votre médecin.",
+        "La TCC-I (thérapie comportementale et cognitive pour l'insomnie) est le traitement recommandé en première ligne : 4-6 séances, résultats supérieurs aux somnifères à long terme. Elle agit sur l'hyperactivation cognitive et reconditionne l'association lit-sommeil. Demandez une orientation à votre médecin.",
       action: 'Demandez à votre médecin une orientation vers la TCC-I.',
       actionWhy:
-        "La TCC-I éteint l'hyperactivation cognitive et reconditionne l'association lit-sommeil — bénéfices durables car elle agit sur les mécanismes, pas les symptômes.",
+        "La TCC-I éteint l'hyperactivation cognitive et reconditionne l'association lit-sommeil : bénéfices durables car elle agit sur les mécanismes, pas les symptômes.",
     },
     {
       questionId: 'qual-2',
       triggerMaxScore: 1,
       insight:
-        "Les somnifères (benzodiazépines, zolpidem) induisent une sédation neurologique, non un sommeil naturel : l'activité cérébrale pendant la sédation est différente, avec NREM N3 et REM réduits. Le CBD, souvent présenté comme alternatif, peut désynchroniser le sommeil paradoxal et perturber les circuits émotionnels — son efficacité sur le sommeil n'est pas établie chez le sujet sain.",
+        "Les somnifères (benzodiazépines, zolpidem) induisent une sédation neurologique, non un sommeil naturel : l'activité cérébrale pendant la sédation est différente, avec NREM N3 et REM réduits. Le CBD, souvent présenté comme alternatif, peut désynchroniser le sommeil paradoxal et perturber les circuits émotionnels ; son efficacité sur le sommeil n'est pas établie chez le sujet sain.",
       recommendation:
-        "Évoquez votre consommation avec votre médecin et explorez ensemble la TCC-I (ACP 2016, AASM 2021) : ses bénéfices sont documentés et durables car elle agit sur les causes de l'insomnie, pas ses symptômes.",
+        "Évoquez votre consommation avec votre médecin et explorez la TCC-I : ses bénéfices sont durables car elle agit sur les causes de l'insomnie, pas ses symptômes.",
       action: 'Mentionnez votre consommation de somnifères à votre médecin et demandez une orientation vers la TCC-I.',
       actionWhy:
         "Contrairement aux somnifères, la TCC-I produit des améliorations stables à long terme sans modifier l'architecture du sommeil.",
@@ -234,9 +233,9 @@ const qualiteImpactReport: SectionReport = {
       questionId: 'qual-3',
       triggerMaxScore: 1,
       insight:
-        "La somnolence diurne indique que l'adénosine n'a pas été suffisamment résorbée la nuit — soit par manque de durée, soit par fragmentation des cycles. Walker a documenté des microsommeils de 3 à 10 secondes survenant sans que la personne s'en rende compte, y compris au volant.",
+        "La somnolence diurne indique que l'adénosine n'a pas été suffisamment résorbée, par manque de durée ou fragmentation des cycles. Des microsommeils de 3 à 10 secondes peuvent survenir sans que la personne s'en rende compte, y compris au volant.",
       recommendation:
-        "Lumière naturelle dès le réveil (10-15 min dehors) pour activer l'axe cortisol-éveil et synchroniser l'horloge interne. Siestes 10-20 min entre 13h et 15h maximum — pas plus longues, pas après 15h.",
+        "Lumière naturelle dès le réveil (10-15 min dehors) pour activer l'axe cortisol-éveil et synchroniser l'horloge interne. Siestes 10-20 min entre 13h et 15h maximum, pas plus longues, pas après 15h.",
       action: 'Exposez-vous à la lumière naturelle dès le réveil (10-15 min) et limitez les siestes à 20 min avant 15h.',
       actionWhy:
         "La lumière matinale active les cellules mélanopiques → libération de cortisol + arrêt de la mélatonine → synchronisation circadienne et amélioration de l'énergie diurne.",
@@ -250,7 +249,7 @@ const qualiteImpactReport: SectionReport = {
         "7-9 heures de sommeil dans l'agenda, non négociables. Une activité physique modérée en fin d'après-midi améliore simultanément la qualité du sommeil nocturne et l'énergie du lendemain.",
       action: 'Protégez une fenêtre fixe de 7-9 heures de sommeil dans votre agenda.',
       actionWhy:
-        "Le REM restaure la sensibilité des récepteurs dopaminergiques et régule les émotions — ces effets ne se produisent qu'avec des cycles complets.",
+        "Le REM restaure la sensibilité des récepteurs dopaminergiques et régule les émotions : ces effets ne se produisent qu'avec des cycles complets.",
     },
   ],
   references: [
@@ -296,11 +295,11 @@ const qualiteImpactReport: SectionReport = {
 const hygieneSommeilReport: SectionReport = {
   sectionId: 'hygiene-sommeil',
   context:
-    "Le sommeil est gouverné par deux processus : la pression de sommeil (adénosine accumulée pendant l'éveil) et le rythme circadien (horloge interne de 24h). Les habitudes du soir peuvent soutenir ou saboter ces deux systèmes. Des horaires irréguliers créent un jet lag social permanent qui désynchronise tout le rythme circadien. La lumière bleue des écrans inhibe la mélatonine jusqu'à 90 min de retard. La caféine bloque les récepteurs à l'adénosine pendant 5 à 7 heures (jusqu'à 10h selon le profil génétique CYP1A2). L'alcool, via un rebond glutamatergique en 2e moitié de nuit, supprime le REM de 24 % même à dose modérée.",
+    "Le sommeil est gouverné par deux processus : la pression de sommeil (adénosine accumulée pendant l'éveil) et le rythme circadien (horloge interne de 24h). Des horaires irréguliers créent un décalage horaire interne permanent. La lumière bleue des écrans retarde la mélatonine de 90 min. La caféine bloque les récepteurs à l'adénosine pendant 5 à 10 heures selon le profil individuel. L'alcool supprime le REM de 24 % même à dose modérée, via un rebond d'activation cérébrale en 2e moitié de nuit.",
   strengthLabel: 'Vos habitudes du soir protègent votre sommeil',
   weaknessLabel: 'Des habitudes perturbent activement votre sommeil',
   scienceNote:
-    "De bonnes habitudes du soir permettent à la mélatonine de se libérer au bon moment et à la température corporelle de baisser naturellement — les deux déclencheurs biologiques de l'endormissement.",
+    "De bonnes habitudes du soir permettent à la mélatonine de se libérer au bon moment et à la température corporelle de baisser naturellement : les deux déclencheurs biologiques de l'endormissement.",
   recommendations: [
     {
       maxPct: 33,
@@ -324,7 +323,7 @@ const hygieneSommeilReport: SectionReport = {
       maxPct: 100,
       level: 'excellent',
       title: 'Très bonnes habitudes',
-      text: "Horaires réguliers, caféine coupée tôt, pas d'écrans au lit — vous avez les fondations d'un sommeil de qualité.",
+      text: "Horaires réguliers, caféine coupée tôt, pas d'écrans au lit : vous avez les fondations d'un sommeil de qualité.",
     },
   ],
   questionInsights: [
@@ -332,7 +331,7 @@ const hygieneSommeilReport: SectionReport = {
       questionId: 'hyg-1',
       triggerMaxScore: 1,
       insight:
-        "Des horaires de coucher variables créent un jet lag social permanent : l'horloge interne (noyau suprachiasmatique) ne sait plus quand libérer la mélatonine ni quand programmer le réveil naturel. Walker classe la régularité en tête de tous les facteurs de qualité du sommeil — avant même la durée.",
+        "Des horaires de coucher variables créent un décalage horaire interne permanent : le noyau suprachiasmatique (horloge centrale du cerveau) ne sait plus quand libérer la mélatonine ni programmer le réveil naturel. La régularité est le premier facteur de qualité du sommeil, avant même la durée.",
       recommendation:
         "Heure de coucher fixe à ±30 min, 7j/7, week-ends inclus. Mettez une alarme 'heure du coucher'. L'adaptation est visible en 1-2 semaines : la mélatonine commence à se libérer à heure prévisible, l'endormissement devient naturel.",
       action: 'Fixez une heure de coucher à ±30 min, 7j/7 week-ends inclus.',
@@ -354,23 +353,23 @@ const hygieneSommeilReport: SectionReport = {
       questionId: 'hyg-3',
       triggerMaxScore: 1,
       insight:
-        "Rester allongé éveillé >20 min active le système nerveux sympathique. Plus on essaie de forcer le sommeil, plus il fuit — un paradoxe bien documenté que Walker appelle 'la chasse au sommeil qui fait fuir le sommeil'.",
+        "Rester allongé éveillé plus de 20 min active le système nerveux sympathique (mode vigilance). Forcer le sommeil produit l'effet inverse : la tentative de contrôle inhibe les structures cérébrales de l'endormissement.",
       recommendation:
         "Règle des 20 min : si pas endormi, levez-vous. Retirez ou couvrez l'horloge de la chambre : voir l'heure déclenche un calcul cognitif automatique ('il me reste X heures') qui active le cortex préfrontal et inhibe l'endormissement.",
       action: 'Retirez ou couvrez l\'horloge de la chambre.',
       actionWhy:
-        "Voir l'heure la nuit active le cortex préfrontal (planification) et inhibe les structures cérébrales de l'endormissement — supprimer ce stimulus supprime ce circuit.",
+        "Voir l'heure la nuit active le cortex préfrontal (planification) et inhibe les structures cérébrales de l'endormissement : supprimer ce stimulus supprime ce circuit.",
     },
     {
       questionId: 'hyg-4',
       triggerMaxScore: 1,
       insight:
-        "La caféine bloque les récepteurs à l'adénosine sans les activer : la pression de sommeil s'accumule mais ne peut pas agir. Demi-vie : 5-7h en moyenne, jusqu'à 10h selon le profil génétique CYP1A2. Un café à 16h maintient encore 50 % de son effet à 22h, réduisant le NREM N3 même si l'endormissement semble normal.",
+        "La caféine bloque les récepteurs à l'adénosine sans les activer : la pression de sommeil s'accumule mais ne peut pas agir. Sa demi-vie est de 5 à 10h selon le profil individuel. Un café à 16h maintient encore 50 % de son effet à 22h, réduisant le NREM N3 même si l'endormissement semble normal.",
       recommendation:
         "Dernière caféine avant 13-14h. Sources cachées : thé noir (50-80 mg), chocolat noir, certains sodas. En soirée : tisanes (camomille, passiflore).",
       action: 'Stoppez toute caféine après 13-14h (café, thé noir, chocolat noir, sodas).',
       actionWhy:
-        "Bloquer l'adénosine retarde l'endormissement et réduit le sommeil profond — même quand on s'endort à l'heure habituelle, la structure du sommeil est altérée.",
+        "Bloquer l'adénosine retarde l'endormissement et réduit le sommeil profond : même quand on s'endort à l'heure habituelle, la structure du sommeil est altérée.",
     },
     {
       questionId: 'hyg-5',
@@ -389,7 +388,7 @@ const hygieneSommeilReport: SectionReport = {
       insight:
         "Des siestes >30 min entrent en NREM N3 et provoquent une inertie du sommeil au réveil. Elles réduisent aussi la pression de sommeil du soir, retardant l'endormissement nocturne.",
       recommendation:
-        "Siestes 10-20 min maximum, entre 13h et 15h. Astuce du café-sieste : buvez un café juste avant de vous allonger — la caféine met 20 min à agir, elle entre en action au réveil et augmente l'énergie sans perturber la nuit.",
+        "Siestes 10-20 min maximum, entre 13h et 15h. Astuce du café-sieste : buvez un café juste avant de vous allonger ; la caféine met 20 min à agir, elle entre en action au réveil et augmente l'énergie sans perturber la nuit.",
       action: 'Limitez vos siestes à 20 min maximum, avant 15h.',
       actionWhy:
         "20 min de sieste reste en NREM N1-N2 : récupération sans inertie, et pression de sommeil nocturne préservée.",
@@ -398,12 +397,12 @@ const hygieneSommeilReport: SectionReport = {
       questionId: 'hyg-7',
       triggerMaxScore: 1,
       insight:
-        "La lumière bleue (480 nm) des écrans inhibe la mélatonine via les cellules mélanopiques de la rétine. 2h d'iPad avant le coucher = +90 min de latence d'endormissement et -20 % de REM la nuit suivante (Walker, 2017).",
+        "La lumière bleue (480 nm) des écrans inhibe la mélatonine via les cellules mélanopiques de la rétine. 2h d'écran avant le coucher retardent l'endormissement de 90 min et réduisent le REM de 20 % la nuit suivante.",
       recommendation:
         "Couvre-feu digital à 21h : lumières tamisées, pas d'écran, téléphone hors de la chambre. Minimum 60 min d'écran-free avant le coucher.",
       action: 'Instaurez un couvre-feu digital à 21h : lumières tamisées, pas d\'écran, téléphone hors de la chambre.',
       actionWhy:
-        "30 min d'exposition à la lumière bleue retardent la sécrétion de mélatonine de 1 à 1,5 heure — l'endormissement et le REM de fin de nuit en sont directement affectés.",
+        "30 min d'exposition à la lumière bleue retardent la sécrétion de mélatonine de 1 à 1,5 heure : l'endormissement et le REM de fin de nuit en sont directement affectés.",
     },
     {
       questionId: 'hyg-8',
@@ -420,23 +419,23 @@ const hygieneSommeilReport: SectionReport = {
       questionId: 'hyg-9',
       triggerMaxScore: 1,
       insight:
-        "Zone rouge 19h-21h : un exercice intense dans cette fenêtre empêche la descente thermique corporelle nécessaire à l'endormissement. Zone idéale : 15h-17h, où l'effort accompagne — sans la contrarier — la baisse thermique naturelle du soir. Zone 17h-19h : neutre à légèrement défavorable selon les individus.",
+        "Zone rouge 19h-21h : un exercice intense dans cette fenêtre empêche la descente thermique corporelle nécessaire à l'endormissement. Zone idéale : 15h-17h, où l'effort accompagne la baisse thermique naturelle du soir. Zone 17h-19h : neutre à légèrement défavorable selon les individus.",
       recommendation:
-        "Effort intense avant 19h, idéalement 15h-17h. Le soir : étirements doux, yoga, marche légère — des activités qui activent le système parasympathique et préparent la descente thermique.",
+        "Effort intense avant 19h, idéalement 15h-17h. Le soir : étirements doux, yoga, marche légère, des activités qui activent le système parasympathique et préparent la descente thermique.",
       action: 'Pratiquez l\'effort intense avant 19h (idéalement 15h-17h) et optez pour des étirements doux le soir.',
       actionWhy:
-        "L'exercice intense libère de l'adrénaline et élève la température corporelle pendant 4-6h — entre 19h et 21h, cet effet bloque la thermorégulation nécessaire à l'endormissement.",
+        "L'exercice intense libère de l'adrénaline et élève la température corporelle pendant 4-6h : entre 19h et 21h, cet effet bloque la thermorégulation nécessaire à l'endormissement.",
     },
     {
       questionId: 'hyg-10',
       triggerMaxScore: 1,
       insight:
-        "L'alcool facilite l'endormissement par action GABAergique, puis déclenche un rebond glutamatergique en 2e moitié de nuit : fragmentation, micro-éveils, suppression du REM. Deux verres de vin en soirée réduisent le REM de 24 % (Walker, 2017) — altérant la régulation émotionnelle et la consolidation mémorielle.",
+        "L'alcool facilite l'endormissement par effet sédatif (voie GABAergique), puis déclenche un rebond d'activation cérébrale en 2e moitié de nuit : micro-éveils, suppression du REM. Deux verres de vin en soirée réduisent le REM de 24 %, altérant la régulation émotionnelle et la consolidation mémorielle.",
       recommendation:
         "Zéro alcool dans les 4h avant le coucher. Si vous buvez en soirée : finissez tôt, alternez avec de l'eau.",
       action: 'Évitez tout alcool dans les 4 heures avant le coucher.',
       actionWhy:
-        "L'alcool est métabolisé en acétaldéhyde (activateur neuronal) qui fragmente la 2e moitié de nuit et supprime le REM — régulation émotionnelle et mémoire en sont les premières victimes.",
+        "L'alcool est métabolisé en acétaldéhyde (activateur neuronal) qui fragmente la 2e moitié de nuit et supprime le REM : régulation émotionnelle et mémoire en sont les premières victimes.",
     },
   ],
   references: [
@@ -480,23 +479,23 @@ const hygieneSommeilReport: SectionReport = {
 const profilReport: SectionReport = {
   sectionId: 'profil-complementaire',
   context:
-    "Certains signaux nocturnes correspondent à des troubles spécifiques et distincts. L'hyperactivation cognitive au coucher — l'esprit qui continue à planifier, anticiper, ruminer — est le mécanisme central de l'insomnie chronique : le cortex préfrontal reste en mode vigilance et inhibe les structures d'endormissement. Les apnées obstructives du sommeil touchent 1 adulte sur 10, sont diagnostiquées dans seulement 20 % des cas, et fragmentent le sommeil via des micro-éveils répétés imperceptibles. Le syndrome des jambes sans repos (SJSR) est souvent traitable dès que sa cause est identifiée — un déficit en fer affectant le système dopaminergique dans la majorité des cas.",
+    "Certains signaux nocturnes correspondent à des troubles spécifiques et distincts. L'hyperactivation cognitive au coucher (l'esprit qui continue à planifier, anticiper, ruminer) est le mécanisme central de l'insomnie chronique : le cortex préfrontal reste en mode vigilance et inhibe les structures d'endormissement. Les apnées obstructives du sommeil touchent 1 adulte sur 10, sont diagnostiquées dans seulement 20 % des cas, et fragmentent le sommeil via des micro-éveils répétés imperceptibles. Le syndrome des jambes sans repos (SJSR) est souvent traitable dès que sa cause est identifiée : un déficit en fer affectant le système dopaminergique dans la majorité des cas.",
   strengthLabel: 'Aucun signal spécifique de trouble du sommeil identifié',
   weaknessLabel: 'Signaux spécifiques à explorer avec un médecin',
   scienceNote:
-    "L'absence de signaux spécifiques — hyperactivation cognitive, ronflement fort, jambes agitées, fatigue persistante au réveil — est rassurante : votre profil ne suggère pas de trouble caractérisé du sommeil.",
+    "L'absence de signaux spécifiques (hyperactivation cognitive, ronflement fort, jambes agitées, fatigue persistante au réveil) est rassurante : votre profil ne suggère pas de trouble caractérisé du sommeil.",
   recommendations: [
     {
       maxPct: 33,
       level: 'alerte',
       title: 'Signaux importants à explorer',
-      text: "Votre profil révèle plusieurs signaux évoquant un ou plusieurs troubles du sommeil traitables. Une consultation médicale est recommandée — une polygraphie ventilatoire (pour les apnées) ou un bilan simple peuvent débloquer une situation installée depuis parfois des années.",
+      text: "Votre profil révèle plusieurs signaux évoquant un ou plusieurs troubles du sommeil traitables. Une consultation médicale est recommandée : une polygraphie ventilatoire (pour les apnées) ou un bilan simple peuvent débloquer une situation installée depuis parfois des années.",
     },
     {
       maxPct: 66,
       level: 'vigilance',
       title: 'Signaux à évaluer',
-      text: "Plusieurs signaux méritent d'être mentionnés à votre médecin. Certains troubles du sommeil passent inaperçus pendant des années car leurs symptômes — fatigue, maux de tête matinaux, motivation basse — semblent banaux.",
+      text: "Plusieurs signaux méritent d'être mentionnés à votre médecin. Certains troubles du sommeil passent inaperçus pendant des années car leurs symptômes (fatigue, maux de tête matinaux, motivation basse) semblent banaux.",
     },
     {
       maxPct: 90,
@@ -516,31 +515,31 @@ const profilReport: SectionReport = {
       questionId: 'prof-1',
       triggerMaxScore: 1,
       insight:
-        "Le cerveau reste en mode planification au coucher — le cortex préfrontal inhibe activement les structures d'endormissement. C'est le mécanisme central de l'insomnie chronique selon Walker : une hyperactivation cognitive qui est à la fois cause et conséquence de l'insomnie.",
+        "Le cerveau reste en mode planification au coucher : le cortex préfrontal inhibe activement les structures d'endormissement. C'est l'hyperactivation cognitive, mécanisme central de l'insomnie chronique, à la fois cause et conséquence.",
       recommendation:
         "Carnet vide-cerveau avant le lit (20 min) : notez toutes les pensées, tâches et préoccupations en suspens, avec une action concrète pour chacune. Complétez avec 10 min de relaxation musculaire progressive (contracter-relâcher chaque groupe musculaire, des pieds jusqu'au visage).",
       action: 'Tenez un carnet "vide-cerveau" chaque soir : pensées, tâches, une action concrète pour chacune.',
       actionWhy:
-        "L'écriture des préoccupations réduit l'activité du cortex préfrontal et libère les structures d'endormissement — réduction de la latence de 9 min documentée en moyenne.",
+        "L'écriture des préoccupations réduit l'activité du cortex préfrontal et libère les structures d'endormissement : réduction de la latence de 9 min documentée en moyenne.",
     },
     {
       questionId: 'prof-2',
       triggerMaxScore: 1,
       insight:
-        "Les ruminations au coucher activent le réseau par défaut du cerveau (Default Mode Network), incompatible avec l'endormissement. Essayer de les stopper les amplifie — c'est le paradoxe de la suppression mentale.",
+        "Les ruminations au coucher activent le réseau par défaut du cerveau (Default Mode Network), incompatible avec l'endormissement. Essayer de les stopper les amplifie : c'est le paradoxe de la suppression mentale.",
       recommendation:
         "15 min de 'temps des soucis structuré' en début de soirée (pas au lit) : notez chaque préoccupation et quand vous l'adresserez concrètement. Au lit : scan corporel de la tête aux pieds, en relâchant consciemment chaque zone musculaire.",
       action: 'Faites 15 min de "temps des soucis structuré" en début de soirée, pas au lit.',
       actionWhy:
-        "Compartimenter les soucis dans une plage dédiée signale au cerveau qu'ils ont été traités — réduit leur intrusion au coucher, technique centrale de la TCC-I.",
+        "Compartimenter les soucis dans une plage dédiée signale au cerveau qu'ils ont été traités : réduit leur intrusion au coucher, technique centrale de la TCC-I.",
     },
     {
       questionId: 'prof-3',
       triggerMaxScore: 1,
       insight:
-        "Palpitations ou chaleur interne au lit : le système nerveux sympathique est encore actif — stress accumulé, exercice tardif ou anxiété chronique maintiennent le cortisol élevé au moment de l'endormissement.",
+        "Palpitations ou chaleur interne au lit : le système nerveux sympathique est encore actif. Stress accumulé, exercice tardif ou anxiété chronique maintiennent le cortisol élevé au moment de l'endormissement.",
       recommendation:
-        "Cohérence cardiaque : 5s inspiration / 5s expiration (6 cycles/min), 5 min. Active le nerf vague et bascule le système nerveux en mode parasympathique en quelques minutes. Alternative : bain ou douche chaude 1h30 avant le coucher — la descente thermique post-bain facilite l'endormissement.",
+        "Cohérence cardiaque : 5s inspiration / 5s expiration (6 cycles/min), 5 min. Active le nerf vague et bascule le système nerveux en mode parasympathique en quelques minutes. Alternative : bain ou douche chaude 1h30 avant le coucher ; la descente thermique post-bain facilite l'endormissement.",
       action: 'Pratiquez 5 min de cohérence cardiaque au coucher (5s inspiration / 5s expiration).',
       actionWhy:
         "La cohérence cardiaque active le nerf vague → parasympathique → baisse du cortisol et de la fréquence cardiaque, créant les conditions physiologiques de l'endormissement.",
@@ -549,23 +548,23 @@ const profilReport: SectionReport = {
       questionId: 'prof-4',
       triggerMaxScore: 1,
       insight:
-        "Mieux dormir hors de chez soi signale un conditionnement négatif de la chambre : lit associé à l'éveil, à l'écran, au travail, à la frustration de ne pas dormir — l'opposé du signal recherché.",
+        "Mieux dormir hors de chez soi signale un conditionnement négatif de la chambre : lit associé à l'éveil, à l'écran, au travail, à la frustration de ne pas dormir, à l'opposé du signal recherché.",
       recommendation:
         "Chambre = cave à sommeil uniquement : obscurité totale (masque si nécessaire), 16-19°C, silence ou bruit blanc. Plus d'écran, plus de travail, pas de repas dans la chambre. Ce reconditionnement produit des effets en 2-3 semaines.",
       action: 'Transformez votre chambre : obscurité totale, 16-19°C, silence ou bruit blanc. Pas d\'écran, pas de travail.',
       actionWhy:
-        "Le conditionnement environnemental crée une réponse somnolente réflexe à l'entrée dans la chambre — mécanisme d'apprentissage associatif de base.",
+        "Le conditionnement environnemental crée une réponse somnolente réflexe à l'entrée dans la chambre : mécanisme d'apprentissage associatif de base.",
     },
     {
       questionId: 'prof-5',
       triggerMaxScore: 1,
       insight:
-        "Se réveiller plus fatigué qu'au coucher indique que les cycles de réparation ne sont pas complétés — soit par micro-éveils imperceptibles (apnées), soit par NREM N3 insuffisant. Le nettoyage glymphatique et la récupération physique n'ont pas eu lieu.",
+        "Se réveiller plus fatigué qu'au coucher indique que les cycles de réparation ne sont pas complétés, soit par micro-éveils imperceptibles (apnées), soit par NREM N3 insuffisant. Le nettoyage glymphatique et la récupération physique n'ont pas eu lieu.",
       recommendation:
         "Symptôme régulier → consultez votre médecin pour évaluer une polygraphie ventilatoire. En parallèle : chambre fraîche (16-19°C), obscurité totale.",
       action: 'Consultez votre médecin si vous vous réveillez régulièrement plus fatigué qu\'au coucher.',
       actionWhy:
-        "Les apnées génèrent des micro-éveils répétés qui fragmentent le NREM N3 et empêchent le nettoyage glymphatique — d'où la fatigue malgré une durée de sommeil apparemment suffisante.",
+        "Les apnées génèrent des micro-éveils répétés qui fragmentent le NREM N3 et empêchent le nettoyage glymphatique, d'où la fatigue malgré une durée de sommeil apparemment suffisante.",
     },
     {
       questionId: 'prof-6',
@@ -598,18 +597,18 @@ const profilReport: SectionReport = {
         "Première étape : bilan sanguin avec ferritine (prescrit par votre médecin). En attendant : réduire caféine et alcool le soir, étirements des membres inférieurs, marcher sur du carrelage froid pour soulager les symptômes aigus.",
       action: 'Demandez un bilan ferritine à votre médecin.',
       actionWhy:
-        "Un déficit en ferritine altère la disponibilité du fer dans les neurones dopaminergiques — la supplémentation améliore significativement les symptômes dans la majorité des cas.",
+        "Un déficit en ferritine altère la disponibilité du fer dans les neurones dopaminergiques : la supplémentation améliore significativement les symptômes dans la majorité des cas.",
     },
     {
       questionId: 'prof-9',
       triggerMaxScore: 1,
       insight:
-        "Des réveils nocturnes sans cause apparente signalent des micro-éveils déclenchés par des stimuli environnementaux — bruit, lumière, variation de température — que le cerveau traite même pendant le sommeil.",
+        "Des réveils nocturnes sans cause apparente signalent des micro-éveils déclenchés par des stimuli environnementaux (bruit, lumière, variation de température) que le cerveau traite même pendant le sommeil.",
       recommendation:
         "Auditez la chambre en priorité : 16-19°C, obscurité totale (LED des chargeurs incluses), isolation phonique. Si tout est optimal et les réveils persistent, évoquez un trouble respiratoire avec votre médecin.",
       action: 'Optimisez votre environnement nocturne : température, obscurité totale, isolation phonique.',
       actionWhy:
-        "Supprimer les stimuli environnementaux supprime les micro-éveils correspondants — augmentation directe du temps en NREM N3.",
+        "Supprimer les stimuli environnementaux supprime les micro-éveils correspondants : augmentation directe du temps en NREM N3.",
     },
     {
       questionId: 'prof-10',
@@ -620,7 +619,7 @@ const profilReport: SectionReport = {
         "Pour la nuit : étirements doux 10 min avant le coucher, literie adaptée (un matelas >8 ans aggrave les douleurs). Méditation pleine conscience guidée 10-20 min : réduit la composante émotionnelle de la douleur chronique, avec des effets mesurables sur le sommeil en 4-6 semaines.",
       action: 'Pratiquez 10 min de méditation de pleine conscience guidée avant le coucher.',
       actionWhy:
-        "La méditation réduit l'activité amygdalienne et module les voies opioïdes descendantes de la douleur — elle réduit la composante émotionnelle, rendant le sommeil accessible malgré les inconforts physiques.",
+        "La méditation réduit l'activité amygdalienne et module les voies opioïdes descendantes de la douleur, réduisant la composante émotionnelle et rendant le sommeil accessible malgré les inconforts physiques.",
     },
   ],
   references: [
@@ -706,38 +705,38 @@ export const globalKeyInsights: GlobalInsight[] = [
   {
     title: 'Le sommeil est le socle de toute autre habitude de santé',
     description:
-      "Dormir moins de 7h/nuit de façon chronique augmente la mortalité toutes causes de 12 %, le risque de diabète de type 2, de maladies cardiovasculaires et de certains cancers (Cappuccio et al., 2010). Une seule nuit courte suffit à activer des centaines de gènes pro-inflammatoires et à réduire de 70 % l'activité des cellules NK (natural killers) du système immunitaire. Le système glymphatique, actif principalement en NREM N3, élimine les protéines bêta-amyloïdes liées à Alzheimer — 10 fois plus efficacement pendant le sommeil qu'à l'éveil (Xie et al., 2013).",
-    reference: 'Walker MP, Why We Sleep, 2017 — Cappuccio et al., Sleep, 2010 — Xie et al., Science, 2013',
+      "Dormir moins de 7h/nuit de façon chronique augmente la mortalité toutes causes de 12 %, ainsi que le risque de diabète, de maladies cardiovasculaires et de certains cancers. Une seule nuit courte suffit à activer des centaines de gènes pro-inflammatoires et à réduire de 70 % l'activité des cellules immunitaires NK (natural killers). Le système glymphatique, actif principalement en NREM N3, élimine les protéines bêta-amyloïdes liées à Alzheimer, 10 fois plus efficacement pendant le sommeil qu'à l'éveil.",
+    reference: 'Médecine du sommeil et chronobiologie',
   },
   {
     title: 'L\'amygdale sans sommeil : 60 % plus réactive',
     description:
-      "Une nuit de sommeil insuffisant rend l'amygdale 60 % plus réactive aux stimuli négatifs et fragilise sa connexion avec le cortex préfrontal (Yoo et al., 2007). Le résultat : irritabilité accrue, anxiété amplifiée, décisions plus impulsives. Après 10 nuits à 6h, les performances cognitives atteignent le niveau d'une privation totale de 24h — mais les sujets sous-estiment systématiquement leur propre déficit (Van Dongen et al., 2003).",
-    reference: 'Yoo SS, Walker MP et al. — Current Biology, 2007 — Van Dongen et al., Sleep, 2003',
+      "Une nuit de sommeil insuffisant rend l'amygdale 60 % plus réactive aux stimuli négatifs et fragilise sa connexion avec le cortex préfrontal. Le résultat : irritabilité accrue, anxiété amplifiée, décisions plus impulsives. Après 10 nuits à 6h, les performances cognitives atteignent le niveau d'une privation totale de 24h, mais le déficit est systématiquement sous-estimé.",
+    reference: 'Neurosciences cognitives et médecine du sommeil',
   },
   {
     title: 'Le REM : une thérapie émotionnelle gratuite chaque nuit',
     description:
-      "Le sommeil paradoxal (REM) rejoue les souvenirs émotionnellement chargés dans un environnement neurochimique sans noradrénaline — ce qui en émousse progressivement la charge émotionnelle (Walker & van der Helm, 2009). C'est pour cela que les problèmes semblent toujours moins lourds au matin qu'au soir. Ce travail s'effectue principalement en fin de nuit : la portion de REM que l'alcool, certains somnifères et les réveils précoces suppriment en premier.",
-    reference: 'Walker MP, van der Helm E — Psychological Bulletin, 2009',
+      "Le sommeil paradoxal (REM) rejoue les souvenirs émotionnellement chargés dans un environnement neurochimique calme (sans noradrénaline), émousant progressivement leur charge émotionnelle. C'est pour cela que les problèmes paraissent toujours moins lourds au matin qu'au soir. Ce travail s'effectue en fin de nuit : c'est la portion de REM que l'alcool, certains somnifères et les réveils précoces suppriment en premier.",
+    reference: 'Neurosciences affectives et sommeil',
   },
 ]
 
 export const sommeilGlossary: { term: string; definition: string }[] = [
   { term: 'Rythme circadien', definition: "Horloge biologique interne de 24h qui régule le cycle veille-sommeil, les hormones et le métabolisme. Gouvernée par le noyau suprachiasmatique (NSC) de l'hypothalamus." },
-  { term: 'Mélatonine', definition: "Hormone produite par la glande pinéale au moment du coucher, signalant à l'organisme qu'il est l'heure de dormir. C'est un signal de timing, pas un somnifère — elle prépare le sommeil sans l'induire directement." },
-  { term: 'Adénosine', definition: "Molécule qui s'accumule dans le cerveau pendant l'éveil et génère la pression de sommeil. La caféine bloque ses récepteurs sans la résoudre — la dette d'adénosine ressurgit au sevrage ('crash caféine')." },
+  { term: 'Mélatonine', definition: "Hormone produite par la glande pinéale au moment du coucher, signalant à l'organisme qu'il est l'heure de dormir. C'est un signal de timing, pas un somnifère : elle prépare le sommeil sans l'induire directement." },
+  { term: 'Adénosine', definition: "Molécule qui s'accumule dans le cerveau pendant l'éveil et génère la pression de sommeil. La caféine bloque ses récepteurs sans la résoudre : la dette d'adénosine ressurgit au sevrage (\"crash caféine\")." },
   { term: 'NREM N3 (sommeil profond)', definition: "Phase la plus réparatrice physiquement, dominante en première moitié de nuit. Libération d'hormone de croissance, consolidation de la mémoire déclarative, activation du système glymphatique." },
   { term: 'Sommeil paradoxal (REM)', definition: "Phase associée aux rêves, dominante en fin de nuit. Régulation émotionnelle, consolidation de la mémoire procédurale et créative. Première phase supprimée par l'alcool et certains somnifères." },
-  { term: 'Système glymphatique', definition: "Réseau de nettoyage cérébral actif pendant le NREM N3, qui élimine les déchets métaboliques dont les protéines bêta-amyloïdes liées à Alzheimer. 10x plus efficace pendant le sommeil qu'à l'éveil (Xie et al., 2013)." },
+  { term: 'Système glymphatique', definition: "Réseau de nettoyage cérébral actif pendant le NREM N3, qui élimine les déchets métaboliques dont les protéines bêta-amyloïdes liées à Alzheimer. 10x plus efficace pendant le sommeil qu'à l'éveil." },
   { term: 'Hyperactivation cognitive', definition: "État où le cortex préfrontal reste en mode planification/anticipation au coucher, inhibant les structures d'endormissement. Mécanisme central de l'insomnie chronique." },
-  { term: 'TCC-I', definition: "Thérapie comportementale et cognitive pour l'insomnie. Traitement de première ligne (ACP 2016, AASM 2021), supérieur aux somnifères à long terme. Agit sur les habitudes et la cognition autour du sommeil en 4-6 séances." },
-  { term: 'Cohérence cardiaque', definition: "Respiration à 6 cycles/min (5s inspiration / 5s expiration) qui active le nerf vague et le système parasympathique — baisse du cortisol et de la fréquence cardiaque en quelques minutes." },
+  { term: 'TCC-I', definition: "Thérapie comportementale et cognitive pour l'insomnie. Traitement recommandé en première ligne, supérieur aux somnifères à long terme. Agit sur les habitudes et la cognition autour du sommeil en 4-6 séances." },
+  { term: 'Cohérence cardiaque', definition: "Respiration à 6 cycles/min (5s inspiration / 5s expiration) qui active le nerf vague et le système parasympathique : baisse du cortisol et de la fréquence cardiaque en quelques minutes." },
   { term: 'Apnées du sommeil', definition: "Pauses involontaires dans la respiration nocturne générant des micro-éveils répétés et fragmentant le NREM N3. Touchent 1 adulte sur 10, diagnostiquées dans 20 % des cas. Traitables efficacement par PPC." },
   { term: 'SJSR (jambes sans repos)', definition: "Syndrome des jambes sans repos : envies irrépressibles de bouger les jambes au repos le soir. Souvent lié à un déficit en fer cérébral perturbant le système dopaminergique. Traitable." },
   { term: 'Cortisol', definition: "Hormone du stress. Naturellement haute le matin (signal d'éveil, déclenchée par la lumière) et basse le soir. Un manque de sommeil maintient le cortisol élevé en permanence, générant une inflammation chronique de bas grade." },
   { term: 'Pression de sommeil', definition: "Besoin croissant de dormir porté par l'adénosine accumulée pendant l'éveil. Réinitialisée après une nuit complète. La caféine la masque temporairement sans la résoudre." },
-  { term: 'Jet lag social', definition: "Décalage de l'horloge interne causé par des horaires de lever différents entre semaine et week-end — désynchronisation circadienne chronique aux effets similaires au voyage en décalage horaire." },
+  { term: 'Jet lag social', definition: "Décalage de l'horloge interne causé par des horaires de lever différents entre semaine et week-end : désynchronisation circadienne chronique aux effets similaires au voyage en décalage horaire." },
   { term: 'Mélatonine (complément)', definition: "Bonne évidence pour les troubles circadiens (jet-lag, chronotypes extrêmes, travail posté). Efficacité limitée pour l'insomnie primaire. À utiliser avec un timing précis selon le décalage, pas comme somnifère généraliste." },
   { term: 'L-théanine', definition: "Acide aminé du thé vert avec effets anxiolytiques modestes documentés. Peut améliorer la qualité du sommeil en contexte de stress ou d'hyperéveil. Profil de sécurité favorable." },
   { term: 'Magnésium', definition: "Associations observationnelles entre déficit en magnésium et mauvaise qualité du sommeil. Résultats cliniques modestes, surtout chez les sujets carencés ou âgés." },
@@ -880,7 +879,7 @@ export function generateFullReport(
         phaseTitle: 'Maintien des acquis',
         timeframe: 'En continu',
         actions: [
-          { action: 'Maintenez une heure de coucher et de lever à ±30 min, 7j/7.', why: 'La régularité synchronise le rythme circadien et stabilise la production de mélatonine — premier facteur de qualité du sommeil.', sectionId: '' },
+          { action: 'Maintenez une heure de coucher et de lever à ±30 min, 7j/7.', why: 'La régularité synchronise le rythme circadien et stabilise la production de mélatonine : premier facteur de qualité du sommeil.', sectionId: '' },
           { action: 'Caféine coupée avant 13-14h, pas d\'écran dans l\'heure avant le coucher.', why: 'Caféine : bloque l\'adénosine jusqu\'à 10h selon le profil génétique. Lumière bleue : retarde la mélatonine de 1 à 1,5h.', sectionId: '' },
         ],
       })
