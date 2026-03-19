@@ -81,7 +81,7 @@ const troublesSommeilReport: SectionReport = {
       insight:
         "Un endormissement long (plus de 30 min) signale une désynchronisation entre la pression de sommeil (adénosine accumulée) et l'horloge circadienne. Si ce symptôme survient 3 nuits ou plus par semaine depuis plus de 3 mois avec un retentissement diurne (fatigue, irritabilité, baisse des performances), il s'agit d'une insomnie chronique : la TCC-I (thérapie comportementale et cognitive pour l'insomnie) est le traitement recommandé en première intention.",
       recommendation:
-        "Ne vous couchez que sur des signaux réels de sommeil (paupières lourdes, bâillements). Levez-vous à heure fixe chaque matin, week-end inclus : c'est le levier le plus puissant pour calibrer l'accumulation d'adénosine et resynchroniser l'horloge interne. Si pas endormi après 20 min, levez-vous et faites une activité calme à faible luminosité jusqu'au retour du sommeil.",
+        "Ne vous couchez que sur des signaux réels de sommeil (paupières lourdes, bâillements). Levez-vous à heure fixe chaque matin, week-end inclus : c'est le levier le plus puissant pour calibrer l'accumulation d'adénosine et resynchroniser l'horloge interne.",
       action: 'Ne vous couchez que sur des signaux réels de sommeil, et levez-vous à heure fixe chaque matin.',
       actionWhy:
         "L'heure de réveil fixe resynchronise le noyau suprachiasmatique et recalibre l'accumulation d'adénosine, rendant l'endormissement naturel au bon moment le soir.",
@@ -136,10 +136,10 @@ const troublesSommeilReport: SectionReport = {
       insight:
         "Douleur nocturne et mauvais sommeil forment un cercle vicieux bidirectionnel : la douleur fragmente le NREM N3, et le manque de NREM N3 abaisse le seuil de douleur (hyperalgésie), amplifiant la perception douloureuse le lendemain.",
       recommendation:
-        "Étirements doux 10 min avant le coucher, literie adaptée (un matelas >8 ans aggrave les douleurs articulaires). Méditation pleine conscience guidée 10-20 min : réduit la composante émotionnelle de la douleur chronique, avec des effets mesurables sur le sommeil en 4-6 semaines.",
+        "Étirements doux ciblés 10 min avant le coucher. Chaleur locale en soirée (bouillotte ou bain chaud) : relâche les muscles tendus et prépare la descente thermique. Évaluez votre literie : un matelas >8 ans aggrave les douleurs articulaires et perturbe le sommeil profond.",
       action: 'Faites 10 min d\'étirements doux avant le coucher et évaluez votre literie.',
       actionWhy:
-        "La méditation de pleine conscience réduit l'activité amygdalienne et module les voies descendantes de la douleur (système opioïde endogène), rendant le sommeil accessible malgré les inconforts physiques.",
+        "La chaleur locale réduit la tension musculaire et déclenche une vasodilatation périphérique qui accélère la descente thermique centrale, signal biologique clé de l'endormissement.",
     },
   ],
   references: [
@@ -353,12 +353,12 @@ const hygieneSommeilReport: SectionReport = {
       questionId: 'hyg-3',
       triggerMaxScore: 1,
       insight:
-        "Rester allongé éveillé plus de 20 min active le système nerveux sympathique (mode vigilance). Forcer le sommeil produit l'effet inverse : la tentative de contrôle inhibe les structures cérébrales de l'endormissement.",
+        "Surveiller son endormissement produit l'effet inverse : le cerveau entre en mode vigilance, le cortex préfrontal (zone de planification) s'active et inhibe les structures cérébrales de l'endormissement.",
       recommendation:
-        "Règle des 20 min : si pas endormi, levez-vous. Retirez ou couvrez l'horloge de la chambre : voir l'heure déclenche un calcul cognitif automatique ('il me reste X heures') qui active le cortex préfrontal et inhibe l'endormissement.",
-      action: 'Retirez ou couvrez l\'horloge de la chambre.',
+        "Retirez ou couvrez l'horloge de la chambre, et ne regardez pas l'heure sur le téléphone : chaque coup d'oeil déclenche un calcul automatique ('il me reste X heures') qui amplifie l'anxiété de performance et maintient le cortex préfrontal actif.",
+      action: 'Retirez ou couvrez l\'horloge de la chambre et ne regardez pas l\'heure sur le téléphone la nuit.',
       actionWhy:
-        "Voir l'heure la nuit active le cortex préfrontal (planification) et inhibe les structures cérébrales de l'endormissement : supprimer ce stimulus supprime ce circuit.",
+        "Voir l'heure active le cortex préfrontal (planification) et inhibe les structures cérébrales de l'endormissement : supprimer ce stimulus supprime ce circuit.",
     },
     {
       questionId: 'hyg-4',
@@ -480,7 +480,7 @@ const profilReport: SectionReport = {
   sectionId: 'profil-complementaire',
   context:
     "Certains signaux nocturnes correspondent à des troubles spécifiques et distincts. L'hyperactivation cognitive au coucher (l'esprit qui continue à planifier, anticiper, ruminer) est le mécanisme central de l'insomnie chronique : le cortex préfrontal reste en mode vigilance et inhibe les structures d'endormissement. Les apnées obstructives du sommeil touchent 1 adulte sur 10, sont diagnostiquées dans seulement 20 % des cas, et fragmentent le sommeil via des micro-éveils répétés imperceptibles. Le syndrome des jambes sans repos (SJSR) est souvent traitable dès que sa cause est identifiée : un déficit en fer affectant le système dopaminergique dans la majorité des cas.",
-  strengthLabel: 'Aucun signal spécifique de trouble du sommeil identifié',
+  strengthLabel: 'Pas de signe clinique de trouble du sommeil spécifique (apnées, jambes sans repos...)',
   weaknessLabel: 'Signaux spécifiques à explorer avec un médecin',
   scienceNote:
     "L'absence de signaux spécifiques (hyperactivation cognitive, ronflement fort, jambes agitées, fatigue persistante au réveil) est rassurante : votre profil ne suggère pas de trouble caractérisé du sommeil.",
@@ -616,10 +616,10 @@ const profilReport: SectionReport = {
       insight:
         "Douleur et mauvais sommeil forment un cercle vicieux bidirectionnel : la douleur fragmente le NREM N3, et le manque de NREM N3 abaisse le seuil de douleur (hyperalgésie), amplifiant la perception douloureuse le lendemain. Les deux problèmes doivent être traités simultanément.",
       recommendation:
-        "Pour la nuit : étirements doux 10 min avant le coucher, literie adaptée (un matelas >8 ans aggrave les douleurs). Méditation pleine conscience guidée 10-20 min : réduit la composante émotionnelle de la douleur chronique, avec des effets mesurables sur le sommeil en 4-6 semaines.",
+        "Méditation pleine conscience guidée 10-20 min avant le coucher : réduit la composante émotionnelle de la douleur chronique, avec des effets mesurables sur le sommeil en 4-6 semaines. Si la douleur est chronique ou s'aggrave, consultez votre médecin : traiter la cause améliore durablement le sommeil.",
       action: 'Pratiquez 10 min de méditation de pleine conscience guidée avant le coucher.',
       actionWhy:
-        "La méditation réduit l'activité amygdalienne et module les voies opioïdes descendantes de la douleur, réduisant la composante émotionnelle et rendant le sommeil accessible malgré les inconforts physiques.",
+        "La méditation réduit l'activité amygdalienne et module les voies opioïdes descendantes de la douleur : la composante émotionnelle s'atténue, rendant le sommeil accessible malgré les inconforts physiques.",
     },
   ],
   references: [
