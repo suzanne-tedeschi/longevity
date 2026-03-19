@@ -70,7 +70,7 @@ const troublesSommeil: TestSection = {
   subtitle: 'À quelle fréquence votre sommeil est-il perturbé ?',
   icon: 'troubles',
   description:
-    'Ces questions évaluent la fréquence de vos difficultés de sommeil au cours du dernier mois. Répondez le plus honnêtement possible.',
+    'Ces questions évaluent la fréquence de vos difficultés nocturnes au cours du dernier mois. Walker rappelle qu\'un seul réveil nocturne répété peut suffire à empêcher le cerveau d\'atteindre les phases de récupération profondes.',
   maxScore: 27,
   tests: [
     {
@@ -79,7 +79,7 @@ const troublesSommeil: TestSection = {
       description: 'Difficulté à s\'endormir en moins de 30 minutes',
       criteria: 'Au cours du mois dernier, à quelle fréquence n\'avez-vous pas pu vous endormir en moins de 30 minutes ?',
       scoring: psqiFrequencyScoring,
-      tip: 'Un temps d\'endormissement supérieur à 30 minutes peut indiquer un problème d\'insomnie d\'endormissement.',
+      tip: 'Walker appelle ce signal l\'insomnie d\'endormissement : souvent causée par une désynchronisation entre l\'horloge interne et la pression de sommeil. Se lever à heure fixe chaque matin est le levier le plus puissant.',
     },
     {
       id: 'som-2',
@@ -94,7 +94,7 @@ const troublesSommeil: TestSection = {
       description: 'Besoin de se lever pendant la nuit',
       criteria: 'Au cours du mois dernier, à quelle fréquence avez-vous dû vous lever pour aller aux toilettes ?',
       scoring: psqiFrequencyScoring,
-      tip: 'La nycturie (besoin d\'uriner la nuit) peut fragmenter le sommeil et réduire sa qualité réparatrice.',
+      tip: 'La nycturie (besoin d\'uriner la nuit) fragmente les cycles de sommeil. Réduire les liquides après 19h et les diurétiques (café, alcool) en soirée est souvent suffisant.',
     },
     {
       id: 'som-4',
@@ -102,7 +102,7 @@ const troublesSommeil: TestSection = {
       description: 'Impossibilité de respirer correctement',
       criteria: 'Au cours du mois dernier, à quelle fréquence n\'avez-vous pas pu respirer correctement pendant la nuit ?',
       scoring: psqiFrequencyScoring,
-      tip: 'Des difficultés respiratoires nocturnes peuvent être un signe d\'apnée du sommeil.',
+      tip: 'Walker qualifie les apnées du sommeil de "tueur silencieux" : elles fragmentent le sommeil sans souvenir conscient. Consultez votre médecin si ce symptôme est régulier.',
     },
     {
       id: 'som-5',
@@ -117,7 +117,7 @@ const troublesSommeil: TestSection = {
       description: 'Avoir trop froid pendant la nuit',
       criteria: 'Au cours du mois dernier, à quelle fréquence avez-vous eu trop froid pendant la nuit ?',
       scoring: psqiFrequencyScoring,
-      tip: 'La température idéale de la chambre se situe entre 16°C et 19°C.',
+      tip: 'Walker recommande 16-19°C pour la chambre : la baisse de température corporelle est le principal signal biologique qui déclenche et maintient le sommeil profond.',
     },
     {
       id: 'som-7',
@@ -152,7 +152,7 @@ const qualiteImpact: TestSection = {
   subtitle: 'Votre ressenti au réveil et dans la journée',
   icon: 'quality',
   description:
-    'Ces questions évaluent votre perception globale de la qualité de votre sommeil et son impact sur vos activités quotidiennes.',
+    'Ces questions évaluent votre ressenti global et l\'impact de votre sommeil sur la journée. Walker souligne que la somnolence diurne et le manque de motivation sont les premières conséquences visibles d\'un sommeil insuffisant ou non réparateur.',
   maxScore: 12,
   tests: [
     {
@@ -173,7 +173,7 @@ const qualiteImpact: TestSection = {
       description: 'Utilisation de médicaments pour dormir',
       criteria: 'Au cours du mois dernier, combien de fois avez-vous pris des médicaments (prescrits ou non) pour faciliter votre sommeil ?',
       scoring: psqiFrequencyScoring,
-      tip: 'L\'usage régulier de somnifères peut masquer un trouble sous-jacent qu\'il est préférable de traiter.',
+      tip: 'Walker distingue la sédation chimique du vrai sommeil : les somnifères courants modifient la structure du sommeil, notamment en réduisant le NREM N3 et le REM. À évaluer avec votre médecin.',
     },
     {
       id: 'qual-3',
@@ -181,7 +181,7 @@ const qualiteImpact: TestSection = {
       description: 'Difficulté à rester éveillé(e) dans la journée',
       criteria: 'Au cours du mois dernier, combien de fois avez-vous eu des difficultés à demeurer éveillé(e) (conduite, repas, activités sociales) ?',
       scoring: psqiFrequencyScoring,
-      tip: 'La somnolence diurne excessive est un signe important de dette de sommeil ou de trouble du sommeil.',
+      tip: 'Walker a documenté des "microsommeils" de 3 à 10 secondes qui surviennent sans que la personne s\'en rende compte — y compris au volant. La somnolence diurne n\'est jamais anodine.',
     },
     {
       id: 'qual-4',
@@ -207,7 +207,7 @@ const hygieneSommeil: TestSection = {
   subtitle: 'Écrans, caféine, routine du soir…',
   icon: 'hygiene',
   description:
-    'Ces questions évaluent vos habitudes et comportements qui peuvent affecter la qualité de votre sommeil. Répondez en pensant à un mois typique.',
+    'Ces questions évaluent vos habitudes du soir selon le modèle à deux processus de Walker : la pression de sommeil (adénosine) et le rythme circadien. Chaque comportement listed ici peut soutenir ou saboter ces deux systèmes.',
   maxScore: 30,
   tests: [
     {
@@ -216,7 +216,7 @@ const hygieneSommeil: TestSection = {
       description: 'Se coucher à des heures différentes chaque jour',
       criteria: 'Je vais me coucher à des heures différentes chaque jour.',
       scoring: shiFrequencyScoring,
-      tip: 'La régularité des horaires de coucher est l\'un des piliers d\'un sommeil de qualité.',
+      tip: 'Walker place la régularité en tête de tous les facteurs de qualité du sommeil — avant même la durée. Des horaires variables créent un "jet lag social" permanent qui désynchronise l\'horloge interne.',
     },
     {
       id: 'hyg-2',
@@ -236,7 +236,7 @@ const hygieneSommeil: TestSection = {
       description: 'Rester au lit plus de 30 minutes sans dormir',
       criteria: 'Le soir, une fois couché(e), je mets plus de 30 minutes à m\'endormir.',
       scoring: shiFrequencyScoring,
-      tip: 'Si vous ne dormez pas après 20-30 minutes, il est recommandé de quitter le lit et d\'y revenir quand le sommeil revient.',
+      tip: 'Rester éveillé au lit fragilise l\'association lit-sommeil. La règle des 20 minutes — quitter le lit si vous n\'êtes pas endormi — est un pilier de la TCC-I, la thérapie que Walker recommande.',
     },
     {
       id: 'hyg-4',
@@ -244,7 +244,7 @@ const hygieneSommeil: TestSection = {
       description: 'Boissons caféinées dans les 4 à 9h avant le coucher',
       criteria: 'Je bois des boissons caféinées dans les 6 heures avant de me coucher.',
       scoring: shiFrequencyScoring,
-      tip: 'La caféine a une demi-vie de 5 à 7 heures. Un café à 16h peut encore affecter votre endormissement.',
+      tip: 'Walker s\'interdit toute caféine après 13h. Sa demi-vie est de 5 à 7 heures : un café à 16h maintient encore 50 % de son effet à 22h, réduisant le sommeil profond même si vous vous endormez.',
     },
     {
       id: 'hyg-5',
@@ -259,7 +259,7 @@ const hygieneSommeil: TestSection = {
       description: 'Siestes de plus de 30 minutes',
       criteria: 'Je fais régulièrement des siestes de plus de 30 minutes.',
       scoring: shiFrequencyScoring,
-      tip: 'Les siestes de 10 à 20 minutes sont bénéfiques. Au-delà de 30 minutes, elles peuvent perturber le sommeil nocturne.',
+      tip: 'Walker valide les siestes courtes de 10-20 minutes avant 15h. L\'astuce du "café-sieste" : boire un café juste avant de s\'allonger — la caféine met 20 min à agir, au réveil elle booste l\'énergie sans perturber la nuit.',
     },
     {
       id: 'hyg-7',
@@ -267,7 +267,7 @@ const hygieneSommeil: TestSection = {
       description: 'Utilisation d\'appareils électroniques au lit',
       criteria: 'J\'utilise des appareils électroniques (téléphone, tablette, ordinateur) au lit.',
       scoring: shiFrequencyScoring,
-      tip: 'La lumière bleue des écrans supprime la sécrétion de mélatonine et retarde l\'endormissement.',
+      tip: 'Walker mesure un retard d\'endormissement de 90 minutes après 2h d\'écran avant le coucher, avec une réduction du REM de 20 % la nuit suivante. Rangez le téléphone hors de la chambre.',
     },
     {
       id: 'hyg-8',
@@ -282,7 +282,7 @@ const hygieneSommeil: TestSection = {
       description: 'Exercice physique intense dans les 2h avant le coucher',
       criteria: 'Je fais de l\'exercice physique intense dans les 2 heures précédant le coucher.',
       scoring: shiFrequencyScoring,
-      tip: 'L\'exercice régulier améliore le sommeil, mais un effort intense trop tard stimule le système nerveux.',
+      tip: 'L\'exercice intense libère de l\'adrénaline et élève la température corporelle pendant 4 à 6 heures — l\'opposé des conditions requises pour l\'endormissement. Préférez l\'effort avant 19h.',
     },
     {
       id: 'hyg-10',
@@ -290,7 +290,7 @@ const hygieneSommeil: TestSection = {
       description: 'Consommation d\'alcool dans les 4h avant le coucher',
       criteria: 'Je consomme de l\'alcool dans les 4 heures précédant le coucher.',
       scoring: shiFrequencyScoring,
-      tip: 'L\'alcool facilite l\'endormissement mais fragmente le sommeil en seconde partie de nuit.',
+      tip: 'Walker est catégorique : l\'alcool est "l\'ennemi numéro un du REM". Deux verres de vin en soirée réduisent le sommeil paradoxal de 24 %, altérant la régulation émotionnelle et la mémoire.',
     },
   ],
 }
@@ -304,8 +304,8 @@ const profilComplementaire: TestSection = {
   subtitle: 'Ronflements, apnées, jambes sans repos…',
   icon: 'profile',
   description:
-    'Ces questions permettent de détecter des troubles spécifiques (hyperéveil, apnées, jambes sans repos) et d\'affiner votre profil sommeil.',
-  maxScore: 30,
+    'Ces questions permettent de détecter des signaux spécifiques que Walker identifie comme les plus sous-diagnostiqués : hyperactivation cognitive, apnées du sommeil (1 adulte sur 10, diagnostiquées dans seulement 20 % des cas), et syndrome des jambes sans repos.',
+  maxScore: 24,
   tests: [
     {
       id: 'prof-1',
@@ -313,14 +313,7 @@ const profilComplementaire: TestSection = {
       description: 'Impression que le cerveau ne s\'éteint pas',
       criteria: 'Avez-vous souvent l\'impression que votre cerveau ne s\'éteint pas au moment du coucher ?',
       scoring: profileScoring,
-      tip: 'L\'hyperéveil cognitif est l\'une des causes principales d\'insomnie. Des techniques de relaxation peuvent aider.',
-    },
-    {
-      id: 'prof-2',
-      name: 'Ruminations au coucher',
-      description: 'Pensées liées au travail, à l\'organisation ou à des conflits',
-      criteria: 'Ruminez-vous des pensées liées au travail, à l\'organisation ou à des conflits au moment du coucher ?',
-      scoring: profileScoring,
+      tip: 'Walker décrit l\'hyperactivation cognitive comme le mécanisme central de l\'insomnie : le cerveau reste en "mode vigilance" alors qu\'il devrait s\'éteindre. La TCC-I est le traitement de référence.',
     },
     {
       id: 'prof-3',
@@ -328,7 +321,7 @@ const profilComplementaire: TestSection = {
       description: 'Palpitations, chaleur interne ou agitation corporelle',
       criteria: 'Sentez-vous parfois le cœur qui bat fort, de la chaleur interne ou de l\'agitation corporelle au lit ?',
       scoring: profileScoring,
-      tip: 'Ces symptômes peuvent indiquer une activation du système nerveux sympathique incompatible avec l\'endormissement.',
+      tip: 'Palpitations ou chaleur interne au lit : le système nerveux sympathique (mode alerte) est encore actif. La cohérence cardiaque (5s inspiration, 5s expiration, 5 min) active le nerf vague et ramène le calme en quelques minutes.',
     },
     {
       id: 'prof-4',
@@ -348,15 +341,7 @@ const profilComplementaire: TestSection = {
       description: 'Se réveiller plus fatigué(e) qu\'au coucher',
       criteria: 'Vous réveillez-vous parfois plus fatigué(e) qu\'au moment du coucher ?',
       scoring: profileScoring,
-      tip: 'Un sommeil non récupérateur peut indiquer des micro-éveils, une apnée ou un déficit de sommeil profond.',
-    },
-    {
-      id: 'prof-6',
-      name: 'Ronflement régulier',
-      description: 'Ronflements signalés par l\'entourage',
-      criteria: 'Ronflez-vous régulièrement ? (ou vous a-t-on déjà fait la remarque ?)',
-      scoring: profileScoring,
-      tip: 'Le ronflement peut être bénin mais aussi un signe de syndrome d\'apnées du sommeil.',
+      tip: 'Se réveiller plus fatigué qu\'au coucher est le signal principal des apnées du sommeil non diagnostiquées ou d\'un manque de NREM N3. À mentionner à votre médecin si ce symptôme est régulier.',
     },
     {
       id: 'prof-7',
@@ -371,7 +356,7 @@ const profilComplementaire: TestSection = {
       description: 'Envies irrépressibles de bouger les jambes le soir',
       criteria: 'Avez-vous des envies irrépressibles de bouger les jambes le soir, au repos ?',
       scoring: profileScoring,
-      tip: 'Le syndrome des jambes sans repos touche 5 à 10% de la population et perturbe significativement le sommeil.',
+      tip: 'Le SJSR touche 5 à 10 % de la population et est souvent lié à un déficit en fer dans le cerveau affectant le système dopaminergique. Un bilan simple avec votre médecin peut identifier une cause traitable.',
     },
     {
       id: 'prof-9',
