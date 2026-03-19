@@ -222,7 +222,6 @@ function TestCard({ test, testIndex, totalTests, sectionTitle, sectionIcon, sele
           </div>
           <span className="text-xs font-medium tracking-widest uppercase text-[#1a1a1a]/30">Question {testIndex + 1}</span>
         </div>
-        <h3 className="text-2xl font-bold text-[#1a1a1a] tracking-tight mb-1">{test.name}</h3>
       </div>
 
       <div className="bg-[#1a1a1a]/[0.02] border border-[#1a1a1a]/[0.08] rounded-xl p-4 mb-6">
