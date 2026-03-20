@@ -1242,7 +1242,17 @@ export default function BilansPage() {
                                     <div key={i} className="relative bg-[#1a1a1a]/[0.02] border border-[#1a1a1a]/[0.06] rounded-2xl px-5 py-4 overflow-hidden">
                                       <div className="absolute top-3 right-4 text-5xl font-serif text-[#1a1a1a]/[0.04] leading-none select-none">&ldquo;</div>
                                       <p className="text-xs font-bold text-[#1a1a1a] mb-1.5">{insight.title}</p>
-                                      <p className="text-xs text-[#1a1a1a]/55 leading-relaxed mb-3">{insight.description}</p>
+                                      <div className="mb-3 space-y-2">
+                                        {insight.description.split('\n\n').map((para, pi) => (
+                                          <p key={pi} className="text-xs text-[#1a1a1a]/55 leading-relaxed">
+                                            {para.split(/(\*\*.*?\*\*)/).map((part, si) =>
+                                              part.startsWith('**') && part.endsWith('**')
+                                                ? <strong key={si} className="font-semibold text-[#1a1a1a]/75">{part.slice(2, -2)}</strong>
+                                                : part
+                                            )}
+                                          </p>
+                                        ))}
+                                      </div>
                                       <p className="text-[10px] text-[#1a1a1a]/25 font-medium">{insight.reference}</p>
                                     </div>
                                   ))}
