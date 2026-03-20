@@ -44,10 +44,10 @@ const troublesSommeilReport: SectionReport = {
   sectionId: 'troubles-sommeil',
   context:
     "Chaque interruption nocturne brise des cycles de 90 minutes alternant NREM N3 (sommeil profond) et REM (sommeil paradoxal), deux phases non interchangeables. Le NREM N3, dominant en première moitié de nuit, libère l'hormone de croissance et active le système glymphatique (réseau de nettoyage cérébral éliminant les déchets métaboliques). Le REM, dominant en fin de nuit, régule les émotions et consolide la mémoire. Une fragmentation chronique génère des risques cardiovasculaires, métaboliques et immunitaires comparables à la privation totale.",
-  strengthLabel: 'Vos nuits sont calmes et non fragmentées',
+  strengthLabel: 'Peu de perturbations nocturnes identifiées',
   weaknessLabel: 'Perturbations nocturnes à corriger en priorité',
   scienceNote:
-    "Un sommeil non fragmenté permet au cerveau de compléter ses cycles. C'est en sommeil profond (NREM N3) que l'hormone de croissance est libérée et que le nettoyage cérébral s'effectue : ce processus ne se rattrape pas le week-end.",
+    "C'est en sommeil profond que l'hormone de croissance est libérée et que le nettoyage cérébral s'effectue. Chaque réveil nocturne, même court, peut interrompre ces processus — surtout s'il est répété plusieurs nuits par semaine.",
   recommendations: [
     {
       maxPct: 33,
@@ -65,13 +65,19 @@ const troublesSommeilReport: SectionReport = {
       maxPct: 90,
       level: 'bon',
       title: 'Quelques inconforts ponctuels',
-      text: "Vos nuits sont globalement calmes. Surveillez si un facteur revient régulièrement (température, bruit, lumière, stress) pour l'éliminer.",
+      text: "Des réveils ou inconforts occasionnels présents. Identifiez le facteur récurrent (température, bruit, lumière, stress) et corrigez-le.",
+    },
+    {
+      maxPct: 95,
+      level: 'bon',
+      title: 'Perturbations très rares',
+      text: "Peu de troubles nocturnes identifiés. Certaines perturbations ponctuelles restent possibles — surveillez si elles deviennent régulières.",
     },
     {
       maxPct: 100,
       level: 'excellent',
-      title: 'Nuits non perturbées',
-      text: "Vos cycles sont complets : nettoyage cérébral nocturne (système glymphatique) actif, mémoire consolidée, émotions régulées. Le sommeil non fragmenté est l'un des premiers marqueurs de longévité cellulaire.",
+      title: 'Pas de perturbation nocturne significative',
+      text: "Pas de trouble récurrent identifié : pas d'apnées, pas de ronflement, pas de douleurs, pas de cauchemars fréquents. Le sommeil profond et le sommeil paradoxal peuvent s'effectuer sans interruption.",
     },
   ],
   questionInsights: [
