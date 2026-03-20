@@ -162,9 +162,9 @@ const troublesSommeilReport: SectionReport = {
         "Le sommeil profond (N3) est la principale fenêtre de libération d'hormone de croissance, qui répare les tissus et réduit l'inflammation. Quand la douleur fragmente cette phase, moins d'hormone est produite — ce qui ralentit la récupération des zones douloureuses. En parallèle, le manque de sommeil profond amplifie la sensibilité à la douleur : le même signal est perçu plus intensément le lendemain. Un cercle vicieux s'installe : la douleur fragmente le sommeil, le sommeil fragmenté amplifie la douleur.",
       recommendation:
         "Étirements doux ciblés 10 min avant le coucher. Chaleur locale en soirée (bouillotte ou bain chaud) : relâche les muscles tendus et prépare la descente thermique. Évaluez votre literie : un matelas >8 ans aggrave les douleurs articulaires et perturbe le sommeil profond.",
-      action: 'Faites 10 min d\'étirements doux avant le coucher et évaluez votre literie.',
+      action: 'Mettez en place une routine anti-douleur le soir : 10 min d\'étirements doux + chaleur locale (bouillotte ou bain chaud 1h30 avant le coucher).',
       actionWhy:
-        "La chaleur locale (bouillotte, bain chaud) améliore la circulation dans les tissus concernés et aide à éliminer les molécules inflammatoires qui entretiennent la douleur. Un bain chaud 1h30 avant le coucher provoque aussi une vasodilatation qui accélère la descente de température corporelle — le signal biologique du coucher. Les étirements doux relâchent la tension musculaire en activant des réflexes inhibiteurs naturels de la moelle épinière, réduisant les signaux douloureux avant l'endormissement.",
+        "Les étirements doux relâchent la tension musculaire en activant des réflexes inhibiteurs naturels de la moelle épinière, réduisant les signaux douloureux avant l'endormissement. La chaleur locale (bouillotte, bain chaud) améliore la circulation dans les tissus concernés et aide à éliminer les molécules inflammatoires qui entretiennent la douleur. Un bain chaud 1h30 avant le coucher provoque aussi une vasodilatation qui accélère la descente de température corporelle — le signal biologique du coucher.",
     },
   ],
   references: [
