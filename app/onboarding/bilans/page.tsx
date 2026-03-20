@@ -432,10 +432,24 @@ export default function BilansPage() {
           return
         }
 
+        // Load sessions from DB (profiles table) to avoid storing large data in JWT cookies.
+        // Fallback order: DB agenda_sessions → user_metadata (legacy) → localStorage
+        // The user_metadata fallback handles existing users whose sessions were stored there
+        // before this change; they are migrated to the DB on the next persist cycle.
+        let dbSessions: StoredSession[] | null = null
+        try {
+          const { data: profileRow } = await supabase.from('profiles').select('agenda_sessions').eq('id', u.id).single()
+          if (Array.isArray(profileRow?.agenda_sessions) && profileRow.agenda_sessions.length > 0) {
+            dbSessions = profileRow.agenda_sessions as StoredSession[]
+          }
+        } catch { /* ignore */ }
         const metadataSessions = (u?.user_metadata?.evo_onboarding as { agendaSessions?: StoredSession[] } | undefined)?.agendaSessions
         const localSessionsRaw = typeof window !== "undefined" ? localStorage.getItem("evo_planning_sessions") : null
         const localSessions = localSessionsRaw ? (JSON.parse(localSessionsRaw) as StoredSession[]) : null
-        const baseSessions = Array.isArray(metadataSessions) && metadataSessions.length > 0 ? metadataSessions : Array.isArray(localSessions) ? localSessions : []
+        const baseSessions =
+          Array.isArray(dbSessions) && dbSessions.length > 0 ? dbSessions :
+          Array.isArray(metadataSessions) && metadataSessions.length > 0 ? metadataSessions :
+          Array.isArray(localSessions) ? localSessions : []
         if (baseSessions.length > 0) {
           const parsed = baseSessions
             .map((s) => ({ ...s, date: parseISO(s.date), type: s.type as "evo" | "sport" }))
@@ -493,13 +507,10 @@ export default function BilansPage() {
         const existingOnboarding =
           (session.user.user_metadata?.evo_onboarding as Record<string, unknown> | undefined) ?? {}
 
-        const nextOnboarding = {
-          ...existingOnboarding,
-          agendaSessions: sessions.map((storedSession) => ({
-            ...storedSession,
-            date: storedSession.date.toISOString(),
-          })),
-        }
+        // agendaSessions are saved to the DB only — keeping them out of user_metadata
+        // prevents the JWT cookie from growing too large (Vercel 494 error)
+        const nextOnboarding = { ...existingOnboarding }
+        delete nextOnboarding.agendaSessions
 
         await sb.auth.updateUser({
           data: {
@@ -511,6 +522,10 @@ export default function BilansPage() {
         await upsertProfile({
           id: session.user.id,
           first_name: (session.user.user_metadata?.first_name as string | undefined) || '',
+          agenda_sessions: sessions.map((storedSession) => ({
+            ...storedSession,
+            date: storedSession.date.toISOString(),
+          })),
           onboarding_data: nextOnboarding,
           onboarding_completed_at:
             (existingOnboarding.completedAt as string | undefined) ?? null,
