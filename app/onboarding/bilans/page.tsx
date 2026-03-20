@@ -68,10 +68,10 @@ const weeklyActivity = [
 ]
 
 const bilanOptionsDefs: { id: string; bilanType: string; title: string; description: string; duration: string; available: boolean; href: string; icon: React.ReactNode; color: string }[] = [
-  { id: "condition-physique", bilanType: "mobilite", title: "Condition physique", description: "43 tests — mobilite, force, equilibre, souplesse.", duration: "15 min", available: false, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
+  { id: "condition-physique", bilanType: "mobilite", title: "Condition physique", description: "43 tests : mobilite, force, equilibre, souplesse.", duration: "15 min", available: false, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
   { id: "nutrition", bilanType: "nutrition", title: "Nutrition", description: "Troubles digestifs & habitudes alimentaires.", duration: "12 min", available: true, href: "/onboarding/bilan-nutrition", icon: <Apple className="w-5 h-5" />, color: "#c9a96e" },
   { id: "sommeil", bilanType: "sommeil", title: "Sommeil", description: "Qualite & recuperation nocturne.", duration: "10 min", available: true, href: "/onboarding/bilan-sommeil", icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
-  { id: "mental", bilanType: "mental", title: "Santé mentale", description: "Émotions, stress, résilience — 2 questionnaires.", duration: "25 min", available: false, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
+  { id: "mental", bilanType: "mental", title: "Santé mentale", description: "Émotions, stress, résilience : 2 questionnaires.", duration: "25 min", available: false, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
 ]
 
 /* Hidden defs for report lookup (emotionnel + stress saved separately in DB) */
@@ -99,7 +99,7 @@ interface BilanResult {
     globalInsights?: { title: string; description: string; reference: string }[]
     // New structured format
     strengths?: { sectionId: string; title: string; pct: number; praise: string; science: string; scienceNote?: string; reference: string }[]
-    weaknesses?: { sectionId: string; title: string; pct: number; level: string; concern: string; science: string; reference: string; triggeredInsights: { questionId: string; insight: string; recommendation: string }[] }[]
+    weaknesses?: { sectionId: string; title: string; pct: number; level: string; concern: string; science: string; reference: string; triggeredInsights: { questionId: string; title?: string; insight: string; recommendation: string }[] }[]
     actionPlan?: { phase: number; phaseTitle: string; timeframe: string; actions: { action: string; why: string; sectionId: string }[] }[]
   }
   completed_at: string
@@ -149,7 +149,7 @@ function sectionTitle(id: string, fallback: string) {
 }
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8) // 8h-20h compact
-const H_PX = 44 // px per hour — compact
+const H_PX = 44 // px per hour : compact
 
 /* ─── small components ─── */
 function ScoreRing({ value, size = 56 }: { value: number; size?: number }) {
@@ -458,7 +458,7 @@ export default function BilansPage() {
             const brBody = await br.json() as { results?: BilanResult[] }
             if (brBody.results) setBilanResults(brBody.results)
           }
-        } catch { /* bilan results fetch failed — not critical */ }
+        } catch { /* bilan results fetch failed : not critical */ }
       } catch {} finally { setCalendarLoading(false) }
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -583,7 +583,7 @@ export default function BilansPage() {
     else setCurrentDate(dir === 1 ? addDays(currentDate, 1) : subDays(currentDate, 1))
   }
 
-  const calTitle = calView === "month" ? format(currentDate, "MMMM yyyy", { locale: fr }) : calView === "week" ? `${format(weekStart, "d MMM", { locale: fr })} — ${format(addDays(weekStart, 6), "d MMM yyyy", { locale: fr })}` : format(currentDate, "EEEE d MMMM yyyy", { locale: fr })
+  const calTitle = calView === "month" ? format(currentDate, "MMMM yyyy", { locale: fr }) : calView === "week" ? `${format(weekStart, "d MMM", { locale: fr })} : ${format(addDays(weekStart, 6), "d MMM yyyy", { locale: fr })}` : format(currentDate, "EEEE d MMMM yyyy", { locale: fr })
 
   const last = progressData[progressData.length - 1]
   const sessionTop = (s: Session) => Math.max(0, (getHours(s.date) - 8 + getMinutes(s.date) / 60) * H_PX)
@@ -683,7 +683,7 @@ export default function BilansPage() {
       {/* ════════ HERO KPIs ════════ */}
       <section id="dashboard">
         <div className="relative overflow-hidden bg-[#0a0a0a]">
-          {/* animated gradient blobs — dynamic */}
+          {/* animated gradient blobs : dynamic */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className={`absolute w-[700px] h-[700px] rounded-full ${css.heroBlob1}`} style={{ top: "-20%", right: "-15%", background: "radial-gradient(circle, #c9a96e 0%, transparent 65%)", filter: "blur(100px)", opacity: 0.12 }} />
             <div className={`absolute w-[600px] h-[600px] rounded-full ${css.heroBlob2}`} style={{ bottom: "-20%", left: "-15%", background: "radial-gradient(circle, #3ECF8E 0%, transparent 65%)", filter: "blur(90px)", opacity: 0.10 }} />
@@ -740,7 +740,7 @@ export default function BilansPage() {
             <div className="flex flex-col gap-5 lg:flex-row lg:gap-10 lg:items-start">
               {/* ── Left: profile block ── */}
               <div className="shrink-0 w-full lg:w-[240px] rounded-2xl border border-white/[0.08] bg-white/[0.04] p-5 sm:p-5 lg:border-0 lg:bg-transparent lg:p-0 flex flex-col items-center lg:items-start">
-                {/* Ages side by side — big & centered on mobile */}
+                {/* Ages side by side : big & centered on mobile */}
                 <div className="flex items-start gap-6 sm:gap-5 mb-6 justify-center lg:justify-start">
                   <div className="text-center lg:text-left">
                     <p className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.18em] text-white/30 mb-2">Âge réel</p>
@@ -782,7 +782,7 @@ export default function BilansPage() {
                   )}
                 </div>
 
-                {/* WhatsApp CTA — gros bouton sur mobile */}
+                {/* WhatsApp CTA : gros bouton sur mobile */}
                 <div className="mt-5 w-full">
                   <a href="https://wa.me/message/QTBSFJSLI3PKN1" target="_blank" rel="noopener noreferrer"
                     className="flex w-full items-center justify-center gap-3 px-4 py-4 lg:py-2.5 lg:px-3 rounded-2xl lg:rounded-full bg-[#25D366]/15 border border-[#25D366]/30 hover:bg-[#25D366]/25 active:scale-[0.98] transition-all group/wa">
@@ -799,7 +799,7 @@ export default function BilansPage() {
 
               {/* ── Right: score cards ── */}
               <div className="flex-1 min-w-0 flex flex-col gap-2 lg:gap-3">
-                {/* Nutrition — carte principale */}
+                {/* Nutrition : carte principale */}
                 <div
                   className={`${css.kpiCard} relative rounded-2xl p-4 sm:p-5 overflow-hidden border cursor-pointer`}
                   style={{ background: nutritionScore !== null ? 'rgba(201,169,110,0.07)' : 'rgba(255,255,255,0.04)', borderColor: nutritionScore !== null ? 'rgba(201,169,110,0.22)' : 'rgba(255,255,255,0.08)' }}
@@ -837,17 +837,53 @@ export default function BilansPage() {
                   </div>
                 </div>
 
-                {/* 3 autres cartes — toujours visibles, compactes sur mobile */}
-                <div className="grid grid-cols-3 gap-2 lg:gap-3 lg:grid-cols-3">
-                  {scoreCards.filter(c => c.label !== "Nutrition").map((card, i) => (
+                {/* Sommeil : carte secondaire horizontale */}
+                <div
+                  className={`${css.kpiCard} relative rounded-2xl p-4 sm:p-5 overflow-hidden border cursor-pointer`}
+                  style={{ background: sommeilScore !== null ? 'rgba(167,139,250,0.07)' : 'rgba(255,255,255,0.04)', borderColor: sommeilScore !== null ? 'rgba(167,139,250,0.22)' : 'rgba(255,255,255,0.08)' }}
+                  onClick={() => {
+                    if (sommeilScore !== null) {
+                      setExpandedReport('sommeil')
+                      setTimeout(() => document.getElementById('compte-rendu')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+                    } else {
+                      router.push('/onboarding/bilan-sommeil')
+                    }
+                  }}
+                >
+                  <div className={css.kpiShimmer}><div /></div>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                      <div className={`${css.kpiIcon} w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0`} style={{ background: 'rgba(167,139,250,0.12)', color: '#a78bfa' }}>
+                        <Moon className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/35 mb-1">Sommeil</p>
+                        {sommeilScore !== null ? (
+                          <div className="flex items-baseline gap-1">
+                            <span className={`${css.kpiValue} text-4xl sm:text-3xl font-bold text-white`}>{sommeilScore}</span>
+                            <span className="text-sm text-white/30">/100</span>
+                          </div>
+                        ) : (
+                          <p className="text-[15px] sm:text-[14px] text-white/70 font-medium leading-tight">Questionnaire disponible</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all" style={{ color: '#a78bfa', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)' }}>
+                      {sommeilScore !== null ? 'Rapport' : 'Commencer'}
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2 cartes Bientôt : Physique & Mental */}
+                <div className="grid grid-cols-2 gap-2 lg:gap-3">
+                  {scoreCards.filter(c => c.label !== "Nutrition" && c.label !== "Sommeil").map((card, i) => (
                     <div key={i} className={`${css.kpiCard} relative rounded-2xl p-3 lg:p-3.5 text-center overflow-hidden border`} style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
                       <div className={`${css.kpiIcon} w-8 h-8 lg:w-8 lg:h-8 rounded-xl lg:rounded-lg flex items-center justify-center mb-2 mx-auto`} style={{ background: 'rgba(255,255,255,0.05)', color: card.color }}>
                         <span className="scale-90 lg:scale-100">{card.icon}</span>
                       </div>
                       <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-white/35 leading-tight">{card.label}</p>
-                      <p className="mt-1.5 text-[13px] lg:text-[14px] font-semibold text-white/80">
-                        {card.score !== null ? `${card.score}/100` : 'Bientôt'}
-                      </p>
+                      <p className="mt-1.5 text-[13px] lg:text-[14px] font-semibold text-white/80">Bientôt</p>
                     </div>
                   ))}
                 </div>
@@ -866,7 +902,7 @@ export default function BilansPage() {
 
         {/* ════════ BILANS ════════ */}
         <section id="bilans" className="scroll-mt-20">
-          <SectionHeader title="Tes bilans" subtitle="1 bilan disponible aujourd'hui — les autres arrivent bientôt" gold />
+          <SectionHeader title="Tes bilans" subtitle="1 bilan disponible aujourd'hui : les autres arrivent bientôt" gold />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {bilanOptions.map(bilan => {
               const completed = bilan.score !== null
@@ -1034,7 +1070,7 @@ export default function BilansPage() {
                         {/* ═══ NEW FORMAT: exact mirror of ResultsScreen ═══ */}
                         {report.strengths && report.weaknesses && report.actionPlan ? (
                           <>
-                            {/* Sub-score cards — same style as ResultsScreen */}
+                            {/* Sub-score cards : same style as ResultsScreen */}
                             {subScores?.digestif && subScores?.alimentaire && (
                               <div className="grid grid-cols-2 gap-3">
                                 <div className="bg-white border border-[#1a1a1a]/[0.07] rounded-xl px-4 py-3">
@@ -1064,7 +1100,7 @@ export default function BilansPage() {
                               </div>
                             )}
 
-                            {/* Strengths — alimentaire only, max 3 */}
+                            {/* Strengths : alimentaire only, max 3 */}
                             {(() => {
                               const digestifIds = DIGESTIF_IDS
                               const alimentaireStrengths = report.strengths!.filter(s => !digestifIds.has(s.sectionId)).slice(0, 3)
@@ -1088,7 +1124,7 @@ export default function BilansPage() {
                               ) : null
                             })()}
 
-                            {/* Weaknesses — split alimentaire / digestif */}
+                            {/* Weaknesses : split alimentaire / digestif */}
                             {report.weaknesses.length > 0 && (() => {
                               const digestifIds = DIGESTIF_IDS
                               const alimentaireW = report.weaknesses!.filter(w => !digestifIds.has(w.sectionId))
@@ -1130,7 +1166,10 @@ export default function BilansPage() {
                                                 <div key={ti.questionId} className="px-5 py-4">
                                                   <div className="flex items-start gap-2.5 mb-3">
                                                     <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-[10px] font-bold text-amber-600 mt-0.5">{i + 1}</span>
-                                                    <p className="text-xs text-[#1a1a1a]/60 leading-relaxed italic">{ti.insight}</p>
+                                                    <div>
+                                                      {ti.title && <p className="text-xs font-semibold text-[#1a1a1a]/80 mb-1">{ti.title}</p>}
+                                                      <p className="text-xs text-[#1a1a1a]/60 leading-relaxed italic">{ti.insight}</p>
+                                                    </div>
                                                   </div>
                                                   <div className="ml-7 bg-[#2D6A4F]/[0.05] border border-[#2D6A4F]/[0.15] rounded-xl px-4 py-3">
                                                     <p className="text-[10px] font-semibold text-[#2D6A4F] uppercase tracking-wider mb-1">Recommandation</p>
@@ -1228,7 +1267,7 @@ export default function BilansPage() {
                               </div>
                             )}
 
-                            {/* Science cards — same dark style as ResultsScreen */}
+                            {/* Science cards : same dark style as ResultsScreen */}
                             {report.globalInsights && report.globalInsights.length > 0 && (
                               <div>
                                 <div className="flex items-center gap-2 mb-4">
@@ -1262,7 +1301,7 @@ export default function BilansPage() {
                           </>
                         ) : (
                           <>
-                            {/* ═══ LEGACY FORMAT — fallback for bilans not yet migrated ═══ */}
+                            {/* ═══ LEGACY FORMAT : fallback for bilans not yet migrated ═══ */}
 
                             {/* Section breakdown mini-bars */}
                             {result.section_results && result.section_results.length > 0 && (
@@ -1415,7 +1454,7 @@ export default function BilansPage() {
                                   ))}
                                 </div>
                               ) : (
-                                <p className="text-xs text-emerald-600 font-medium">Excellent ! Pas d&apos;action prioritaire — maintenez vos bonnes habitudes.</p>
+                                <p className="text-xs text-emerald-600 font-medium">Excellent ! Pas d&apos;action prioritaire : maintenez vos bonnes habitudes.</p>
                               )}
                             </div>
                           </>
@@ -1651,7 +1690,7 @@ export default function BilansPage() {
                         style={{ top, height: Math.max(height, 24), ...(sportColor ? { backgroundColor: sportColor + "1e", borderLeftColor: sportColor, color: sportColor } : {}) }}>
                         {isDraggable(s) && <GripVertical className="w-3 h-3 absolute top-1 right-1 opacity-0 group-hover/sess:opacity-40 text-current" />}
                         <p className="text-[11px] font-semibold truncate">{s.type === "google" ? "Occupé" : s.label}</p>
-                        <p className="text-[10px] opacity-60">{format(s.date, "HH:mm")} — {s.duration} min</p>
+                        <p className="text-[10px] opacity-60">{format(s.date, "HH:mm")} : {s.duration} min</p>
                       </div>
                     )
                   })}
@@ -1680,7 +1719,7 @@ export default function BilansPage() {
                   <Plus className="w-3.5 h-3.5" /> Ajouter mes seances sport
                 </button>
                 <button disabled className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl bg-white/10 text-white/40 text-[12px] font-medium cursor-not-allowed border border-white/10">
-                  <Dumbbell className="w-3.5 h-3.5" /> Seances evo — a venir
+                  <Dumbbell className="w-3.5 h-3.5" /> Seances evo : a venir
                 </button>
               </div>
               <div className="mt-auto pt-4 border-t border-white/10 space-y-2.5">
@@ -1703,7 +1742,7 @@ export default function BilansPage() {
           <SectionHeader title="Progression" subtitle="Evolution de tes scores sur 6 mois" />
           <div className="bg-white rounded-xl border border-black/[0.04] p-5 mb-4 relative">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Scores par pilier — 6 mois</h3>
+              <h3 className="text-[13px] font-medium text-[#1a1a1a]/70">Scores par pilier : 6 mois</h3>
               <span className="text-[9px] font-bold text-[#c9a96e] bg-[#c9a96e]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">Bientôt</span>
             </div>
             <ResponsiveContainer width="100%" height={200}>
@@ -1793,13 +1832,13 @@ export default function BilansPage() {
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={resetModalState} />
           <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-[14px] font-medium text-[#1a1a1a]">{editingSessionId ? "Modifier" : "Ajouter"} — {format(modal.date, "EEEE d MMMM", { locale: fr })}</h3>
+              <h3 className="text-[14px] font-medium text-[#1a1a1a]">{editingSessionId ? "Modifier" : "Ajouter"} : {format(modal.date, "EEEE d MMMM", { locale: fr })}</h3>
               <button onClick={resetModalState} className="w-6 h-6 rounded-md flex items-center justify-center text-[#1a1a1a]/25 hover:text-[#1a1a1a] hover:bg-[#f3f4f3] transition-colors"><X className="w-3.5 h-3.5" /></button>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#c9a96e]/06 border border-[#c9a96e]/20">
               <Activity className="w-3.5 h-3.5 text-[#a08050]" />
               <span className="text-[12px] font-medium text-[#a08050]">Séance sport</span>
-              <span className="ml-auto text-[10px] text-[#1a1a1a]/25">Séances evo — bientôt</span>
+              <span className="ml-auto text-[10px] text-[#1a1a1a]/25">Séances evo : bientôt</span>
             </div>
             <input type="text" placeholder="ex. Run 5km, Vélo, Muscu…" value={newSession.label} onChange={e => setNewSession(s => ({ ...s, label: e.target.value }))} className="w-full px-3 py-2.5 rounded-lg border border-black/[0.06] text-[13px] focus:outline-none focus:border-[#c9a96e]/40 transition-colors placeholder:text-[#1a1a1a]/20" />
             <div className="flex items-center gap-2">
