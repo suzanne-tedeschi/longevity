@@ -1108,7 +1108,7 @@ export default function BilansPage() {
                                         <div key={w.sectionId} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">
                                           <div className="px-5 py-4 flex items-start gap-3">
                                             <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${w.pct < 40 ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-500'}`}>
-                                              <Apple className="w-4 h-4" />
+                                              <span className="w-4 h-4 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4">{def.icon}</span>
                                             </div>
                                             <div className="flex-1 min-w-0">
                                               <p className="text-sm font-bold text-[#1a1a1a] mb-1">{w.title}</p>
