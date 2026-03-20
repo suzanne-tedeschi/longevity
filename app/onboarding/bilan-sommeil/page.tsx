@@ -843,15 +843,37 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
 /* ═══════════════════════════════════════════════════════
    MAIN ORCHESTRATOR
    ═══════════════════════════════════════════════════════ */
-type Phase = 'testing' | 'results'
+type Phase = 'intro' | 'testing' | 'results'
 
 export default function BilanSommeilPage() {
   const router = useRouter()
-  const [phase, setPhase] = useState<Phase>('testing')
+  const [phase, setPhase] = useState<Phase>('intro')
   const [sectionIndex, setSectionIndex] = useState(0)
   const [testIndex, setTestIndex] = useState(0)
   const [scores, setScores] = useState<Record<string, number>>({})
+  const [previousScores, setPreviousScores] = useState<Record<string, number> | null>(null)
+  const [loadingPrevious, setLoadingPrevious] = useState(true)
   const hasRestored = useRef(false)
+
+  // ── Load previous results from DB ──
+  useEffect(() => {
+    const fetchPrevious = async () => {
+      try {
+        const session = await supabase?.auth.getSession()
+        const token = session?.data.session?.access_token
+        if (!token) { setLoadingPrevious(false); return }
+        const res = await fetch('/api/bilan/results', { headers: { Authorization: `Bearer ${token}` } })
+        if (!res.ok) { setLoadingPrevious(false); return }
+        const { results } = await res.json()
+        const sommeil = results?.find((r: { bilan_type: string; scores: Record<string, number> }) => r.bilan_type === 'sommeil')
+        if (sommeil?.scores && Object.keys(sommeil.scores).length > 0) {
+          setPreviousScores(sommeil.scores)
+        }
+      } catch { /* ignore */ }
+      setLoadingPrevious(false)
+    }
+    fetchPrevious()
+  }, [])
 
   // ── Restore progress from localStorage ──
   useEffect(() => {
@@ -937,6 +959,36 @@ export default function BilanSommeilPage() {
       )}
 
       <main className="max-w-2xl mx-auto px-4 py-6">
+        {phase === 'intro' && (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+            <div className="w-14 h-14 rounded-2xl bg-[#1a1a1a]/[0.04] flex items-center justify-center">
+              <MoonIcon className="w-7 h-7 text-[#1a1a1a]/40" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-[#1a1a1a] mb-2">Bilan Sommeil</h1>
+              <p className="text-sm text-[#1a1a1a]/50">31 questions · ~5 minutes</p>
+            </div>
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+              {!loadingPrevious && previousScores && (
+                <button
+                  onClick={() => { setScores(previousScores); setPhase('results') }}
+                  className="w-full py-3 px-4 rounded-xl bg-supagreen text-white text-sm font-medium hover:bg-supagreen-dark transition-colors"
+                >
+                  Voir mes derniers résultats
+                </button>
+              )}
+              <button
+                onClick={() => setPhase('testing')}
+                className={`w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors ${previousScores ? 'bg-[#1a1a1a]/[0.05] text-[#1a1a1a]/70 hover:bg-[#1a1a1a]/[0.08]' : 'bg-supagreen text-white hover:bg-supagreen-dark'}`}
+              >
+                {previousScores ? 'Refaire le questionnaire' : 'Commencer'}
+              </button>
+              <Link href="/onboarding/bilans" className="text-xs text-[#1a1a1a]/30 hover:text-[#1a1a1a]/50 transition-colors">
+                Retour au tableau de bord
+              </Link>
+            </div>
+          </div>
+        )}
         {phase === 'testing' && currentTest && (
           <TestCard
             test={currentTest} testIndex={flatIndex} totalTests={totalTests}

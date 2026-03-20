@@ -219,6 +219,13 @@ const hygieneSommeil: TestSection = {
       tip: 'Walker place la régularité en tête de tous les facteurs de qualité du sommeil — avant même la durée. Des horaires variables créent un "jet lag social" permanent qui désynchronise l\'horloge interne.',
     },
     {
+      id: 'hyg-5',
+      name: 'Horaires de lever irréguliers',
+      description: 'Se lever à des heures différentes chaque jour',
+      criteria: 'Je me lève à des heures différentes chaque jour.',
+      scoring: shiFrequencyScoring,
+    },
+    {
       id: 'hyg-2',
       name: 'Activités au lit hors sommeil',
       description: 'TV, repas, travail au lit quand vous ne pouvez pas dormir',
@@ -245,13 +252,6 @@ const hygieneSommeil: TestSection = {
       criteria: 'Je bois des boissons caféinées dans les 6 heures avant de me coucher.',
       scoring: shiFrequencyScoring,
       tip: 'Walker s\'interdit toute caféine après 13h. Sa demi-vie est de 5 à 7 heures : un café à 16h maintient encore 50 % de son effet à 22h, réduisant le sommeil profond même si vous vous endormez.',
-    },
-    {
-      id: 'hyg-5',
-      name: 'Horaires de lever irréguliers',
-      description: 'Se lever à des heures différentes chaque jour',
-      criteria: 'Je me lève à des heures différentes chaque jour.',
-      scoring: shiFrequencyScoring,
     },
     {
       id: 'hyg-6',
