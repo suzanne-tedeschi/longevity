@@ -786,7 +786,7 @@ export function generateFullReport(
     if (rec.level === 'excellent' || rec.level === 'bon') {
       strengths.push({
         sectionId: r.sectionId,
-        title: rec.level === 'excellent' ? (report.strengthLabel || r.title) : rec.title,
+        title: report.strengthLabel || rec.title,
         pct: r.pct,
         praise: rec.text,
         science: report.context.split('.').slice(0, 2).join('.') + '.',
