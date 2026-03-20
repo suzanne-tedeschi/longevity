@@ -737,17 +737,44 @@ export function getSectionRecommendation(report: SectionReport, pct: number) {
   return report.recommendations[report.recommendations.length - 1]
 }
 
+function isTriggered(qi: QuestionInsight, scores: Record<string, number>): boolean {
+  const s = scores[qi.questionId]
+  if (s === undefined) return false
+  if (qi.triggerMinScore === undefined && qi.triggerMaxScore === undefined) return false
+  if (qi.triggerMinScore !== undefined) return s >= qi.triggerMinScore
+  return s <= (qi.triggerMaxScore as number)
+}
+
 export function getTriggeredInsights(
   report: SectionReport,
   scores: Record<string, number>
-) {
-  return report.questionInsights.filter((qi) => {
-    const s = scores[qi.questionId]
-    if (s === undefined) return false
-    if (qi.triggerMinScore === undefined && qi.triggerMaxScore === undefined) return false
-    if (qi.triggerMinScore !== undefined) return s >= qi.triggerMinScore
-    return s <= (qi.triggerMaxScore as number)
-  })
+): (QuestionInsight | (GroupedInsight & { questionId: '_grouped' }))[] {
+  // Collect triggered individual question IDs
+  const triggeredIds = new Set(
+    report.questionInsights.filter((qi) => isTriggered(qi, scores)).map((qi) => qi.questionId)
+  )
+
+  // Check grouped insights — if all questionIds in a group are triggered, use the group
+  const groupedUsed = new Set<string>()
+  const result: (QuestionInsight | (GroupedInsight & { questionId: '_grouped' }))[] = []
+
+  if (report.groupedInsights) {
+    for (const group of report.groupedInsights) {
+      if (group.questionIds.every((id) => triggeredIds.has(id))) {
+        result.push({ ...group, questionId: '_grouped' })
+        group.questionIds.forEach((id) => groupedUsed.add(id))
+      }
+    }
+  }
+
+  // Add individual insights that weren't absorbed into a group
+  for (const qi of report.questionInsights) {
+    if (isTriggered(qi, scores) && !groupedUsed.has(qi.questionId)) {
+      result.push(qi)
+    }
+  }
+
+  return result
 }
 
 // ══════════════════════════════════════════════════════
@@ -804,7 +831,7 @@ export const sommeilGlossary: { term: string; definition: string }[] = [
 ]
 
 export interface StrengthItem { sectionId: string; title: string; pct: number; praise: string; science: string; scienceNote: string; reference: string }
-export interface WeaknessItem { sectionId: string; title: string; pct: number; level: string; concern: string; science: string; reference: string; triggeredInsights: { questionId: string; insight: string; recommendation: string; action?: string }[] }
+export interface WeaknessItem { sectionId: string; title: string; pct: number; level: string; concern: string; science: string; reference: string; triggeredInsights: { questionId: string; title: string; insight: string; recommendation: string; action?: string }[] }
 export interface ActionPhase { phase: number; phaseTitle: string; timeframe: string; actions: { action: string; why: string; sectionId: string }[] }
 
 export function generateFullReport(
@@ -863,7 +890,7 @@ export function generateFullReport(
         reference: ref0,
         triggeredInsights: triggered
           .filter((t, i, arr) => arr.findIndex(x => x.recommendation.slice(0, 60) === t.recommendation.slice(0, 60)) === i)
-          .map(t => ({ questionId: t.questionId, insight: t.insight, recommendation: t.recommendation, action: t.action })),
+          .map(t => ({ questionId: t.questionId, title: t.title, insight: t.insight, recommendation: t.recommendation, action: t.action })),
       })
     }
   }

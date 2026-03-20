@@ -703,7 +703,10 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
                         <div key={i} className="px-5 py-4">
                           <div className="flex items-start gap-2.5 mb-3">
                             <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-[10px] font-bold text-amber-600 mt-0.5">{i + 1}</span>
-                            <p className="text-xs text-[#1a1a1a]/60 leading-relaxed italic">{ins.insight}</p>
+                            <div>
+                              <p className="text-xs font-semibold text-[#1a1a1a]/80 mb-1">{ins.title}</p>
+                              <p className="text-xs text-[#1a1a1a]/60 leading-relaxed italic">{ins.insight}</p>
+                            </div>
                           </div>
                           <div className="ml-7 bg-supagreen/[0.05] border border-supagreen/[0.15] rounded-xl px-4 py-3">
                             <p className="text-[10px] font-semibold text-supagreen uppercase tracking-wider mb-1">Recommandation</p>
