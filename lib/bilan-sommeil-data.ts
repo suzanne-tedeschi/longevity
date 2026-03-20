@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────────────
-// Bilan Sommeil — Data Model
+// Bilan Sommeil : Data Model
 // Basé sur le PSQI, le SHI et un questionnaire complémentaire
 // ──────────────────────────────────────────────────────
 
@@ -62,7 +62,7 @@ const profileScoring: ScoreOption[] = [
 ]
 
 // ══════════════════════════════════════════════════════
-// SECTION 1 — Troubles du sommeil (PSQI Q5a-i — 9 tests)
+// SECTION 1 : Troubles du sommeil (PSQI Q5a-i : 9 tests)
 // ══════════════════════════════════════════════════════
 const troublesSommeil: TestSection = {
   id: 'troubles-sommeil',
@@ -144,7 +144,7 @@ const troublesSommeil: TestSection = {
 }
 
 // ══════════════════════════════════════════════════════
-// SECTION 2 — Qualité & Impact diurne (PSQI Q6-Q9 — 4 tests)
+// SECTION 2 : Qualité & Impact diurne (PSQI Q6-Q9 : 4 tests)
 // ══════════════════════════════════════════════════════
 const qualiteImpact: TestSection = {
   id: 'qualite-impact',
@@ -181,7 +181,7 @@ const qualiteImpact: TestSection = {
       description: 'Difficulté à rester éveillé(e) dans la journée',
       criteria: 'Au cours du mois dernier, combien de fois avez-vous eu des difficultés à demeurer éveillé(e) (conduite, repas, activités sociales) ?',
       scoring: psqiFrequencyScoring,
-      tip: 'Walker a documenté des "microsommeils" de 3 à 10 secondes qui surviennent sans que la personne s\'en rende compte — y compris au volant. La somnolence diurne n\'est jamais anodine.',
+      tip: 'Walker a documenté des "microsommeils" de 3 à 10 secondes qui surviennent sans que la personne s\'en rende compte : y compris au volant. La somnolence diurne n\'est jamais anodine.',
     },
     {
       id: 'qual-4',
@@ -199,7 +199,7 @@ const qualiteImpact: TestSection = {
 }
 
 // ══════════════════════════════════════════════════════
-// SECTION 3 — Hygiène du sommeil (SHI — 10 tests)
+// SECTION 3 : Hygiène du sommeil (SHI : 10 tests)
 // ══════════════════════════════════════════════════════
 const hygieneSommeil: TestSection = {
   id: 'hygiene-sommeil',
@@ -216,7 +216,7 @@ const hygieneSommeil: TestSection = {
       description: 'Se coucher à des heures différentes chaque jour',
       criteria: 'Je vais me coucher à des heures différentes chaque jour.',
       scoring: shiFrequencyScoring,
-      tip: 'Walker place la régularité en tête de tous les facteurs de qualité du sommeil — avant même la durée. Des horaires variables créent un "jet lag social" permanent qui désynchronise l\'horloge interne.',
+      tip: 'Walker place la régularité en tête de tous les facteurs de qualité du sommeil : avant même la durée. Des horaires variables créent un "jet lag social" permanent qui désynchronise l\'horloge interne.',
     },
     {
       id: 'hyg-5',
@@ -229,7 +229,7 @@ const hygieneSommeil: TestSection = {
       id: 'hyg-2',
       name: 'Activités au lit hors sommeil',
       description: 'TV, repas, travail au lit quand vous ne pouvez pas dormir',
-      criteria: 'Je sors du lit pour faire des activités non liées au sommeil (TV, repas, travail…) lorsque je ne peux pas dormir.',
+      criteria: "Lorsque je n'arrive pas à m'endormir, je sors du lit pour faire autre chose (par exemple: TV, repas, travail).",
       scoring: [
         { value: 3, label: 'Toujours / Souvent', description: '3 jours sur 7 ou plus' },
         { value: 2, label: 'Parfois', description: '1 à 2 fois par semaine' },
@@ -243,7 +243,7 @@ const hygieneSommeil: TestSection = {
       description: 'Rester au lit plus de 30 minutes sans dormir',
       criteria: 'Le soir, une fois couché(e), je mets plus de 30 minutes à m\'endormir.',
       scoring: shiFrequencyScoring,
-      tip: 'Rester éveillé au lit fragilise l\'association lit-sommeil. La règle des 20 minutes — quitter le lit si vous n\'êtes pas endormi — est un pilier de la TCC-I, la thérapie que Walker recommande.',
+      tip: 'Rester éveillé au lit fragilise l\'association lit-sommeil. La règle des 20 minutes : quitter le lit si vous n\'êtes pas endormi : est un pilier de la TCC-I, la thérapie que Walker recommande.',
     },
     {
       id: 'hyg-4',
@@ -259,7 +259,7 @@ const hygieneSommeil: TestSection = {
       description: 'Siestes de plus de 30 minutes',
       criteria: 'Je fais régulièrement des siestes de plus de 30 minutes.',
       scoring: shiFrequencyScoring,
-      tip: 'Walker valide les siestes courtes de 10-20 minutes avant 15h. L\'astuce du "café-sieste" : boire un café juste avant de s\'allonger — la caféine met 20 min à agir, au réveil elle booste l\'énergie sans perturber la nuit.',
+      tip: 'Walker valide les siestes courtes de 10-20 minutes avant 15h. L\'astuce du "café-sieste" : boire un café juste avant de s\'allonger : la caféine met 20 min à agir, au réveil elle booste l\'énergie sans perturber la nuit.',
     },
     {
       id: 'hyg-7',
@@ -282,7 +282,7 @@ const hygieneSommeil: TestSection = {
       description: 'Exercice physique intense dans les 2h avant le coucher',
       criteria: 'Je fais de l\'exercice physique intense dans les 2 heures précédant le coucher.',
       scoring: shiFrequencyScoring,
-      tip: 'L\'exercice intense libère de l\'adrénaline et élève la température corporelle pendant 4 à 6 heures — l\'opposé des conditions requises pour l\'endormissement. Préférez l\'effort avant 19h.',
+      tip: 'L\'exercice intense libère de l\'adrénaline et élève la température corporelle pendant 4 à 6 heures : l\'opposé des conditions requises pour l\'endormissement. Préférez l\'effort avant 19h.',
     },
     {
       id: 'hyg-10',
@@ -296,7 +296,7 @@ const hygieneSommeil: TestSection = {
 }
 
 // ══════════════════════════════════════════════════════
-// SECTION 4 — Profil complémentaire (10 tests)
+// SECTION 4 : Profil complémentaire (10 tests)
 // ══════════════════════════════════════════════════════
 const profilComplementaire: TestSection = {
   id: 'profil-complementaire',
