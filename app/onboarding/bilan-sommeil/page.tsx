@@ -949,6 +949,20 @@ export default function BilanSommeilPage() {
     }
   }, [testIndex, sectionIndex, router])
 
+  // ── Browser back button → previous question during testing ──
+  const handlePrevRef = useRef(handlePrev)
+  useEffect(() => { handlePrevRef.current = handlePrev }, [handlePrev])
+  useEffect(() => {
+    if (phase !== 'testing') return
+    window.history.pushState(null, '', window.location.href)
+    const handler = () => {
+      window.history.pushState(null, '', window.location.href)
+      handlePrevRef.current()
+    }
+    window.addEventListener('popstate', handler)
+    return () => window.removeEventListener('popstate', handler)
+  }, [phase])
+
   return (
     <div className="min-h-screen bg-[#FAF8F5]">
       {phase === 'testing' && (

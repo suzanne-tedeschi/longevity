@@ -270,7 +270,7 @@ function ProgressBar({ current, total, sectionTitle }: { current: number; total:
 }
 
 /* ═══════════════════════════════════════════════════════
-   SCORE BUTTON — handles GSRS (4 options) & binary (2 options)
+   SCORE BUTTON : handles GSRS (4 options) & binary (2 options)
    ═══════════════════════════════════════════════════════ */
 function ScoreButton({ value, label, description, selected, onSelect, maxOptionValue }: {
   value: number; label: string; description: string; selected: boolean; onSelect: () => void; maxOptionValue: number
@@ -653,7 +653,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
   const alimentairePct = Math.round((alimentaireTotal / alimentaireMaxScore) * 100)
   const alimentaireInfo = getOverallLabel(alimentairePct)
 
-  // Global score — equal weight between digestif (inverted) and alimentaire sub-scores
+  // Global score : equal weight between digestif (inverted) and alimentaire sub-scores
   const globalTotal = (digestifMaxScore - digestifTotal) + alimentaireTotal
   const globalPct = Math.round((digestifPct + alimentairePct) / 2)
   // All section results for report
@@ -930,7 +930,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
             <h3 className="text-sm font-bold text-[#1a1a1a]">Ce qu&apos;on peut améliorer</h3>
           </div>
 
-          {/* Alimentaire weaknesses — primary */}
+          {/* Alimentaire weaknesses : primary */}
           <div className="space-y-4">
             {alimentaireWeaknesses.map((w) => {
               const wInfo = getOverallLabel(w.pct)
@@ -981,7 +981,7 @@ function ResultsScreen({ scores, onRestart }: { scores: Record<string, number>; 
             })}
           </div>
 
-          {/* Digestif weaknesses — subordinate, linked to nutrition */}
+          {/* Digestif weaknesses : subordinate, linked to nutrition */}
           {digestifWeaknesses.length > 0 && (
             <div className="mt-4">
               {alimentaireWeaknesses.length > 0 && (
@@ -1292,6 +1292,20 @@ export default function BilanNutritionPage() {
       setPhase('welcome')
     }
   }, [testIndex, sectionIndex, activeSections])
+
+  // ── Browser back button → previous question during testing ──
+  const handlePrevRef = useRef(handlePrev)
+  useEffect(() => { handlePrevRef.current = handlePrev }, [handlePrev])
+  useEffect(() => {
+    if (phase !== 'testing') return
+    window.history.pushState(null, '', window.location.href)
+    const handler = () => {
+      window.history.pushState(null, '', window.location.href)
+      handlePrevRef.current()
+    }
+    window.addEventListener('popstate', handler)
+    return () => window.removeEventListener('popstate', handler)
+  }, [phase])
 
   const handleStartAlimentaire = useCallback(() => {
     setActivePart('alimentaire')
