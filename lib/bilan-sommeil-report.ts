@@ -848,16 +848,6 @@ export function generateFullReport(
       allActions.push({ action: fallbackAction, why: fallbackWhy, sectionId: w.sectionId })
     }
   }
-  // Even for strong sections, surface triggered insights (individual questions not at max)
-  for (const s of strengths) {
-    const fullReport = getSectionReport(s.sectionId)
-    const fullTriggered = fullReport ? getTriggeredInsights(fullReport, scores) : []
-    for (const ti of fullTriggered) {
-      const action = ti.action || ti.recommendation.split('.')[0] + '.'
-      const why = ti.actionWhy || ti.recommendation
-      allActions.push({ action, why, sectionId: s.sectionId })
-    }
-  }
 
   const seenActions = new Set<string>()
   const uniqueActions = allActions.filter(a => {
