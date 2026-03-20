@@ -97,7 +97,7 @@ const troublesSommeilReport: SectionReport = {
     {
       questionId: 'som-1',
       triggerMaxScore: 1,
-      title: "Endormissement difficile",
+      title: "Réduire le temps d'endormissement",
       insight:
         "S'endormir en plus de 30 minutes, c'est le signe que deux signaux biologiques ne coïncident pas. Le premier : l'adénosine, la molécule qui s'accumule dans le cerveau pendant l'éveil et crée la pression de sommeil. Le second : la mélatonine, libérée par la glande pinéale selon l'heure programmée par l'horloge interne du cerveau (le noyau suprachiasmatique, ou NSC). Si vous vous couchez trop tôt, trop tard, ou à des horaires variables, l'un des deux signaux n'est pas au rendez-vous — et le sommeil ne peut pas démarrer. Si cela arrive 3 nuits par semaine depuis plus de 3 mois avec une fatigue en journée, c'est une insomnie chronique : la TCC-I (thérapie comportementale) est le traitement le plus efficace.",
       recommendation:
@@ -109,7 +109,7 @@ const troublesSommeilReport: SectionReport = {
     {
       questionId: 'som-2',
       triggerMaxScore: 1,
-      title: "Réveils nocturnes",
+      title: "Réduire les réveils nocturnes",
       insight:
         "Pour rester en sommeil profond, le corps doit baisser sa température interne de 0,5 à 1°C — il y parvient en envoyant la chaleur vers les mains et les pieds. Une chambre trop chaude bloque ce mécanisme et génère des micro-éveils. Mais d'autres causes existent : un cortisol (l'hormone du stress) encore élevé la nuit, des bruits ou lumières traités par le cerveau même pendant le sommeil, ou des micro-obstructions respiratoires. Ce qui compte : les réveils en première moitié de nuit amputent le sommeil profond (récupération physique, nettoyage cérébral) ; ceux en fin de nuit amputent le sommeil paradoxal (régulation émotionnelle) — les deux phases ne se rattrapent pas.",
       recommendation:
@@ -121,7 +121,7 @@ const troublesSommeilReport: SectionReport = {
     {
       questionId: 'som-4',
       triggerMaxScore: 1,
-      title: "Difficultés respiratoires (apnées potentielles)",
+      title: "Faire évaluer vos difficultés respiratoires nocturnes",
       insight:
         "Pendant le sommeil, les muscles de la gorge se relâchent naturellement. Dans les apnées obstructives, ce relâchement provoque une obstruction partielle ou totale des voies respiratoires. Le cerveau détecte la baisse d'oxygène et déclenche un micro-éveil d'urgence — souvent imperceptible, mais suffisant pour fragmenter le sommeil profond. Cette séquence peut se répéter 5 à 100 fois par heure. Résultat : une fatigue chronique malgré une durée de sommeil apparemment normale. Ce trouble touche 1 adulte sur 10, et est diagnostiqué dans seulement 20 % des cas.",
       recommendation:
@@ -133,7 +133,7 @@ const troublesSommeilReport: SectionReport = {
     {
       questionId: 'som-5',
       triggerMaxScore: 1,
-      title: "Ronflement",
+      title: "Réduire le ronflement",
       insight:
         "Le ronflement, c'est l'air qui fait vibrer les tissus mous de la gorge (voile du palais, luette, base de la langue) en passant à travers un espace trop étroit. Ces vibrations provoquent des micro-éveils discrets, et l'effort respiratoire accru fragmente le sommeil profond. L'alcool aggrave les choses en relâchant encore davantage les muscles de la gorge. Un ronflement fort et quotidien est un signe à évaluer : il peut cacher des apnées sous-jacentes.",
       recommendation:
@@ -145,7 +145,7 @@ const troublesSommeilReport: SectionReport = {
     {
       questionId: 'som-8',
       triggerMaxScore: 1,
-      title: "Cauchemars récurrents",
+      title: "Traiter les cauchemars récurrents",
       insight:
         "Pendant le sommeil paradoxal (REM), la noradrénaline — le neurotransmetteur du stress et de l'éveil — est quasiment absente. C'est dans cet environnement calme que le cerveau rejoue les souvenirs émotionnellement chargés pour en émousser la charge : une sorte de thérapie nocturne gratuite. Les cauchemars récurrents signalent que ce mécanisme est perturbé — soit parce que le stress maintient la noradrénaline active, soit parce qu'une privation de sommeil paradoxal crée un \"rebond REM\" avec des rêves intenses. Dans les deux cas, le traitement émotionnel nocturne ne se fait plus correctement.",
       recommendation:
@@ -157,7 +157,7 @@ const troublesSommeilReport: SectionReport = {
     {
       questionId: 'som-9',
       triggerMaxScore: 1,
-      title: "Douleurs nocturnes",
+      title: "Soulager les douleurs nocturnes",
       insight:
         "Le sommeil profond (N3) est la principale fenêtre de libération d'hormone de croissance, qui répare les tissus et réduit l'inflammation. Quand la douleur fragmente cette phase, moins d'hormone est produite — ce qui ralentit la récupération des zones douloureuses. En parallèle, le manque de sommeil profond amplifie la sensibilité à la douleur : le même signal est perçu plus intensément le lendemain. Un cercle vicieux s'installe : la douleur fragmente le sommeil, le sommeil fragmenté amplifie la douleur.",
       recommendation:
@@ -235,7 +235,7 @@ const qualiteImpactReport: SectionReport = {
     {
       questionId: 'qual-1',
       triggerMaxScore: 1,
-      title: "Anxiété de performance au coucher",
+      title: "Réduire l'anxiété de performance au coucher",
       insight:
         "Quand le sommeil est perçu comme mauvais, le cerveau entre en mode hypervigilance au coucher. La zone qui déclenche le sommeil — le VLPO, un petit noyau hypothalamique — fonctionne comme un interrupteur : soit il prend le dessus (sommeil), soit les systèmes d'éveil le dominent (éveil). Il n'y a pas d'état intermédiaire. L'anxiété de performance — la peur de mal dormir — active la noradrénaline et maintient les systèmes d'éveil allumés, bloquant le VLPO précisément au moment où vous essayez de dormir.",
       recommendation:
@@ -247,7 +247,7 @@ const qualiteImpactReport: SectionReport = {
     {
       questionId: 'qual-2',
       triggerMaxScore: 1,
-      title: "Somnifères et sommeil",
+      title: "Réévaluer l'usage des somnifères",
       insight:
         "Les benzodiazépines et le zolpidem (Stilnox) induisent la sédation en activant des récepteurs inhibiteurs du cerveau (GABA-A) — mais ce n'est pas du vrai sommeil. L'activité cérébrale mesurée à l'EEG est différente : moins d'ondes lentes profondes, moins de sommeil paradoxal. La mémoire ne se consolide pas de la même façon. Le zolpidem peut aussi provoquer des comportements automatiques nocturnes (somnambulisme, alimentation, conduite) dans environ 3 % des cas. Quant au CBD, il agit sur les systèmes d'éveil du cerveau d'une façon qui peut désynchroniser le sommeil paradoxal — les preuves cliniques sur le sommeil restent insuffisantes.",
       recommendation:
@@ -259,7 +259,7 @@ const qualiteImpactReport: SectionReport = {
     {
       questionId: 'qual-3',
       triggerMaxScore: 1,
-      title: "Somnolence en journée",
+      title: "Réduire la somnolence en journée",
       insight:
         "La somnolence diurne est la signature d'une adénosine résiduelle. L'adénosine, c'est la molécule qui crée la pression de sommeil : elle s'accumule dans le cerveau tout au long de l'éveil et une nuit complète l'élimine entièrement. Si le sommeil est trop court ou trop fragmenté, il en reste le matin — et c'est ce qui vous donne envie de dormir dans la journée. Des microsommeils involontaires (3 à 10 secondes) peuvent même survenir : le cerveau bascule brièvement vers le sommeil sans que vous le décidiez.",
       recommendation:
@@ -271,7 +271,7 @@ const qualiteImpactReport: SectionReport = {
     {
       questionId: 'qual-4',
       triggerMaxScore: 1,
-      title: "Manque de motivation et d'énergie",
+      title: "Retrouver motivation et énergie",
       insight:
         "Le sommeil paradoxal (REM) réinitialise les circuits de la motivation et de la récompense dans le cerveau via la dopamine. Sans assez de REM, ces circuits deviennent progressivement moins sensibles : la même quantité de dopamine produit moins d'effet. Le manque d'envie, le manque d'élan, la difficulté à se lever le matin — c'est souvent neurologique, pas psychologique. Et le REM est la première phase sacrifiée quand on dort peu : passer de 8h à 6h de sommeil fait perdre 60 à 90 minutes de sommeil paradoxal.",
       recommendation:
@@ -369,7 +369,7 @@ const hygieneSommeilReport: SectionReport = {
     {
       questionId: 'hyg-1',
       triggerMaxScore: 1,
-      title: "Heure de coucher irrégulière",
+      title: "Stabiliser l'heure de coucher",
       insight:
         "L'horloge interne du cerveau — le noyau suprachiasmatique (NSC), environ 20 000 neurones dans l'hypothalamus — tourne sur un cycle d'environ 24h. La lumière matinale la remet à l'heure chaque jour. Quand l'heure du coucher varie, l'horloge reçoit ses repères lumineux à des heures différentes : elle ne peut plus programmer précisément la montée de mélatonine le soir ni le pic de cortisol au matin. C'est un vrai jet lag interne — 1 à 3 heures de décalage, répété chaque semaine.",
       recommendation:
@@ -381,7 +381,7 @@ const hygieneSommeilReport: SectionReport = {
     {
       questionId: 'hyg-5',
       triggerMaxScore: 1,
-      title: "Heure de lever irrégulière",
+      title: "Stabiliser l'heure de lever",
       insight:
         "L'heure de lever est le levier le plus puissant sur l'horloge interne — plus fort que l'heure de coucher. C'est la lumière matinale qui remet le NSC à l'heure, stoppe la mélatonine et déclenche le pic de cortisol : le départ du compteur de 16h jusqu'à la prochaine nuit biologique. La grasse matinée du week-end retarde ce signal de 1 à 3 heures — l'horloge reprogramme tout en décalé. C'est le \"jet lag social\" : comme faire un Paris-Moscou aller-retour chaque week-end.",
       recommendation:
@@ -393,7 +393,7 @@ const hygieneSommeilReport: SectionReport = {
     {
       questionId: 'hyg-2',
       triggerMaxScore: 1,
-      title: "Le lit associé à l'éveil",
+      title: "Ne plus associer le lit à l'éveil",
       insight:
         "Chaque heure passée au lit éveillé — à ruminer, regarder les écrans, s'inquiéter — entraîne le cerveau à associer le lit à l'éveil et au stress. C'est un conditionnement classique : comme le chien de Pavlov qui salive à la cloche, votre corps finit par libérer du cortisol (hormone du stress) de façon réflexe dès que vous entrez dans la chambre. Le lit est devenu un déclencheur d'éveil.",
       recommendation:
@@ -405,7 +405,7 @@ const hygieneSommeilReport: SectionReport = {
     {
       questionId: 'hyg-3',
       triggerMaxScore: 1,
-      title: "Regarder l'heure la nuit",
+      title: "Ne plus regarder l'heure la nuit",
       insight:
         "Regarder l'heure la nuit déclenche un calcul automatique : \"il me reste X heures\". Ce calcul active la zone de planification du cerveau (le cortex préfrontal), qui libère de la noradrénaline — le neurotransmetteur de l'éveil et du stress. Cela bloque la zone du cerveau qui déclenche le sommeil (le VLPO). En plus, la lumière de l'écran du téléphone, même fugace, inhibe partiellement la mélatonine. Double blocage : cognitif et lumineux.",
       recommendation:
@@ -417,7 +417,7 @@ const hygieneSommeilReport: SectionReport = {
     {
       questionId: 'hyg-4',
       triggerMaxScore: 1,
-      title: "Caféine en soirée",
+      title: "Stopper la caféine après 13h-14h",
       insight:
         "La caféine ne détruit pas l'adénosine — elle bloque ses récepteurs. Pendant ce temps, l'adénosine continue de s'accumuler en coulisse. Dès que la caféine est éliminée par le foie, elle déferle d'un coup : c'est le \"crash caféine\". Sa demi-vie est de 5 à 7h en moyenne, jusqu'à 10h selon votre génétique (enzyme CYP1A2) : un café à 16h maintient encore 50 % de son effet à 22h. Il bloque la pression de sommeil et réduit le sommeil profond — même si vous vous endormez sans difficulté, le sommeil profond est moins profond.",
       recommendation:
@@ -429,7 +429,7 @@ const hygieneSommeilReport: SectionReport = {
     {
       questionId: 'hyg-6',
       triggerMaxScore: 1,
-      title: "Siestes trop longues",
+      title: "Limiter les siestes à 20 min avant 15h",
       insight:
         "Une sieste de moins de 20 minutes reste en sommeil léger — et c'est parfait. Au-delà, le cerveau entre en sommeil profond (N3) : au réveil, il faut 10 à 30 minutes pour retrouver des performances normales. Encore plus problématique : chaque minute de sieste élimine de l'adénosine — la molécule de pression de sommeil. Une sieste d'1h peut réduire suffisamment cette pression pour retarder l'endormissement de 1 à 2h le soir et fragmenter le sommeil profond nocturne.",
       recommendation:
@@ -441,7 +441,7 @@ const hygieneSommeilReport: SectionReport = {
     {
       questionId: 'hyg-7',
       triggerMaxScore: 1,
-      title: "Écrans avant le coucher",
+      title: "Éliminer les écrans avant le coucher",
       insight:
         "Des cellules spécialisées de votre rétine détectent la lumière bleue des écrans et envoient un signal direct à l'horloge interne du cerveau (le noyau suprachiasmatique, NSC). Cette horloge bloque alors la glande pinéale — la fabrique de mélatonine. Résultat : votre cerveau pense qu'il fait encore jour. 2h d'écran le soir retardent la montée de mélatonine de 90 minutes et réduisent le sommeil paradoxal de fin de nuit de 20 % — la phase clé pour la régulation émotionnelle.",
       recommendation:
@@ -453,7 +453,7 @@ const hygieneSommeilReport: SectionReport = {
     {
       questionId: 'hyg-8',
       triggerMaxScore: 1,
-      title: "Repas tardifs",
+      title: "Dîner plus tôt et plus léger",
       insight:
         "Manger tard perturbe le sommeil de deux façons. D'abord, la digestion génère de la chaleur : le corps doit baisser sa température interne pour s'endormir, mais la thermogénèse digestive (qui augmente le métabolisme de 10-15 %) retarde cette descente. Ensuite, un repas riche en glucides rapides provoque un pic de glycémie, puis une chute du sucre 2 à 3h plus tard — cette hypoglycémie réactionnelle déclenche une réponse d'alerte (cortisol, adrénaline) qui fragmente le sommeil en deuxième partie de nuit.",
       recommendation:
@@ -465,7 +465,7 @@ const hygieneSommeilReport: SectionReport = {
     {
       questionId: 'hyg-9',
       triggerMaxScore: 1,
-      title: "Sport tard le soir",
+      title: "Éviter le sport intensif après 19h",
       insight:
         "Un effort intense le soir active trois systèmes qui s'opposent au sommeil. D'abord, la chaleur musculaire élève la température centrale de 1 à 2°C — il faut 4 à 6h pour revenir à la normale. Ensuite, l'axe du stress libère du cortisol et de l'adrénaline, dont les effets durent 4 à 6h. Enfin, la noradrénaline cérébrale augmente et inhibe directement la zone d'endormissement (le VLPO). Un sport intense à 20h, c'est trois alarmes encore actives à 23h.",
       recommendation:
@@ -477,7 +477,7 @@ const hygieneSommeilReport: SectionReport = {
     {
       questionId: 'hyg-10',
       triggerMaxScore: 1,
-      title: "Alcool avant le coucher",
+      title: "Éviter l'alcool dans les 4h avant le coucher",
       insight:
         "L'alcool endort — mais ce n'est pas du vrai sommeil. Il sédation le cerveau en activant des récepteurs inhibiteurs (GABA), ce qui donne l'impression de s'endormir vite. Mais en deuxième partie de nuit, le foie transforme l'alcool en acétaldéhyde — un stimulant neuronal qui active les systèmes d'éveil et fragmente le sommeil. En parallèle, les circuits qui génèrent le sommeil paradoxal (REM) sont directement supprimés : deux verres de vin suffisent à réduire le REM de 24 %.",
       recommendation:
@@ -563,7 +563,7 @@ const profilReport: SectionReport = {
     {
       questionId: 'prof-1',
       triggerMaxScore: 1,
-      title: "Cerveau hyperactif au coucher",
+      title: "Calmer l'activité mentale au coucher",
       insight:
         "S'endormir nécessite que la zone d'endormissement du cerveau (le VLPO, dans l'hypothalamus) prenne le dessus sur les systèmes d'éveil. Mais cela ne peut pas se produire si la zone de planification (le cortex préfrontal) est active. Penser à ce qu'on doit faire demain, anticiper, organiser — tout ça maintient le cerveau en mode travail et bloque l'endormissement. Ce n'est pas de la mauvaise volonté : c'est biochimiquement incompatible.",
       recommendation:
@@ -575,7 +575,7 @@ const profilReport: SectionReport = {
     {
       questionId: 'prof-2',
       triggerMaxScore: 1,
-      title: "Ruminations au coucher",
+      title: "Structurer les ruminations hors du lit",
       insight:
         "Les ruminations activent ce qu'on appelle le réseau par défaut du cerveau — le mode mental qu'il utilise quand il tourne sur lui-même, ressasse, anticipe. Ce réseau maintient une activité cérébrale de haut niveau, incompatible avec l'endormissement. Et plus vous essayez de chasser une pensée, plus elle revient : tenter de ne pas penser à quelque chose oblige le cerveau à surveiller si cette pensée est présente — ce qui l'active davantage. L'effort de suppression renforce la rumination.",
       recommendation:
@@ -587,7 +587,7 @@ const profilReport: SectionReport = {
     {
       questionId: 'prof-3',
       triggerMaxScore: 1,
-      title: "Palpitations et tension physique au lit",
+      title: "Désamorcer l'activation physique au lit",
       insight:
         "Les palpitations et la chaleur interne au coucher signalent que l'axe du stress est encore actif : le cortisol et l'adrénaline sont encore élevés. Normalement, le cortisol culmine le matin (signal d'éveil) et touche son minimum à minuit. Le stress chronique ou un exercice tardif perturbent cette courbe : fréquence cardiaque élevée, vaisseaux périphériques contractés (ce qui empêche la descente thermique), et zone d'endormissement bloquée.",
       recommendation:
@@ -599,7 +599,7 @@ const profilReport: SectionReport = {
     {
       questionId: 'prof-4',
       triggerMaxScore: 1,
-      title: "Chambre associée au stress",
+      title: "Reconditionner la chambre au sommeil",
       insight:
         "Si vous dormez mieux hors de chez vous, c'est le signe d'un conditionnement : votre chambre est devenue un déclencheur de stress. Chaque fois que vous restez éveillé dans votre lit — à travailler, regarder un écran, vous inquiéter — le cerveau renforce l'association : lit = éveil + frustration + cortisol. Cette association peut devenir assez robuste pour déclencher une montée de cortisol réflexe dès l'entrée dans la chambre, indépendamment de votre niveau de fatigue. Hors de chez vous, le conditionnement ne s'active pas.",
       recommendation:
@@ -611,7 +611,7 @@ const profilReport: SectionReport = {
     {
       questionId: 'prof-5',
       triggerMaxScore: 1,
-      title: "Fatigue au réveil malgré une nuit complète",
+      title: "Explorer la cause d'un sommeil non réparateur",
       insight:
         "Se réveiller épuisé malgré 7 ou 8 heures de sommeil, c'est la signature d'un sommeil non réparateur. Deux causes principales : les apnées, qui génèrent des micro-éveils répétés (5 à 100 par heure) sans souvenir conscient — le sommeil profond (N3) ne se consolide jamais suffisamment pour libérer l'hormone de croissance et activer le nettoyage cérébral. Ou une chambre trop chaude, qui empêche la descente thermique et maintient le sommeil en stade superficiel toute la nuit. Dans les deux cas, le matin ressemble à une nuit blanche partielle.",
       recommendation:
@@ -623,7 +623,7 @@ const profilReport: SectionReport = {
     {
       questionId: 'prof-6',
       triggerMaxScore: 1,
-      title: "Pauses respiratoires remarquées",
+      title: "Faire évaluer les pauses respiratoires nocturnes",
       insight:
         "Des pauses respiratoires remarquées par l'entourage, associées à un ronflement fort, c'est la présentation classique des apnées obstructives sévères. Pendant chaque pause : le taux d'oxygène chute, le CO₂ s'accumule, et le cerveau déclenche un micro-éveil d'urgence avec une montée de noradrénaline et de cortisol. Ces micro-éveils répétés fragmentent le sommeil profond et le REM, créant une dette de récupération nocturne. À long terme : hypertension artérielle, risque cardiovasculaire augmenté, et atteintes cognitives.",
       recommendation:
@@ -635,7 +635,7 @@ const profilReport: SectionReport = {
     {
       questionId: 'prof-7',
       triggerMaxScore: 1,
-      title: "Bouche sèche et maux de tête matinaux",
+      title: "Signaler la bouche sèche et maux de tête à votre médecin",
       insight:
         "Bouche sèche au réveil, maux de tête matinaux, ronflement fort : cette triade oriente vers les apnées du sommeil. La bouche sèche vient de la respiration buccale forcée quand les voies nasales sont obstruées. Les maux de tête, eux, sont causés par l'accumulation de CO₂ pendant les pauses respiratoires : les vaisseaux cérébraux se dilatent en réponse au CO₂, provoquant des céphalées au réveil.",
       recommendation:
@@ -647,7 +647,7 @@ const profilReport: SectionReport = {
     {
       questionId: 'prof-8',
       triggerMaxScore: 1,
-      title: "Syndrome des jambes sans repos",
+      title: "Évaluer et traiter le syndrome des jambes sans repos",
       insight:
         "Le syndrome des jambes sans repos (SJSR) vient d'un manque de dopamine dans les circuits moteurs de la moelle épinière. La dopamine inhibe normalement les neurones qui contrôlent les mouvements des membres au repos. Quand elle est insuffisante, ces neurones s'emballent et génèrent des envies irrépressibles de bouger. La cause la plus fréquente : un déficit en fer. Le fer est indispensable pour fabriquer la dopamine — et un manque de ferritine (le fer stocké dans l'organisme) peut suffire à déclencher le syndrome, même sans anémie.",
       recommendation:
@@ -659,7 +659,7 @@ const profilReport: SectionReport = {
     {
       questionId: 'prof-9',
       triggerMaxScore: 1,
-      title: "Réveils sans raison apparente",
+      title: "Optimiser l'environnement nocturne",
       insight:
         "Le cerveau continue de surveiller l'environnement pendant le sommeil, même sans en avoir conscience. Des neurones du tronc cérébral (la formation réticulée) évaluent en permanence les sons, la lumière et la température pour détecter des menaces — un héritage évolutif. Un bruit à 45 dB, une LED de chargeur (5 lux), ou une variation de température de 2°C suffisent à déclencher une micro-alerte et un micro-éveil. Répétés toute la nuit, ces micro-éveils fragmentent le sommeil profond sans que vous vous en souveniez au matin.",
       recommendation:
@@ -671,7 +671,7 @@ const profilReport: SectionReport = {
     {
       questionId: 'prof-10',
       triggerMaxScore: 1,
-      title: "Douleurs chroniques et sommeil",
+      title: "Briser le cercle douleur-sommeil",
       insight:
         "La douleur chronique et le mauvais sommeil s'entretiennent mutuellement. La douleur active les circuits d'éveil du cerveau et fragmente le sommeil. Et le manque de sommeil profond, à son tour, amplifie la sensibilité à la douleur via l'inflammation — le manque de REM réduit aussi les endorphines et les voies naturelles de modulation de la douleur. Résultat : plus on a mal, moins on dort ; moins on dort, plus on a mal.",
       recommendation:
