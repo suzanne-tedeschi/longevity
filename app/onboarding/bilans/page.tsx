@@ -751,7 +751,7 @@ export default function BilansPage() {
                   </div>
                   <div className="w-px self-stretch bg-white/[0.08] mx-1" />
                   <div className="text-center lg:text-left">
-                    <p className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.18em] text-white/30 mb-2">Âge bio</p>
+                    <p className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.18em] text-white/30 mb-2">Âge biologique</p>
                     <div className="flex items-baseline gap-1 justify-center lg:justify-start">
                       <span className="text-[64px] sm:text-[56px] lg:text-[42px] leading-none font-extrabold text-white/10 blur-[5px] select-none tracking-tight">00</span>
                       <span className="text-[18px] sm:text-[16px] lg:text-base text-white/10 blur-[4px]">ans</span>
