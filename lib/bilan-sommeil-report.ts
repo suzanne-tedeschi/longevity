@@ -885,7 +885,9 @@ export function generateFullReport(
         title: report.weaknessLabel || r.title,
         pct: r.pct,
         level: rec.level,
-        concern: rec.text,
+        concern: triggered.length > 0
+          ? `${triggered.length} point${triggered.length > 1 ? 's' : ''} à travailler : ${triggered.map(t => t.title).join(', ')}.`
+          : rec.text,
         science: report.context,
         reference: ref0,
         triggeredInsights: triggered
