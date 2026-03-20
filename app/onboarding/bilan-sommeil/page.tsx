@@ -16,7 +16,7 @@ import { saveProgress, loadProgress, clearProgress } from '@/lib/bilan-progress'
 import { generateFullReport } from '@/lib/bilan-sommeil-report'
 
 /* ═══════════════════════════════════════════════════════
-   SVG ICON COMPONENTS — Sleep-themed line icons
+   SVG ICON COMPONENTS : Sleep-themed line icons
    ═══════════════════════════════════════════════════════ */
 
 function MoonIcon({ className = 'w-6 h-6' }: { className?: string }) {
@@ -673,7 +673,11 @@ function ResultsScreen({ scores }: { scores: Record<string, number> }) {
             <h3 className="text-sm font-bold text-[#1a1a1a]">Ce qu&apos;on peut améliorer</h3>
           </div>
           <div className="space-y-4">
-            {report.weaknesses.map((w) => {
+            {[...report.weaknesses].sort((a, b) => {
+              if (a.sectionId === 'profil-complementaire' && b.sectionId !== 'profil-complementaire') return 1
+              if (b.sectionId === 'profil-complementaire' && a.sectionId !== 'profil-complementaire') return -1
+              return 0
+            }).map((w) => {
               const isExpanded = expandedInsights.has(w.sectionId)
               return (
                 <div key={w.sectionId} className="bg-white border border-[#1a1a1a]/[0.08] rounded-2xl overflow-hidden">

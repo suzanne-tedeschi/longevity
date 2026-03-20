@@ -1126,9 +1126,14 @@ export default function BilansPage() {
 
                             {/* Weaknesses : split alimentaire / digestif */}
                             {report.weaknesses.length > 0 && (() => {
+                              const sortedWeaknesses = [...report.weaknesses!].sort((a, b) => {
+                                if (a.sectionId === 'profil-complementaire' && b.sectionId !== 'profil-complementaire') return 1
+                                if (b.sectionId === 'profil-complementaire' && a.sectionId !== 'profil-complementaire') return -1
+                                return 0
+                              })
                               const digestifIds = DIGESTIF_IDS
-                              const alimentaireW = report.weaknesses!.filter(w => !digestifIds.has(w.sectionId))
-                              const digestifW = report.weaknesses!.filter(w => digestifIds.has(w.sectionId) && w.pct < 50)
+                              const alimentaireW = sortedWeaknesses.filter(w => !digestifIds.has(w.sectionId))
+                              const digestifW = sortedWeaknesses.filter(w => digestifIds.has(w.sectionId) && w.pct < 50)
                               return (
                                 <div>
                                   <div className="flex items-center gap-2 mb-4">
