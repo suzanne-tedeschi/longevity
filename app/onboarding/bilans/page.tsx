@@ -799,78 +799,77 @@ export default function BilansPage() {
 
               {/* ── Right: score cards ── */}
               <div className="flex-1 min-w-0 flex flex-col gap-2 lg:gap-3">
-                {/* Nutrition : carte principale */}
-                <div
-                  className={`${css.kpiCard} relative rounded-2xl p-4 sm:p-5 overflow-hidden border cursor-pointer`}
-                  style={{ background: nutritionScore !== null ? 'rgba(201,169,110,0.07)' : 'rgba(255,255,255,0.04)', borderColor: nutritionScore !== null ? 'rgba(201,169,110,0.22)' : 'rgba(255,255,255,0.08)' }}
-                  onClick={() => {
-                    if (nutritionScore !== null) {
-                      setExpandedReport('nutrition')
-                      setTimeout(() => document.getElementById('compte-rendu')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
-                    } else {
-                      router.push('/onboarding/bilan-nutrition')
-                    }
-                  }}
-                >
-                  <div className={css.kpiShimmer}><div /></div>
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-4">
-                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                      <div className={`${css.kpiIcon} w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0`} style={{ background: 'rgba(201,169,110,0.12)', color: '#c9a96e' }}>
-                        <Apple className="w-5 h-5" />
+                {/* Nutrition + Sommeil : côte à côte */}
+                <div className="grid grid-cols-2 gap-2 lg:gap-3">
+                  {/* Nutrition */}
+                  <div
+                    className={`${css.kpiCard} relative rounded-2xl p-3 sm:p-4 overflow-hidden border cursor-pointer`}
+                    style={{ background: nutritionScore !== null ? 'rgba(201,169,110,0.07)' : 'rgba(255,255,255,0.04)', borderColor: nutritionScore !== null ? 'rgba(201,169,110,0.22)' : 'rgba(255,255,255,0.08)' }}
+                    onClick={() => {
+                      if (nutritionScore !== null) {
+                        setExpandedReport('nutrition')
+                        setTimeout(() => document.getElementById('compte-rendu')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+                      } else {
+                        router.push('/onboarding/bilan-nutrition')
+                      }
+                    }}
+                  >
+                    <div className={css.kpiShimmer}><div /></div>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className={`${css.kpiIcon} w-9 h-9 rounded-xl flex items-center justify-center shrink-0`} style={{ background: 'rgba(201,169,110,0.12)', color: '#c9a96e' }}>
+                          <Apple className="w-4 h-4" />
+                        </div>
+                        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/35">Nutrition</p>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/35 mb-1">Nutrition</p>
-                        {nutritionScore !== null ? (
-                          <div className="flex items-baseline gap-1">
-                            <span className={`${css.kpiValue} text-4xl sm:text-3xl font-bold text-white`}>{nutritionScore}</span>
-                            <span className="text-sm text-white/30">/100</span>
-                          </div>
-                        ) : (
-                          <p className="text-[15px] sm:text-[14px] text-white/70 font-medium leading-tight">Questionnaire disponible</p>
-                        )}
+                      {nutritionScore !== null ? (
+                        <div className="flex items-baseline gap-1">
+                          <span className={`${css.kpiValue} text-3xl font-bold text-white`}>{nutritionScore}</span>
+                          <span className="text-xs text-white/30">/100</span>
+                        </div>
+                      ) : (
+                        <p className="text-[13px] text-white/70 font-medium leading-tight">Questionnaire disponible</p>
+                      )}
+                      <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold w-fit transition-all" style={{ color: '#c9a96e', background: 'rgba(201,169,110,0.1)', border: '1px solid rgba(201,169,110,0.2)' }}>
+                        {nutritionScore !== null ? 'Rapport' : 'Commencer'}
+                        <ArrowRight className="w-3 h-3" />
                       </div>
-                    </div>
-                    <div className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all" style={{ color: '#c9a96e', background: 'rgba(201,169,110,0.1)', border: '1px solid rgba(201,169,110,0.2)' }}>
-                      {nutritionScore !== null ? 'Rapport' : 'Commencer'}
-                      <ArrowRight className="w-3.5 h-3.5" />
                     </div>
                   </div>
-                </div>
 
-                {/* Sommeil : carte secondaire horizontale */}
-                <div
-                  className={`${css.kpiCard} relative rounded-2xl p-4 sm:p-5 overflow-hidden border cursor-pointer`}
-                  style={{ background: sommeilScore !== null ? 'rgba(167,139,250,0.07)' : 'rgba(255,255,255,0.04)', borderColor: sommeilScore !== null ? 'rgba(167,139,250,0.22)' : 'rgba(255,255,255,0.08)' }}
-                  onClick={() => {
-                    if (sommeilScore !== null) {
-                      setExpandedReport('sommeil')
-                      setTimeout(() => document.getElementById('compte-rendu')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
-                    } else {
-                      router.push('/onboarding/bilan-sommeil')
-                    }
-                  }}
-                >
-                  <div className={css.kpiShimmer}><div /></div>
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-4">
-                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                      <div className={`${css.kpiIcon} w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0`} style={{ background: 'rgba(167,139,250,0.12)', color: '#a78bfa' }}>
-                        <Moon className="w-5 h-5" />
+                  {/* Sommeil */}
+                  <div
+                    className={`${css.kpiCard} relative rounded-2xl p-3 sm:p-4 overflow-hidden border cursor-pointer`}
+                    style={{ background: sommeilScore !== null ? 'rgba(167,139,250,0.07)' : 'rgba(255,255,255,0.04)', borderColor: sommeilScore !== null ? 'rgba(167,139,250,0.22)' : 'rgba(255,255,255,0.08)' }}
+                    onClick={() => {
+                      if (sommeilScore !== null) {
+                        setExpandedReport('sommeil')
+                        setTimeout(() => document.getElementById('compte-rendu')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+                      } else {
+                        router.push('/onboarding/bilan-sommeil')
+                      }
+                    }}
+                  >
+                    <div className={css.kpiShimmer}><div /></div>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className={`${css.kpiIcon} w-9 h-9 rounded-xl flex items-center justify-center shrink-0`} style={{ background: 'rgba(167,139,250,0.12)', color: '#a78bfa' }}>
+                          <Moon className="w-4 h-4" />
+                        </div>
+                        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/35">Sommeil</p>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/35 mb-1">Sommeil</p>
-                        {sommeilScore !== null ? (
-                          <div className="flex items-baseline gap-1">
-                            <span className={`${css.kpiValue} text-4xl sm:text-3xl font-bold text-white`}>{sommeilScore}</span>
-                            <span className="text-sm text-white/30">/100</span>
-                          </div>
-                        ) : (
-                          <p className="text-[15px] sm:text-[14px] text-white/70 font-medium leading-tight">Questionnaire disponible</p>
-                        )}
+                      {sommeilScore !== null ? (
+                        <div className="flex items-baseline gap-1">
+                          <span className={`${css.kpiValue} text-3xl font-bold text-white`}>{sommeilScore}</span>
+                          <span className="text-xs text-white/30">/100</span>
+                        </div>
+                      ) : (
+                        <p className="text-[13px] text-white/70 font-medium leading-tight">Questionnaire disponible</p>
+                      )}
+                      <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold w-fit transition-all" style={{ color: '#a78bfa', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)' }}>
+                        {sommeilScore !== null ? 'Rapport' : 'Commencer'}
+                        <ArrowRight className="w-3 h-3" />
                       </div>
-                    </div>
-                    <div className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all" style={{ color: '#a78bfa', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)' }}>
-                      {sommeilScore !== null ? 'Rapport' : 'Commencer'}
-                      <ArrowRight className="w-3.5 h-3.5" />
                     </div>
                   </div>
                 </div>
