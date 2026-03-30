@@ -68,10 +68,10 @@ const weeklyActivity = [
 ]
 
 const bilanOptionsDefs: { id: string; bilanType: string; title: string; description: string; duration: string; available: boolean; href: string; icon: React.ReactNode; color: string }[] = [
-  { id: "condition-physique", bilanType: "mobilite", title: "Condition physique", description: "43 tests : mobilite, force, equilibre, souplesse.", duration: "15 min", available: true, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
+  { id: "condition-physique", bilanType: "mobilite", title: "Condition physique", description: "43 tests : mobilite, force, equilibre, souplesse.", duration: "15 min", available: false, href: "/onboarding/bilan-mobilite", icon: <Dumbbell className="w-5 h-5" />, color: "#3ECF8E" },
   { id: "nutrition", bilanType: "nutrition", title: "Nutrition", description: "Troubles digestifs & habitudes alimentaires.", duration: "12 min", available: true, href: "/onboarding/bilan-nutrition", icon: <Apple className="w-5 h-5" />, color: "#c9a96e" },
   { id: "sommeil", bilanType: "sommeil", title: "Sommeil", description: "Qualite & recuperation nocturne.", duration: "10 min", available: true, href: "/onboarding/bilan-sommeil", icon: <Moon className="w-5 h-5" />, color: "#a78bfa" },
-  { id: "mental", bilanType: "mental", title: "Santé mentale", description: "Émotions, stress, résilience : 2 questionnaires.", duration: "25 min", available: true, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
+  { id: "mental", bilanType: "mental", title: "Santé mentale", description: "Émotions, stress, résilience : 2 questionnaires.", duration: "25 min", available: false, href: "/onboarding/bilan-mental", icon: <Brain className="w-5 h-5" />, color: "#ef4444" },
 ]
 
 /* Hidden defs for report lookup (emotionnel + stress saved separately in DB) */
